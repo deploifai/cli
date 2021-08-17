@@ -8,7 +8,7 @@ setuptools.setup(
   python_requires=">=3.6",
   entry_points={
         'console_scripts': [
-            'deploifai = deploifai.init:cli',
+            'deploifai = deploifai.cli:cli',
         ],
     },
 )
