@@ -4,7 +4,11 @@ setuptools.setup(
   name="deploifai",
   version="0.0.1",
   author="Deploifai Limited",
-  package_dir={"": "deploifai"},
-  packages=setuptools.find_packages(where="deploifai"),
+  packages=["deploifai"],
   python_requires=">=3.6",
+  entry_points={
+        'console_scripts': [
+            'deploifai = deploifai.init:cli',
+        ],
+    },
 )
