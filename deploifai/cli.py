@@ -1,16 +1,17 @@
 import click
+from .auth.login import login
+from .auth.logout import logout
 
 
 @click.group()
+@click.version_option(message="%(prog)s %(version)s")
 def cli():
     pass
 
 
-@cli.command()
-def init():
-    click.echo("Going to put init stuff here!")
+cli.add_command(login)
+cli.add_command(logout)
 
 
-@cli.command()
-def login():
-    click.echo("Going to put login stuff here!")
+if __name__ == "__main__":
+    cli()
