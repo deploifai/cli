@@ -6,5 +6,8 @@ dist/
 .idea/
 
 .venv/
+.env
+
+**/deploifai.cfg
 
 **/__pycache__

@@ -1,11 +1,15 @@
 import click
+
+from .context_obj import pass_deploifai_context_obj
+
 from .auth.login import login
 from .auth.logout import logout
 
 
 @click.group()
 @click.version_option(message="%(prog)s %(version)s")
-def cli():
+@pass_deploifai_context_obj
+def cli(deploifai):
     pass
 
 
