@@ -16,7 +16,7 @@ config_directory = (
 )
 config_filepath = os.path.join(config_directory, config_filename)
 
-config_sections = ["AUTH"]
+config_sections = ["AUTH", "ACCOUNT"]
 
 debug_levels = ["info", "warning", "error"]
 
