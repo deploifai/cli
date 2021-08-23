@@ -4,7 +4,8 @@ setuptools.setup(
     name="deploifai",
     version="0.0.1",
     author="Deploifai Limited",
-    packages=["deploifai"],
+    packages=setuptools.find_packages(),
+    include_package_data=True,
     python_requires=">=3.6",
     install_requires=[
         "Click",
