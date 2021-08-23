@@ -16,7 +16,7 @@ from . import credentials
 )
 def login(deploifai: DeploifaiContextObj, username: str, token: str):
     """
-    Login to gain access to Deploifai using a generated personal access token
+    Login to access Deploifai using a personal access token
     """
     try:
         response = requests.post(
@@ -30,7 +30,7 @@ def login(deploifai: DeploifaiContextObj, username: str, token: str):
         return
 
     if response.status_code != 200:
-        click.secho("Invalid login")
+        click.secho("Invalid login", fg="red")
         return
 
     click.secho("Login success", fg="green")

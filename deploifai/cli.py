@@ -9,8 +9,13 @@ from .auth.logout import logout
 @click.group()
 @click.version_option(message="%(prog)s %(version)s")
 @pass_deploifai_context_obj
-@click.option("--debug", is_flag=True)
-@click.option("--debug-level", type=click.Choice(debug_levels), default="info")
+@click.option("--debug", is_flag=True, help="Show debug logs")
+@click.option(
+    "--debug-level",
+    type=click.Choice(debug_levels),
+    default="info",
+    help="Set debugging level",
+)
 def cli(deploifai: DeploifaiContextObj, debug: bool, debug_level):
     deploifai.debug = debug
     deploifai.debug_level = debug_level
