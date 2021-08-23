@@ -8,12 +8,27 @@ from . import credentials
 @pass_deploifai_context_obj
 def logout(deploifai: DeploifaiContextObj):
     """
-    Logout as a Deploifai user
+    Logout to remove access to Deploifai
     """
-    click.echo("should logout!")
+    auth = deploifai.config["AUTH"]
+    username = auth.get("username")
 
-    username = deploifai.config["AUTH"]["username"]
-    token = credentials.get_auth_token(username)
-    click.echo(f"token: {token}")
+    if username is None:
+        click.secho("Not logged in")
+        return
 
-    credentials.delete_auth_token(username)
+    try:
+        credentials.delete_auth_token(username)
+        deploifai.debug_msg("Deleted auth token in keyring")
+
+    except Exception as e:
+        deploifai.debug_msg(e, level="error")
+        click.secho("Logout error")
+        return
+
+    auth = deploifai.config["AUTH"]
+    auth.pop("username")
+
+    deploifai.save_config()
+
+    click.secho("Logout success", fg="green")

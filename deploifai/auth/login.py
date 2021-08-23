@@ -1,4 +1,5 @@
 import click
+import requests
 
 from ..context_obj import pass_deploifai_context_obj, DeploifaiContextObj
 from . import credentials
@@ -6,15 +7,42 @@ from . import credentials
 
 @click.command()
 @pass_deploifai_context_obj
-def login(deploifai: DeploifaiContextObj):
+@click.option("-u", "--username", prompt=True, help="Username on Deploifai")
+@click.option(
+    "-t",
+    "--token",
+    prompt="Personal access token",
+    help="Generated personal access token on Deploifai",
+)
+def login(deploifai: DeploifaiContextObj, username: str, token: str):
     """
-    Login as a Deploifai user
+    Login to gain access to Deploifai using a generated personal access token
     """
-    username = "98sean98"
-    token = "some-token"
+    try:
+        response = requests.post(
+            "http://localhost:4000/auth/login/cli",
+            json={"username": username},
+            headers={"authorization": "Bearer " + token},
+        )
+    except requests.exceptions.RequestException as e:
+        deploifai.debug_msg(e, level="error")
+        click.echo("Error sending network request")
+        return
+
+    if response.status_code != 200:
+        click.secho("Invalid login")
+        return
+
+    click.secho("Login success", fg="green")
 
     deploifai.config["AUTH"]["username"] = username
 
-    credentials.save_auth_token(username, token)
+    try:
+        credentials.save_auth_token(username, token)
+        deploifai.debug_msg("Saved auth token in keyring")
+    except Exception as e:
+        deploifai.debug(e, level="error")
+        click.echo("Error saving auth token")
+        return
 
     deploifai.save_config()

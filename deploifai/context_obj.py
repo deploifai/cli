@@ -29,7 +29,7 @@ class DeploifaiContextObj:
     debug_level = "info"
 
     def __init__(self):
-        self.config = {}
+        pass
 
     def read_config(self):
         config = configparser.ConfigParser()
@@ -63,7 +63,7 @@ class DeploifaiContextObj:
             self.debug_msg(f"Saved config file as {config_filepath}")
 
     def debug_msg(self, message, level="info", **kwargs):
-        if self.debug or level is "error":
+        if self.debug:
             debug_level_index = debug_levels.index(self.debug_level)
             message_level_index = debug_levels.index(level)
 
