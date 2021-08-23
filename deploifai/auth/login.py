@@ -11,7 +11,6 @@ def login(deploifai: DeploifaiContextObj):
     """
     click.echo("open deploifai login page")
     auth = deploifai.config["AUTH"]
-    click.echo(list(auth.items()))
     # auth["authorization"] = "some_token"
 
     deploifai.save_config()
