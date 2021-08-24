@@ -21,8 +21,8 @@ jobs:
       - name: Install requirements
         run: pip3 install -q -r requirements.txt
 
-      - name: Build package for distribution
-        run: python3 setup.py sdist bdist_wheel
+      - name: Build distribution packages
+        run: python3 -m build
 
       - name: Release to PyPi
         env:
