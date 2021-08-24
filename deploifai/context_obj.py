@@ -70,9 +70,9 @@ class DeploifaiContextObj:
             # only log debug messages if the message level index is higher than the debug level index
             if message_level_index >= debug_level_index:
                 fg = "blue"
-                if level is "warning":
+                if level == "warning":
                     fg = "yellow"
-                elif level is "error":
+                elif level == "error":
                     fg = "red"
 
                 kwargs.update({"fg": kwargs["fg"] if "fg" in kwargs else fg})
