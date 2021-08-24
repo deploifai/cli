@@ -1,6 +1,23 @@
 # Deploifai CLI
 
-**written in python**
+### Installation
+
+```shell
+pip install deploifai-cli
+```
+
+### Usage
+
+```shell
+# ensure the cli is accessible
+which deploifai
+# show help message
+deploifai --help
+# show version
+deploifai --version
+```
+
+## Contribute
 
 ### Setup Development Environment
 
