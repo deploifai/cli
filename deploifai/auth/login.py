@@ -22,7 +22,7 @@ def login(deploifai: DeploifaiContextObj, username: str, token: str):
         response = requests.post(
             "http://localhost:4000/auth/login/cli",
             json={"username": username},
-            headers={"authorization": "Bearer " + token},
+            headers={"authorization": "deploifai-" + token},
         )
     except requests.exceptions.RequestException as e:
         deploifai.debug_msg(e, level="error")
