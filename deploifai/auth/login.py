@@ -41,7 +41,7 @@ def login(deploifai: DeploifaiContextObj, username: str, token: str):
         credentials.save_auth_token(username, token)
         deploifai.debug_msg("Saved auth token in keyring")
     except Exception as e:
-        deploifai.debug(e, level="error")
+        deploifai.debug_msg(e, level="error")
         click.echo("Error saving auth token")
         return
 
