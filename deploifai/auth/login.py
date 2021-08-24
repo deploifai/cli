@@ -9,12 +9,17 @@ from ..utilities import environment
 
 @click.command()
 @pass_deploifai_context_obj
-@click.option("-u", "--username", prompt=True, help="Username on Deploifai")
+@click.option(
+    "-u",
+    "--username",
+    prompt=True,
+    help="Username on Deploifai (Optionally can be set via DEPLOIFAI_LOGIN_USERNAME environment variable)",
+)
 @click.option(
     "-t",
     "--token",
     prompt="Personal access token",
-    help="Generated personal access token on Deploifai",
+    help="Generated personal access token on Deploifai (Optionally can be set via DEPLOIFAI_LOGIN_TOKEN environment variable)",
 )
 def login(deploifai: DeploifaiContextObj, username: str, token: str):
     """

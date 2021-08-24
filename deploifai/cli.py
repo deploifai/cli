@@ -16,14 +16,18 @@ from .auth.logout import logout
     default="info",
     help="Set debugging level",
 )
-def cli(deploifai: DeploifaiContextObj, debug: bool, debug_level):
+def cli_group(deploifai: DeploifaiContextObj, debug: bool, debug_level):
     deploifai.debug = debug
     deploifai.debug_level = debug_level
     deploifai.read_config()
 
 
-cli.add_command(login)
-cli.add_command(logout)
+cli_group.add_command(login)
+cli_group.add_command(logout)
+
+
+def cli():
+    cli_group(auto_envvar_prefix="DEPLOIFAI")
 
 
 if __name__ == "__main__":
