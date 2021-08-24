@@ -4,6 +4,8 @@ import requests
 from ..context_obj import pass_deploifai_context_obj, DeploifaiContextObj
 from . import credentials
 
+from ..utilities import environment
+
 
 @click.command()
 @pass_deploifai_context_obj
@@ -19,8 +21,10 @@ def login(deploifai: DeploifaiContextObj, username: str, token: str):
     Login to access Deploifai using a personal access token
     """
     try:
+        url = f"{environment.backend_url}/auth/login/cli"
+        deploifai.debug_msg(f"Login url: {url}")
         response = requests.post(
-            "http://localhost:4000/auth/login/cli",
+            url,
             json={"username": username},
             headers={"authorization": "deploifai-" + token},
         )

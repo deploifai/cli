@@ -2,8 +2,7 @@ import os
 import click
 import configparser
 
-cli_environment = os.environ.get("DEPLOIFAI_CLI_ENVIRONMENT", "production")
-is_cli_env_dev = cli_environment == "development"
+from .utilities import environment
 
 APP_NAME = "deploifai-cli"
 
@@ -11,7 +10,7 @@ config_filename = "deploifai.cfg"
 
 config_directory = (
     click.get_app_dir(APP_NAME)
-    if not is_cli_env_dev
+    if not environment.is_development_env
     else os.path.dirname(os.path.realpath(__file__))
 )
 config_filepath = os.path.join(config_directory, config_filename)
@@ -22,8 +21,6 @@ debug_levels = ["info", "warning", "error"]
 
 
 class DeploifaiContextObj:
-    cli_environment = cli_environment
-    is_cli_env_dev = is_cli_env_dev
     config = configparser.ConfigParser()
     debug = False
     debug_level = "info"
