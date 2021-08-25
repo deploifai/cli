@@ -13,8 +13,8 @@ setuptools.setup(
     url="https://github.com/deploifai/cli",
     packages=setuptools.find_packages(),
     include_package_data=True,
-    python_requires=">=3.9",
-    install_requires=["click", "keyring", "requests"],
+    python_requires=">=3.6",
+    install_requires=["click", "keyring==23.0.1", "requests"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
