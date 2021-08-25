@@ -4,9 +4,13 @@ from .context_obj import pass_deploifai_context_obj, DeploifaiContextObj, debug_
 
 from .auth.login import login
 from .auth.logout import logout
+from .project import project
 
 
-@click.group()
+commands = {"login": login, "logout": logout, "project": project}
+
+
+@click.group(commands=commands)
 @click.version_option(package_name="deploifai-cli", message="%(prog)s %(version)s")
 @pass_deploifai_context_obj
 @click.option("--debug", is_flag=True, help="Show debug logs")
@@ -16,19 +20,18 @@ from .auth.logout import logout
     default="info",
     help="Set debugging level",
 )
-def cli_group(deploifai: DeploifaiContextObj, debug: bool, debug_level):
+def cli(deploifai: DeploifaiContextObj, debug: bool, debug_level):
+    """
+    Deploifai CLI
+    """
     deploifai.debug = debug
     deploifai.debug_level = debug_level
     deploifai.read_config()
 
 
-cli_group.add_command(login)
-cli_group.add_command(logout)
-
-
-def cli():
-    cli_group(auto_envvar_prefix="DEPLOIFAI")
+def main():
+    cli(auto_envvar_prefix="DEPLOIFAI")
 
 
 if __name__ == "__main__":
-    cli()
+    main()
