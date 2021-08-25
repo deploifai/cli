@@ -11,6 +11,9 @@ from ..context_obj import pass_deploifai_context_obj, DeploifaiContextObj
 @pass_deploifai_context_obj
 @click.argument("name")
 def init(deploifai: DeploifaiContextObj, name: str):
+    '''
+    Initialise a new project called NAME
+    '''
     url = "https://api.github.com/repos/deploifai/basic-starter-template/zipball/main"
     r = requests.get(url)
 
@@ -37,4 +40,4 @@ def init(deploifai: DeploifaiContextObj, name: str):
 
         deploifai.debug_msg(f"Extracted zip file contents to {directory}")
 
-    click.echo("Creating a new project")
+    click.echo(f"Created a new project called {name}")
