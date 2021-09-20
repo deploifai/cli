@@ -16,7 +16,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: 3.6
 
       - name: Install requirements
         run: pip3 install -q -r requirements.txt
