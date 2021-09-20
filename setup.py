@@ -14,7 +14,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     include_package_data=True,
     python_requires=">=3.6",
-    install_requires=["click", "keyring==23.0.1", "requests"],
+    install_requires=["click", "python-dotenv", "keyring==23.0.1", "requests"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
