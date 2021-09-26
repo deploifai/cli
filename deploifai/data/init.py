@@ -11,16 +11,20 @@ from deploifai.context_obj import pass_deploifai_context_obj, DeploifaiContextOb
 
 @click.command()
 @pass_deploifai_context_obj
-def init(deploifai: DeploifaiContextObj):
+def init(context: DeploifaiContextObj):
   """
-  Initialise the current directory as a dataset and connect with data storage on the cloud
+  Initialise the current directory as a dataset
   """
-  dvc(['init'])
-  try:
-    deploifai_api = DeploifaiAPI(context=deploifai)
+  result = dvc(['init'])
+  if result == 1:
+    # The repo is not tracked using Git
     click.clear()
+    click.echo("You might wanna init this directory as a Git repo first.")
+    return
+  try:
+    deploifai_api = DeploifaiAPI(context=context)
     click.echo("Successfully initialised DVC repo. (Check https://dvc.org for more info)")
-    with click_spinner.spinner(beep=False, disable=False, force=False, stream=sys.stdout):
+    with click_spinner.spinner():
       click.echo("Getting account information")
       personal_storages, teams_storages = deploifai_api.get_data_storages()
 

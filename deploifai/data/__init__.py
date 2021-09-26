@@ -1,5 +1,6 @@
 import click
-from .init import init
+from deploifai.data.init import init
+
 
 @click.group()
 def data():
