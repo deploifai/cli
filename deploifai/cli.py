@@ -5,9 +5,9 @@ from .context_obj import pass_deploifai_context_obj, DeploifaiContextObj, debug_
 from .auth.login import login
 from .auth.logout import logout
 from .project import project
+from .data import data
 
-
-commands = {"login": login, "logout": logout, "project": project}
+commands = {"login": login, "logout": logout, "project": project, "data": data}
 
 
 @click.group(commands=commands)
