@@ -94,3 +94,31 @@ class DeploifaiAPI:
       """
       click.echo("Could not get information from Deploifai.")
       raise DeploifaiAPIError("The API did not return a JSON object")
+
+  def get_data_storage_info(self, storage_id):
+    query = """
+    query($id:String){
+      dataStorage(where:{id:$id}){
+        name  
+        containers{
+          id
+          directoryName
+          cloudName
+        }
+        cloudProviderYodaConfig{
+          provider
+          awsConfig{
+            awsRegion
+          } 
+          azureConfig{
+            azureRegion
+            storageAccount
+          }
+        }
+      }
+    }
+    """
+    r = requests.post(self.uri, json={'query': query, 'variables': {'id': storage_id}},
+                      headers=self.headers)
+    storage_details = r.json()['data']['dataStorage']
+    return storage_details

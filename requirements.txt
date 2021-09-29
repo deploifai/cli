@@ -32,3 +32,9 @@ typing-extensions==3.10.0.0
 urllib3==1.26.6
 webencodings==0.5.1
 zipp==3.5.0
+
+setuptools>=57.0.0
+deploifai>=0.0.1
+PyInquirer>=1.0.3
+dvc>=2.7.4
+PyYAML>=5.4.1
