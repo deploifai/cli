@@ -1,61 +1,123 @@
 import os
 import click
-import subprocess
 import click_spinner
 from PyInquirer import prompt
-from dvc.main import main as dvc
 from deploifai.api import DeploifaiAPIError, DeploifaiAPI
 from deploifai.context_obj import pass_deploifai_context_obj, DeploifaiContextObj
 from deploifai.utilities.config import add_storage_configs, DeploifaiDataAlreadyInitialisedError
+from deploifai.utilities.user import parse_user_profiles
+from time import sleep
 
 
 @click.command()
+@click.option('--create-new', prompt="Create a new data storage on Deploifai?", type=bool)
+@click.option('--workspace', help="Workspace name", type=str)
 @pass_deploifai_context_obj
-def init(context: DeploifaiContextObj):
+def init(context: DeploifaiContextObj, create_new, workspace):
   """
   Initialise the current directory as a dataset
   """
-  try:
-    deploifai_api = DeploifaiAPI(context=context)
-    with click_spinner.spinner():
-      click.echo("Getting account information")
-      personal_storages, teams_storages = deploifai_api.get_data_storages()
+  storage_id = None
+  container_name = None
+  command_workspace = None
+  deploifai_api = DeploifaiAPI(context=context)
 
-    questions = [{
-      'type': 'list',
-      'name': 'storage_option',
-      'message': 'Choose the dataset storage to link.',
-      'choices': [
-       {
-         'name': "Crete new data storage",
-         'value': "New"
-       }] + [
-       {
-         'name': "{}({})".format(x["name"], x["account"]["username"]),
-         'value': x['id']
-       } for x in (personal_storages + teams_storages)]
+  user_data = deploifai_api.get_user()
+  personal_workspace, team_workspaces = parse_user_profiles(user_data)
+
+  workspaces_from_api = [personal_workspace] + team_workspaces
+
+  # We need to check if the workspace was passed in. Also, we need to make sure that it is a part of the list of
+  # workspaces that this user has access to. Otherwise, we need to ask the user to give a valid workspace to use for
+  # this command.
+  if workspace and len(workspace):
+    if any(ws["username"] == workspace for ws in workspaces_from_api):
+      for w in workspaces_from_api:
+        if w["username"] == workspace:
+          command_workspace = w
+          break
+  else:
+    _choose_workspace = prompt({
+      "type": "list",
+      "name": "workspace",
+      "message": "Choose a workspace",
+      "choices": [{'name': ws["username"], 'value': ws} for ws in workspaces_from_api]
+    })
+    command_workspace = _choose_workspace["workspace"]
+
+  if create_new:
+    try:
+      personal_cloud_profiles, team_cloud_profiles = deploifai_api.get_cloud_profiles()
+    except DeploifaiAPIError as err:
+      return
+    new_storage_questions = [{
+      'type': 'input',
+      'name': 'storage_name_input',
+      'message': 'Name the data storage',
     }, {
+      'type': 'input',
+      'name': 'container_name_input',
+      'message': 'Input container partition names (space separated: ex: first second-name third)',
+    }, {
+      'type': 'list',
+      'name': 'cloud_profile',
+      'message': 'Choose a cloud profile for data storage',
+      'choices': [{'name': "{name}({workspace}) - {provider}".format(
+        name=cloud_profile["profile"]["name"],
+        workspace=cloud_profile["workspace"],
+        provider=cloud_profile["profile"]["provider"]
+      ), "value": cloud_profile} for cloud_profile in personal_cloud_profiles + team_cloud_profiles],
+      'when': lambda ans: ans.get('storage_option') != "New"
+    }]
+    new_storage_answers = prompt(questions=new_storage_questions)
+    storage_name = new_storage_answers["storage_name_input"]
+    container_names = new_storage_answers["container_name_input"].split(" ")
+    cloud_profile = new_storage_answers["cloud_profile"]
+    create_storage_response = deploifai_api.create_data_storage(storage_name,
+                                                                container_names,
+                                                                cloud_profile,
+                                                                command_workspace)
+    data_storage_info = deploifai_api.get_data_storage_info(create_storage_response["id"])
+    with click_spinner.spinner():
+      while not data_storage_info["status"] == "DEPLOY_SUCCESS":
+        data_storage_info = deploifai_api.get_data_storage_info(create_storage_response["id"])
+        sleep(10)
+    container_name = prompt({
       'type': 'list',
       'name': 'container',
-      'message': 'Choose the container in the data storage.',
-      'choices': lambda ans: deploifai_api.get_containers(ans),
-      'when': lambda ans: ans.get('storage_option') != "New"
-    }, {
-      'type': 'confirm',
-      'name': 'VCS',
-      'message': 'Use DVC?',
-      'default': False
-    }]
-  except DeploifaiAPIError as err:
-    click.echo(err)
-    return
+      'message': 'Choose the container to connect this folder to.',
+      'choices': lambda ans: deploifai_api.get_containers(create_storage_response["id"]),
+    })["container"]
 
-  answers = prompt(questions=questions)
-  storage_id = answers.get("storage_option", "")
-  container_name = answers.get("container")
+    storage_id = create_storage_response["id"]
+  else:
+    try:
+      with click_spinner.spinner():
+        click.echo("Getting account information")
+        personal_storages, teams_storages = deploifai_api.get_data_storages()
 
-  if answers["storage_option"] == "New":
-    pass
+      questions = [{
+        'type': 'list',
+        'name': 'storage_option',
+        'message': 'Choose the dataset storage to link.',
+        'choices': [
+         {
+           'name': "{}({})".format(x["name"], x["account"]["username"]),
+           'value': x['id']
+         } for x in (personal_storages + teams_storages)]
+      }, {
+        'type': 'list',
+        'name': 'container',
+        'message': 'Choose the container in the data storage.',
+        'choices': lambda ans: deploifai_api.get_containers(ans["storage_option"]),
+        'when': lambda ans: ans.get('storage_option') == "New"
+      }]
+      answers = prompt(questions=questions)
+      storage_id = answers.get("storage_option", "")
+      container_name = answers.get("container")
+    except DeploifaiAPIError as err:
+      click.echo(err)
+      return
 
   try:
     os.mkdir("data")
@@ -64,9 +126,6 @@ def init(context: DeploifaiContextObj):
   except FileExistsError as err:
     click.echo("Using the data directory")
 
-  # TODO: Change this storage URL to have the actual URL from the data storage
-  storage_url = "s3://mybucket/dvcstore"
-
   try:
     add_storage_configs(storage_id, container_name, context)
   except DeploifaiDataAlreadyInitialisedError:
@@ -74,17 +133,3 @@ def init(context: DeploifaiContextObj):
     A different storage is already initialised in the folder.
     Consider removing it from the config file.
     """)
-
-  if answers["VCS"]:
-    result = dvc(["init"])
-    if result == 1:
-      # This means that the SCM has not been initialised. So just do it for the user.
-      click.echo("We will just initialise git for you.")
-      subprocess.run(['git', 'init'])
-      dvc(["init"])
-    dvc(["remote", "add", "-d", "storage", storage_url])
-    click.echo("Successfully initialised DVC repo. (Check https://dvc.org for more info)")
-    click.echo("Setting up the git repo with DVC...")
-    subprocess.run(['git', 'add', 'data/.gitignore', '.dvc/config'])
-    subprocess.run(['git', 'commit', '-m', 'Initialise dataset repo'])
-    click.echo("Add files to the data directory, and run \"deploifai data upload\"")

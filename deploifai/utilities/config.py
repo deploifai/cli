@@ -1,6 +1,7 @@
 import yaml
+from yaml import Loader
 import pathlib
-
+import click
 from deploifai.api import DeploifaiAPI
 
 config_file_path = pathlib.Path(".deploifai").joinpath("config.yml")
@@ -41,9 +42,14 @@ def read_config_file():
   Read the config file in the existing .deploifai/config.yml file
   :return: A dictionary that contains all the configs in the config file
   """
-  with config_file_path.open('r') as config_file:
-    yaml_config_dict = yaml.load(config_file)
-  return yaml_config_dict
+  try:
+    with config_file_path.open('r') as config_file:
+      yaml_config_dict = yaml.load(config_file, Loader=Loader)
+    return yaml_config_dict
+  except FileNotFoundError as err:
+    click.secho("Initialise the Deploifai data storage first.", fg="red")
+    click.secho("deploifai data init", bold=True, fg="red")
+    raise err
 
 
 def add_storage_configs(storage_id, container, context):
