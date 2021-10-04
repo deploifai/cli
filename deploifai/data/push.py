@@ -2,7 +2,7 @@ import click
 from pathlib import Path
 
 from deploifai.api import DeploifaiAPI
-from deploifai.clouds.azure import AzureTools
+from deploifai.clouds.azure import Azure
 from deploifai.context_obj import DeploifaiContextObj, pass_deploifai_context_obj
 from deploifai.utilities.config import read_config_file
 
@@ -16,7 +16,7 @@ def push(context: DeploifaiContextObj):
     return
   datastorage_config = configs['datastorage']
   if datastorage_config.get("provider") == "AZURE":
-    azure_tools = AzureTools(context)
+    azure_tools = Azure(context)
     storage_account_id = datastorage_config.get("id")
     storage_account_name = datastorage_config.get("storage")
     container_name = datastorage_config.get("container")

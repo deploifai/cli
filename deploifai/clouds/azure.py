@@ -6,9 +6,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from deploifai.api import DeploifaiAPI
 
 
-class AzureTools:
+class Azure:
   def __init__(self, context=None):
     self.deploifai_api = DeploifaiAPI(context)
+
+  def __str__(self):
+    return "AZURE"
 
   @staticmethod
   def upload_blob(container_client: ContainerClient, file_path: Path, directory: Path, pbar: tqdm):

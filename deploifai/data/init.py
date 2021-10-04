@@ -2,6 +2,8 @@ import os
 import click
 import click_spinner
 from PyInquirer import prompt
+from click import Abort
+
 from deploifai.api import DeploifaiAPIError, DeploifaiAPI
 from deploifai.context_obj import pass_deploifai_context_obj, DeploifaiContextObj
 from deploifai.utilities.config import add_storage_configs, DeploifaiDataAlreadyInitialisedError
@@ -10,13 +12,17 @@ from time import sleep
 
 
 @click.command()
-@click.option('--create-new', prompt="Create a new data storage on Deploifai?", type=bool)
+@click.option('--create-new', prompt="Create a new data storage on Deploifai?", type=bool, default=False)
 @click.option('--workspace', help="Workspace name", type=str)
 @pass_deploifai_context_obj
 def init(context: DeploifaiContextObj, create_new, workspace):
   """
   Initialise the current directory as a dataset
   """
+
+  if not context.is_authenticated():
+    click.echo("Login using deploifai login first")
+    raise Abort()
   storage_id = None
   container_name = None
   command_workspace = None
@@ -43,12 +49,15 @@ def init(context: DeploifaiContextObj, create_new, workspace):
       "message": "Choose a workspace",
       "choices": [{'name': ws["username"], 'value': ws} for ws in workspaces_from_api]
     })
+    if _choose_workspace == {}:
+      raise Abort()
     command_workspace = _choose_workspace["workspace"]
 
   if create_new:
     try:
-      personal_cloud_profiles, team_cloud_profiles = deploifai_api.get_cloud_profiles()
+      cloud_profiles = deploifai_api.get_cloud_profiles(workspace=command_workspace)
     except DeploifaiAPIError as err:
+      click.echo("Could not fetch cloud profiles. Please try again.")
       return
     new_storage_questions = [{
       'type': 'input',
@@ -63,24 +72,32 @@ def init(context: DeploifaiContextObj, create_new, workspace):
       'name': 'cloud_profile',
       'message': 'Choose a cloud profile for data storage',
       'choices': [{'name': "{name}({workspace}) - {provider}".format(
-        name=cloud_profile["profile"]["name"],
-        workspace=cloud_profile["workspace"],
-        provider=cloud_profile["profile"]["provider"]
-      ), "value": cloud_profile} for cloud_profile in personal_cloud_profiles + team_cloud_profiles],
-      'when': lambda ans: ans.get('storage_option') != "New"
+        name=cloud_profile.name,
+        workspace=cloud_profile.workspace,
+        provider=cloud_profile.provider
+      ), "value": cloud_profile} for cloud_profile in cloud_profiles],
+      'when': lambda ans: ans.get('storage_option') != "New",
     }]
+    print(cloud_profiles)
     new_storage_answers = prompt(questions=new_storage_questions)
+    if new_storage_answers == {}:
+      raise Abort()
     storage_name = new_storage_answers["storage_name_input"]
     container_names = new_storage_answers["container_name_input"].split(" ")
     cloud_profile = new_storage_answers["cloud_profile"]
     create_storage_response = deploifai_api.create_data_storage(storage_name,
                                                                 container_names,
-                                                                cloud_profile,
-                                                                command_workspace)
-    data_storage_info = deploifai_api.get_data_storage_info(create_storage_response["id"])
+                                                                cloud_profile)
     with click_spinner.spinner():
-      while not data_storage_info["status"] == "DEPLOY_SUCCESS":
+      click.echo("Deploying data storage")
+      while True:
         data_storage_info = deploifai_api.get_data_storage_info(create_storage_response["id"])
+        if data_storage_info["status"] == "DEPLOY_SUCCESS":
+          click.echo("Deployment success!")
+          break
+        elif data_storage_info["status"] == "DEPLOY_ERROR":
+          click.echo("There was an error in deployment.")
+          break
         sleep(10)
     container_name = prompt({
       'type': 'list',
@@ -89,13 +106,18 @@ def init(context: DeploifaiContextObj, create_new, workspace):
       'choices': lambda ans: deploifai_api.get_containers(create_storage_response["id"]),
     })["container"]
 
+    if container_name == {}:
+      raise Abort()
+
     storage_id = create_storage_response["id"]
   else:
     try:
       with click_spinner.spinner():
         click.echo("Getting account information")
-        personal_storages, teams_storages = deploifai_api.get_data_storages()
-
+        data_storages = deploifai_api.get_data_storages(workspace=command_workspace)
+      if not len(data_storages):
+        click.echo("No data storages in the account")
+        raise Abort()
       questions = [{
         'type': 'list',
         'name': 'storage_option',
@@ -104,7 +126,7 @@ def init(context: DeploifaiContextObj, create_new, workspace):
          {
            'name': "{}({})".format(x["name"], x["account"]["username"]),
            'value': x['id']
-         } for x in (personal_storages + teams_storages)]
+         } for x in data_storages]
       }, {
         'type': 'list',
         'name': 'container',
@@ -113,11 +135,13 @@ def init(context: DeploifaiContextObj, create_new, workspace):
         'when': lambda ans: ans.get('storage_option') == "New"
       }]
       answers = prompt(questions=questions)
+      if answers == {}:
+        raise Abort()
       storage_id = answers.get("storage_option", "")
       container_name = answers.get("container")
     except DeploifaiAPIError as err:
       click.echo(err)
-      return
+      raise Abort()
 
   try:
     os.mkdir("data")
@@ -133,3 +157,4 @@ def init(context: DeploifaiContextObj, create_new, workspace):
     A different storage is already initialised in the folder.
     Consider removing it from the config file.
     """)
+    raise Abort()

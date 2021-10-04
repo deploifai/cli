@@ -6,6 +6,7 @@ import requests
 
 from deploifai.api.errors import DeploifaiAPIError
 from deploifai.auth.credentials import get_auth_token
+from deploifai.cloud_profile.cloud_profile import CloudProfile
 from deploifai.constants.yoda import cloud_provider_yoda_versions
 from deploifai.utilities import environment
 
@@ -16,14 +17,27 @@ class DeploifaiAPI:
     self.uri = "{backend_url}/graphql".format(backend_url=environment.backend_url)
     self.headers = {'authorization': "deploifai-{token}".format(token=token)}
 
-  @staticmethod
-  def _parse_data_storages(api_data):
-    personal_data_storages = api_data['data']['me']['account']['dataStorages']
+  def _parse_cloud_profile(self, cloud_profile_json, workspace) -> CloudProfile:
+    """
+    Re-usable function that can help parse cloud profile JSON.
 
-    team_data_storages = list(map(lambda x: x['account']['dataStorages'], api_data['data']['me']['teams']))
-    team_data_storages = list(itertools.chain(*team_data_storages))
-
-    return personal_data_storages, team_data_storages
+    For example:
+    cloudProfiles{
+      id
+      name
+      provider
+    }
+    :param cloud_profile_json: JSON of Cloud profile
+    :param workspace: The workspace/account where the cloud profile should belong to
+    :return: CloudProfile
+    """
+    cloud_profile = CloudProfile(
+      id=cloud_profile_json["id"],
+      name=cloud_profile_json["name"],
+      provider=cloud_profile_json["provider"],
+      workspace=workspace
+    )
+    return cloud_profile
 
   def get_user(self):
     query = """
@@ -70,42 +84,31 @@ class DeploifaiAPI:
     except TypeError:
       return []
 
-  def get_data_storages(self):
+  def get_data_storages(self, workspace):
     query = """
-      query{
-        me{
-          account{
-            dataStorages(where:{status: {equals:DEPLOY_SUCCESS}}){
-              id
-              name
-              status
-              account {
-                username
-              }
-            }
+      query($id:String){
+        dataStorages(whereAccount:{
+          id: $id
+        }, whereDataStorage:{
+          status: {
+            equals: DEPLOY_SUCCESS
           }
-
-          teams {
-            account {
-              dataStorages(where:{status: {equals:DEPLOY_SUCCESS}}){
-                id
-                name
-                status
-                account {
-                  username
-                }
-              }
-            }
+        }) {
+          id
+          name
+          status
+          account {
+            username
           }
         }
       }
     """
-    query_json = {"query": query}
+    query_json = {"query": query, "variables": {'id': workspace["id"]}}
 
     try:
       query_response = requests.post(self.uri, headers=self.headers, json=query_json)
       query_response_json = query_response.json()
-      return DeploifaiAPI._parse_data_storages(query_response_json)
+      return query_response_json["data"]["dataStorages"]
     except JSONDecodeError as err:
       """
       Handle errors when the JSON is not decoded
@@ -167,7 +170,7 @@ class DeploifaiAPI:
                       headers=self.headers)
     return r.json()["data"]["dataStorage"]["cloudProviderYodaConfig"]["azureConfig"]["storageAccessKey"]
 
-  def create_data_storage(self, storage_name, container_names, cloud_profile, workspace, region=None):
+  def create_data_storage(self, storage_name: str, container_names: str, cloud_profile: CloudProfile, region=None):
     mutation = """
     mutation(
       $whereAccount: AccountWhereUniqueInput!
@@ -181,25 +184,25 @@ class DeploifaiAPI:
     aws_config = None
     azure_config = None
     # TODO: Support more regions
-    if cloud_profile["profile"]["provider"] == 'AWS':
+    if cloud_profile.provider == 'AWS':
       aws_config = {
         'awsRegion': 'us-east-1'
       }
-    elif cloud_profile["profile"]["provider"] == "AZURE":
+    elif cloud_profile.provider == "AZURE":
       azure_config = {
         'azureRegion': 'East US'
       }
 
     variables = {
       'whereAccount': {
-        'username': workspace["username"]
+        'username': cloud_profile.workspace
       },
       'data': {
         'name': storage_name,
         'containerNames': container_names,
-        'cloudProfileId': cloud_profile["profile"]["id"],
+        'cloudProfileId': cloud_profile.id,
         'cloudProviderYodaConfig': {
-          'version': cloud_provider_yoda_versions[cloud_profile["profile"]["provider"]],
+          'version': cloud_provider_yoda_versions[cloud_profile.provider],
           'awsConfig': aws_config,
           'azureConfig': azure_config
         }
@@ -209,7 +212,7 @@ class DeploifaiAPI:
     create_mutation_data = r.json()
     return create_mutation_data["data"]["createDataStorage"]
 
-  def get_cloud_profiles(self):
+  def get_cloud_profiles(self, workspace=None) -> [CloudProfile]:
     query = """
     query{
       me{
@@ -224,6 +227,7 @@ class DeploifaiAPI:
           }
         }
         account{
+          username
           cloudProfiles{
             id
             name
@@ -238,18 +242,25 @@ class DeploifaiAPI:
                       headers=self.headers)
     api_data = r.json()
 
-    personal_cloud_profiles_json = api_data["data"]["me"]["account"]["cloudProfiles"]
+    personal_cloud_profile_account = api_data["data"]["me"]["account"]
+    personal_cloud_profiles_json = personal_cloud_profile_account["cloudProfiles"]
+    # Get personal cloud profiles from a part of the query
+    personal_cloud_profiles = list(map(
+      lambda x: self._parse_cloud_profile(x, personal_cloud_profile_account["username"]),
+      personal_cloud_profiles_json
+    ))
+
     team_cloud_profiles_json = api_data["data"]["me"]["teams"]
-    personal_cloud_profiles = map(lambda ps: {'workspace': "Personal", 'profile': ps},
-                                  personal_cloud_profiles_json)
     team_cloud_profiles_accounts = list(map(lambda teams: teams["account"], team_cloud_profiles_json))
-    team_cloud_profiles_workspaces = list(map(lambda cp: {'workspace': cp["username"], 'profiles': cp["cloudProfiles"]},
-                                              team_cloud_profiles_accounts))
+
     team_cloud_profiles = []
-    for team_cloud_profiles_workspace in team_cloud_profiles_workspaces:
-      for profile in team_cloud_profiles_workspace["profiles"]:
-        team_cloud_profiles.append({
-          'workspace': team_cloud_profiles_workspace['workspace'],
-          'profile': profile
-        })
-    return list(personal_cloud_profiles), list(team_cloud_profiles)
+    for team_cloud_profiles_account in team_cloud_profiles_accounts:
+      cps = list(map(lambda x: self._parse_cloud_profile(x, team_cloud_profiles_account["username"]),
+          team_cloud_profiles_account["cloudProfiles"]))
+      team_cloud_profiles += cps
+
+    cloud_profiles = personal_cloud_profiles + team_cloud_profiles
+
+    if workspace:
+      return [cloud_profile for cloud_profile in cloud_profiles if cloud_profile.workspace == workspace["username"]]
+    return cloud_profiles
