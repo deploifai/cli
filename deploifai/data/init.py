@@ -23,6 +23,11 @@ def init(context: DeploifaiContextObj, create_new, workspace):
   if not context.is_authenticated():
     click.echo("Login using deploifai login first")
     raise Abort()
+
+  if create_new:
+    click.secho("Creeating a new data storage. Select the configurations for your new data storage.", fg="blue")
+  else:
+    click.secho("Connecting with an existing data storage", fg="blue")
   storage_id = None
   container_name = None
   command_workspace = None
@@ -78,7 +83,6 @@ def init(context: DeploifaiContextObj, create_new, workspace):
       ), "value": cloud_profile} for cloud_profile in cloud_profiles],
       'when': lambda ans: ans.get('storage_option') != "New",
     }]
-    print(cloud_profiles)
     new_storage_answers = prompt(questions=new_storage_questions)
     if new_storage_answers == {}:
       raise Abort()
@@ -113,10 +117,10 @@ def init(context: DeploifaiContextObj, create_new, workspace):
   else:
     try:
       with click_spinner.spinner():
-        click.echo("Getting account information")
+        click.echo("Getting workspace information")
         data_storages = deploifai_api.get_data_storages(workspace=command_workspace)
       if not len(data_storages):
-        click.echo("No data storages in the account")
+        click.echo("No data storages in the workspace")
         raise Abort()
       questions = [{
         'type': 'list',
