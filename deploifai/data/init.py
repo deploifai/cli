@@ -47,6 +47,10 @@ def init(context: DeploifaiContextObj, create_new, workspace):
         if w["username"] == workspace:
           command_workspace = w
           break
+    else:
+      # the workspace user input does not match with any of the workspaces the user has access to
+      click.secho("{workspace} cannot be found. Please put in a workspace you have access to.".format(workspace=workspace), fg='red')
+      raise Abort()
   else:
     _choose_workspace = prompt({
       "type": "list",
