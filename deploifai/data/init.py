@@ -25,7 +25,7 @@ def init(context: DeploifaiContextObj, create_new, workspace):
     raise Abort()
 
   if create_new:
-    click.secho("Creeating a new data storage. Select the configurations for your new data storage.", fg="blue")
+    click.secho("Creating a new data storage. Select the configurations for your new data storage.", fg="blue")
   else:
     click.secho("Connecting with an existing data storage", fg="blue")
   storage_id = None
@@ -156,7 +156,7 @@ def init(context: DeploifaiContextObj, create_new, workspace):
     click.echo("Creating the data directory. If your data is outside the data directory, move it into the the data "
                "directory so that it can be uploaded")
   except FileExistsError as err:
-    click.echo("Using the data directory")
+    click.echo("Using the existing data directory")
 
   try:
     add_storage_configs(storage_id, container_name, context)

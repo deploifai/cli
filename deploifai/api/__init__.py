@@ -170,7 +170,7 @@ class DeploifaiAPI:
                       headers=self.headers)
     return r.json()["data"]["dataStorage"]["cloudProviderYodaConfig"]["azureConfig"]["storageAccessKey"]
 
-  def create_data_storage(self, storage_name: str, container_names: str, cloud_profile: CloudProfile, region=None):
+  def create_data_storage(self, storage_name: str, container_names: [str], cloud_profile: CloudProfile, region=None):
     mutation = """
     mutation(
       $whereAccount: AccountWhereUniqueInput!

@@ -7,18 +7,18 @@ from deploifai.api import DeploifaiAPI
 config_file_path = pathlib.Path(".deploifai").joinpath("config.yml")
 
 
-class DeploifaiAleardyInitialisedError(Exception):
+class DeploifaiAlreadyInitialisedError(Exception):
   """
-  Exception when API calls result in an error.
+  Exception when Deploifai has already been initialised.
   """
 
   def __init__(self, message):
-    super(DeploifaiAleardyInitialisedError, self).__init__(message)
+    super(DeploifaiAlreadyInitialisedError, self).__init__(message)
 
 
 class DeploifaiDataAlreadyInitialisedError(Exception):
   """
-  Exception when API calls result in an error.
+  Exception when a data directory has been initialised through Deploifai in an ML project.
   """
 
   def __init__(self, message):
@@ -31,7 +31,7 @@ def create_config_files():
   :return: None
   """
   if pathlib.Path(".deploifai").exists():
-    raise DeploifaiAleardyInitialisedError("Deploifai has already been initialised in this directory.")
+    raise DeploifaiAlreadyInitialisedError("Deploifai has already been initialised in this directory.")
 
   pathlib.Path(".deploifai").mkdir()
   config_file_path.touch(exist_ok=True)
