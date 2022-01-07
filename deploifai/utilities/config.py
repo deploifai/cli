@@ -52,14 +52,13 @@ def read_config_file():
     raise err
 
 
-def add_storage_configs(storage_id, container, context):
+def add_storage_configs(storage_id, containers, context):
   """
   Add the storage configs in the existing config file. Usually run when the user initialises the directory as a data
   directory.
   :param context:
-  :param container:
+  :param containers:
   :param storage_id: The id of the data storage from the database.
-  :param storage_url: The storage URL for the storage.
   :return:
   """
   deploifai_api = DeploifaiAPI(context=context)
@@ -72,9 +71,9 @@ def add_storage_configs(storage_id, container, context):
   }
   if cloud_provider == "AZURE":
     data_storage_config["storage"] = storage_details["cloudProviderYodaConfig"]["azureConfig"]["storageAccount"]
-    data_storage_config["container"] = container
+    data_storage_config["containers"] = list(containers)
   elif cloud_provider == "AWS":
-    pass
+    data_storage_config["containers"] = list(containers)
 
   if not config_file_path.exists():
     create_config_files()

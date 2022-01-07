@@ -1,17 +1,20 @@
 from pathlib import Path
 from tqdm import tqdm
-from azure.storage.blob import BlobServiceClient, ContainerClient
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from azure.storage.blob import ContainerClient, BlobServiceClient
 
-from deploifai.api import DeploifaiAPI
 
+class AzureDataStorageHandler:
+  def __init__(self, config, context, api):
+    self.api = api
+    self.context = context
+    self.storage_account_id = config.get("id")
+    self.storage_account_name = config.get("storage")
+    self.containers = config.get("containers")
 
-class Azure:
-  def __init__(self, context=None):
-    self.deploifai_api = DeploifaiAPI(context)
-
-  def __str__(self):
-    return "AZURE"
+  def push(self):
+    for container in self.containers:
+      self.upload_dataset(Path("data/{}".format(container.get("name"))), container.get("value"))
 
   @staticmethod
   def upload_blob(container_client: ContainerClient, file_path: Path, directory: Path, pbar: tqdm):
@@ -28,25 +31,19 @@ class Azure:
     blob_client.upload_blob(data=blob_bytes, length=file_path.stat().st_size, overwrite=True)
     pbar.update(1)
 
-  def upload_dataset(self, storage_account_id, storage_account_name: str, container: str, directory: Path):
+  def upload_dataset(self, directory: Path, container_name):
     """
     This function helps upload a directory to a container in a storage account.
     Uses a ThreadPoolExecutor to make uploads faster.
-    :param storage_account_id: User's storage account ID on Deploifai
-    :param storage_account_name: Azure storage account name.
-    :param container: Azure storage account container.
     :param directory: Directory of the dataset.
     :return: None
     """
-    storage_account_name = storage_account_name
-    account_url = "{account_name}.blob.core.windows.net".format(account_name=storage_account_name)
-
+    account_url = "{account_name}.blob.core.windows.net".format(account_name=self.storage_account_name)
     blob_service_client = BlobServiceClient(
       account_url=account_url,
-      credential=self.deploifai_api.get_storage_account_access_key(storage_account_id),
+      credential=self.api.get_storage_account_access_key(self.storage_account_id),
     )
-
-    container_client = blob_service_client.get_container_client(container)
+    container_client = blob_service_client.get_container_client(container_name)
     directory_generator = Path(directory).glob("**/*")
     files = [f for f in directory_generator if f.is_file()]
 

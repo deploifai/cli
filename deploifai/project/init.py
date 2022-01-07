@@ -4,7 +4,7 @@ import zipfile
 import click
 import requests
 
-from ..context_obj import pass_deploifai_context_obj, DeploifaiContextObj
+from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
 
 
 @click.command()

@@ -81,4 +81,5 @@ class DeploifaiContextObj:
       return True
     return False
 
+
 pass_deploifai_context_obj = click.make_pass_decorator(DeploifaiContextObj, ensure=True)

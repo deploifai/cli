@@ -5,7 +5,7 @@ from PyInquirer import prompt
 from click import Abort
 
 from deploifai.api import DeploifaiAPIError, DeploifaiAPI
-from deploifai.context_obj import pass_deploifai_context_obj, DeploifaiContextObj
+from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
 from deploifai.utilities.config import add_storage_configs, DeploifaiDataAlreadyInitialisedError
 from deploifai.utilities.user import parse_user_profiles
 from time import sleep
@@ -135,18 +135,12 @@ def init(context: DeploifaiContextObj, create_new, workspace):
            'name': "{}({})".format(x["name"], x["account"]["username"]),
            'value': x['id']
          } for x in data_storages]
-      }, {
-        'type': 'list',
-        'name': 'container',
-        'message': 'Choose the container in the data storage.',
-        'choices': lambda ans: deploifai_api.get_containers(ans["storage_option"]),
-        'when': lambda ans: ans.get('storage_option') == "New"
       }]
       answers = prompt(questions=questions)
       if answers == {}:
         raise Abort()
       storage_id = answers.get("storage_option", "")
-      container_name = answers.get("container")
+      containers = deploifai_api.get_containers(storage_id)
     except DeploifaiAPIError as err:
       click.echo(err)
       raise Abort()
@@ -159,7 +153,7 @@ def init(context: DeploifaiContextObj, create_new, workspace):
     click.echo("Using the existing data directory")
 
   try:
-    add_storage_configs(storage_id, container_name, context)
+    add_storage_configs(storage_id, containers, context)
   except DeploifaiDataAlreadyInitialisedError:
     click.echo("""
     A different storage is already initialised in the folder.

@@ -1,6 +1,6 @@
 import click
 
-from .context_obj import pass_deploifai_context_obj, DeploifaiContextObj, debug_levels
+from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj, debug_levels
 
 from .auth.login import login
 from .auth.logout import logout

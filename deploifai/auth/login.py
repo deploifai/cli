@@ -1,10 +1,8 @@
 import click
 import requests
-
-from ..context_obj import pass_deploifai_context_obj, DeploifaiContextObj
+from deploifai.utilities import environment
+from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
 from . import credentials
-
-from ..utilities import environment
 
 
 @click.command()
@@ -31,7 +29,7 @@ def login(deploifai: DeploifaiContextObj, username: str, token: str):
         response = requests.post(
             url,
             json={"username": username},
-            headers={"authorization": "deploifai-" + token},
+            headers={"authorization": token},
         )
     except requests.exceptions.RequestException as e:
         deploifai.debug_msg(e, level="error")

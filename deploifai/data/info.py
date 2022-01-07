@@ -1,6 +1,6 @@
 import click
 
-from deploifai.context_obj import pass_deploifai_context_obj, DeploifaiContextObj
+from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
 from deploifai.utilities.config import read_config_file
 
 

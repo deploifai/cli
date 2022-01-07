@@ -38,3 +38,4 @@ deploifai>=0.0.1
 PyInquirer>=1.0.3
 dvc>=2.7.4
 PyYAML>=5.4.1
+boto3~=1.18.49

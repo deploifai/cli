@@ -15,7 +15,7 @@ class DeploifaiAPI:
   def __init__(self, context=None):
     token = get_auth_token(context.config["AUTH"]["username"])
     self.uri = "{backend_url}/graphql".format(backend_url=environment.backend_url)
-    self.headers = {'authorization': "deploifai-{token}".format(token=token)}
+    self.headers = {'authorization': token}
 
   def _parse_cloud_profile(self, cloud_profile_json, workspace) -> CloudProfile:
     """
@@ -78,6 +78,7 @@ class DeploifaiAPI:
                       headers=self.headers)
     try:
       data_storage_containers = r.json()['data']['dataStorage']['containers']
+      click.echo(data_storage_containers)
       data_storage_containers = map(lambda d: {'name': d.get('directoryName'), 'value': d.get('cloudName')},
                                     data_storage_containers)
       return data_storage_containers
@@ -168,6 +169,7 @@ class DeploifaiAPI:
     """
     r = requests.post(self.uri, json={'query': query, 'variables': {'id': storage_id}},
                       headers=self.headers)
+    click.secho(r.text)
     return r.json()["data"]["dataStorage"]["cloudProviderYodaConfig"]["azureConfig"]["storageAccessKey"]
 
   def create_data_storage(self, storage_name: str, container_names: [str], cloud_profile: CloudProfile, region=None):
