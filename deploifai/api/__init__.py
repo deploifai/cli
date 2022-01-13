@@ -7,7 +7,6 @@ import requests
 from deploifai.api.errors import DeploifaiAPIError
 from deploifai.auth.credentials import get_auth_token
 from deploifai.cloud_profile.cloud_profile import CloudProfile
-from deploifai.constants.yoda import cloud_provider_yoda_versions
 from deploifai.utilities import environment
 
 
@@ -222,7 +221,6 @@ class DeploifaiAPI:
                 "containerNames": container_names,
                 "cloudProfileId": cloud_profile.id,
                 "cloudProviderYodaConfig": {
-                    "version": cloud_provider_yoda_versions[cloud_profile.provider],
                     "awsConfig": aws_config,
                     "azureConfig": azure_config,
                 },
