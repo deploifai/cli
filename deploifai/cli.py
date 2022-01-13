@@ -6,12 +6,11 @@ from deploifai.context import (
     debug_levels,
 )
 
-from .auth.login import login
-from .auth.logout import logout
+from .auth import auth
 from .project import project
 from .data import data
 
-commands = {"login": login, "logout": logout, "project": project, "data": data}
+commands = {"auth": auth, "project": project, "data": data}
 
 
 @click.group(commands=commands)

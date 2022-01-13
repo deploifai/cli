@@ -21,7 +21,7 @@ from . import credentials
 )
 def login(deploifai: DeploifaiContextObj, username: str, token: str):
     """
-    Login to access Deploifai using a personal access token
+    Login using personal access token
     """
     try:
         url = f"{environment.backend_url}/auth/login/cli"
