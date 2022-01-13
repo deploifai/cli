@@ -6,10 +6,10 @@ from deploifai.data.push import push
 
 @click.group()
 def data():
-  """
-  Manage datasets and data storages on Deploifai
-  """
-  pass
+    """
+    Manage datasets and data storages on Deploifai
+    """
+    pass
 
 
 data.add_command(init)

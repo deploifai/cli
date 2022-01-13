@@ -9,9 +9,9 @@ APP_NAME = "deploifai-cli"
 config_filename = "deploifai.cfg"
 
 config_directory = (
-  click.get_app_dir(APP_NAME)
-  if not environment.is_development_env
-  else os.path.dirname(os.path.realpath(__file__))
+    click.get_app_dir(APP_NAME)
+    if not environment.is_development_env
+    else os.path.dirname(os.path.realpath(__file__))
 )
 config_filepath = os.path.join(config_directory, config_filename)
 
@@ -21,65 +21,65 @@ debug_levels = ["info", "warning", "error"]
 
 
 class DeploifaiContextObj:
-  config = configparser.ConfigParser()
-  debug = False
-  debug_level = "info"
-
-  def __init__(self):
-    pass
-
-  def read_config(self):
     config = configparser.ConfigParser()
+    debug = False
+    debug_level = "info"
 
-    # read the config file
-    config.read(config_filepath)
+    def __init__(self):
+        pass
 
-    # initialise sections if they don't exist already
-    for section in config_sections:
-      if section not in config.sections():
-        config[section] = {}
+    def read_config(self):
+        config = configparser.ConfigParser()
 
-    self.debug_msg(f"Read config file from {config_filepath}")
+        # read the config file
+        config.read(config_filepath)
 
-    self.config = config
+        # initialise sections if they don't exist already
+        for section in config_sections:
+            if section not in config.sections():
+                config[section] = {}
 
-  def save_config(self):
-    # create config directory if it doesn't exist already
-    if not os.path.isdir(config_directory):
-      try:
-        os.makedirs(config_directory)
-        self.debug_msg("Created directory to save config")
-      except OSError:
-        self.debug_msg(
-          "Error creating directory to store config file", level="error"
-        )
-        return
+        self.debug_msg(f"Read config file from {config_filepath}")
 
-    with open(config_filepath, "w") as configfile:
-      self.config.write(configfile)
-      self.debug_msg(f"Saved config file as {config_filepath}")
+        self.config = config
 
-  def debug_msg(self, message, level="info", **kwargs):
-    if self.debug:
-      debug_level_index = debug_levels.index(self.debug_level)
-      message_level_index = debug_levels.index(level)
+    def save_config(self):
+        # create config directory if it doesn't exist already
+        if not os.path.isdir(config_directory):
+            try:
+                os.makedirs(config_directory)
+                self.debug_msg("Created directory to save config")
+            except OSError:
+                self.debug_msg(
+                    "Error creating directory to store config file", level="error"
+                )
+                return
 
-      # only log debug messages if the message level index is higher than the debug level index
-      if message_level_index >= debug_level_index:
-        fg = "blue"
-        if level == "warning":
-          fg = "yellow"
-        elif level == "error":
-          fg = "red"
+        with open(config_filepath, "w") as configfile:
+            self.config.write(configfile)
+            self.debug_msg(f"Saved config file as {config_filepath}")
 
-        kwargs.update({"fg": kwargs["fg"] if "fg" in kwargs else fg})
+    def debug_msg(self, message, level="info", **kwargs):
+        if self.debug:
+            debug_level_index = debug_levels.index(self.debug_level)
+            message_level_index = debug_levels.index(level)
 
-        click.secho(message, **kwargs)
+            # only log debug messages if the message level index is higher than the debug level index
+            if message_level_index >= debug_level_index:
+                fg = "blue"
+                if level == "warning":
+                    fg = "yellow"
+                elif level == "error":
+                    fg = "red"
 
-  def is_authenticated(self):
-    if self.config["AUTH"]["username"]:
-      return True
-    return False
+                kwargs.update({"fg": kwargs["fg"] if "fg" in kwargs else fg})
+
+                click.secho(message, **kwargs)
+
+    def is_authenticated(self):
+        if self.config["AUTH"]["username"]:
+            return True
+        return False
 
 
 pass_deploifai_context_obj = click.make_pass_decorator(DeploifaiContextObj, ensure=True)

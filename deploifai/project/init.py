@@ -11,9 +11,9 @@ from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
 @pass_deploifai_context_obj
 @click.argument("name")
 def init(deploifai: DeploifaiContextObj, name: str):
-    '''
+    """
     Initialise a new project called NAME
-    '''
+    """
     url = "https://api.github.com/repos/deploifai/basic-starter-template/zipball/main"
     r = requests.get(url)
 
