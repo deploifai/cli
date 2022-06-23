@@ -3,7 +3,7 @@
 ### Installation
 
 ```shell
-pip install deploifai-cli
+pip install deploifai
 ```
 
 ### Usage
