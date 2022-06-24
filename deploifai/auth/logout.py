@@ -1,6 +1,6 @@
 import click
 
-from ..context_obj import pass_deploifai_context_obj, DeploifaiContextObj
+from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
 from . import credentials
 
 
@@ -8,7 +8,7 @@ from . import credentials
 @pass_deploifai_context_obj
 def logout(deploifai: DeploifaiContextObj):
     """
-    Logout to remove access to Deploifai
+    Logout to remove access
     """
     auth = deploifai.config["AUTH"]
     username = auth.get("username")

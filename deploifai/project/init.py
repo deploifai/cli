@@ -4,16 +4,18 @@ import zipfile
 import click
 import requests
 
-from ..context_obj import pass_deploifai_context_obj, DeploifaiContextObj
+from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
 
 
+# TODO: figure out where to put this command
+# This clones the deploifai/basic-starter-template which is intended for ML deployments
 @click.command()
 @pass_deploifai_context_obj
 @click.argument("name")
 def init(deploifai: DeploifaiContextObj, name: str):
-    '''
+    """
     Initialise a new project called NAME
-    '''
+    """
     url = "https://api.github.com/repos/deploifai/basic-starter-template/zipball/main"
     r = requests.get(url)
 

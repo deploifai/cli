@@ -76,5 +76,10 @@ class DeploifaiContextObj:
 
                 click.secho(message, **kwargs)
 
+    def is_authenticated(self):
+        if self.config["AUTH"]["username"]:
+            return True
+        return False
+
 
 pass_deploifai_context_obj = click.make_pass_decorator(DeploifaiContextObj, ensure=True)
