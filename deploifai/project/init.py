@@ -7,6 +7,8 @@ import requests
 from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
 
 
+# TODO: figure out where to put this command
+# This clones the deploifai/basic-starter-template which is intended for ML deployments
 @click.command()
 @pass_deploifai_context_obj
 @click.argument("name")
