@@ -42,7 +42,13 @@ DEPLOIFAI_CLI_ENVIRONMENT=development
 DEPLOIFAI_BACKEND_URL=http://localhost:4000
 ```
 
-Install `deploifai` cli tool for testing:
+Run the deploifai cli script directly for testing:
+
+```shell
+python dev.py
+```
+
+Or, install `deploifai` cli tool in virtual environment for testing:
 
 ```shell
 pip install --editable . 
