@@ -1,4 +1,4 @@
-import itertools
+import typing
 from json import JSONDecodeError
 
 import click
@@ -7,6 +7,7 @@ import requests
 from deploifai.api.errors import DeploifaiAPIError
 from deploifai.auth.credentials import get_auth_token
 from deploifai.cloud_profile.cloud_profile import CloudProfile
+from deploifai.context import DeploifaiContextObj
 from deploifai.utilities import environment
 
 
@@ -34,8 +35,8 @@ def _parse_cloud_profile(cloud_profile_json, workspace) -> CloudProfile:
 
 
 class DeploifaiAPI:
-    def __init__(self, context=None):
-        token = get_auth_token(context.config["AUTH"]["username"])
+    def __init__(self, context: DeploifaiContextObj = None):
+        token = get_auth_token(context.global_config["AUTH"]["username"])
         self.uri = "{backend_url}/graphql".format(backend_url=environment.backend_url)
         self.headers = {"authorization": token}
 
@@ -140,6 +141,9 @@ class DeploifaiAPI:
       dataStorage(where:{id:$id}){
         name
         status
+        project {
+          id
+        }
         containers{
           id
           directoryName
@@ -192,7 +196,7 @@ class DeploifaiAPI:
     def create_data_storage(
         self,
         storage_name: str,
-        container_names: [str],
+        container_names: typing.List[str],
         cloud_profile: CloudProfile,
         region=None,
     ):
@@ -234,7 +238,7 @@ class DeploifaiAPI:
         create_mutation_data = r.json()
         return create_mutation_data["data"]["createDataStorage"]
 
-    def get_cloud_profiles(self, workspace=None) -> [CloudProfile]:
+    def get_cloud_profiles(self, workspace=None) -> typing.List[CloudProfile]:
         query = """
     query{
       me{

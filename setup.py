@@ -25,7 +25,6 @@ setuptools.setup(
         "azure-storage-blob==12.9.0",
         "boto3",
         "PyInquirer",
-        "PyYaml",
         "cryptography==36.0.1",
     ],
     classifiers=[

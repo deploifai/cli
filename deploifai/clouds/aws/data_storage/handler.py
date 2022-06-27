@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import click
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3

@@ -2,26 +2,25 @@ import os
 import click
 import configparser
 
-from .utilities import environment
+from .utilities import environment, local_config
 
 APP_NAME = "deploifai-cli"
 
-config_filename = "deploifai.cfg"
-
-config_directory = (
+global_config_filename = "deploifai.cfg"
+global_config_directory = (
     click.get_app_dir(APP_NAME)
     if not environment.is_development_env
     else os.path.dirname(os.path.realpath(__file__))
 )
-config_filepath = os.path.join(config_directory, config_filename)
-
-config_sections = ["AUTH", "ACCOUNT"]
+global_config_filepath = os.path.join(global_config_directory, global_config_filename)
+global_config_sections = ["AUTH"]
 
 debug_levels = ["info", "warning", "error"]
 
 
 class DeploifaiContextObj:
-    config = configparser.ConfigParser()
+    global_config = configparser.ConfigParser()
+    local_config = configparser.ConfigParser()
     debug = False
     debug_level = "info"
 
@@ -29,35 +28,42 @@ class DeploifaiContextObj:
         pass
 
     def read_config(self):
-        config = configparser.ConfigParser()
+        global_config = configparser.ConfigParser()
 
-        # read the config file
-        config.read(config_filepath)
+        # read the global config file
+        global_config.read(global_config_filepath)
 
         # initialise sections if they don't exist already
-        for section in config_sections:
-            if section not in config.sections():
-                config[section] = {}
+        for section in global_config_sections:
+            if section not in global_config.sections():
+                global_config[section] = {}
 
-        self.debug_msg(f"Read config file from {config_filepath}")
+        self.debug_msg(f"Read global config file from {global_config_filepath}")
 
-        self.config = config
+        self.global_config = global_config
+
+        # read local config file
+        self.local_config = local_config.read_config_file()
 
     def save_config(self):
-        # create config directory if it doesn't exist already
-        if not os.path.isdir(config_directory):
+        # create global config directory if it doesn't exist already
+        if not os.path.isdir(global_config_directory):
             try:
-                os.makedirs(config_directory)
-                self.debug_msg("Created directory to save config")
+                os.makedirs(global_config_directory)
+                self.debug_msg("Created directory to save global config")
             except OSError:
                 self.debug_msg(
-                    "Error creating directory to store config file", level="error"
+                    "Error creating directory to store global config file",
+                    level="error",
                 )
                 return
 
-        with open(config_filepath, "w") as configfile:
-            self.config.write(configfile)
-            self.debug_msg(f"Saved config file as {config_filepath}")
+        with open(global_config_filepath, "w") as configfile:
+            self.global_config.write(configfile)
+            self.debug_msg(f"Saved global config file as {global_config_filepath}")
+
+        # save local config file
+        local_config.save_config_file(self.local_config)
 
     def debug_msg(self, message, level="info", **kwargs):
         if self.debug:

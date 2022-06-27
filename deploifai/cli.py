@@ -7,10 +7,11 @@ from deploifai.context import (
 )
 
 from .auth import auth
+from .application import application
 from .project import project
 from .data import data
 
-commands = {"auth": auth, "project": project, "data": data}
+commands = {"auth": auth, "project": project, "data": data, "application": application}
 
 
 @click.group(commands=commands)
