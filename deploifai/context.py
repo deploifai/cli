@@ -6,7 +6,7 @@ import keyring
 
 from .utilities import environment, local_config
 
-# from deploifai.auth.credentials import get_auth_token
+from deploifai.utilities.credentials import get_auth_token
 
 APP_NAME = "deploifai-cli"
 
@@ -92,16 +92,13 @@ class DeploifaiContextObj:
         username = self.global_config["AUTH"]["username"]
 
         url = f"{environment.backend_url}/auth/check/cli"
-        token = keyring.get_password("deploifai-cli", username)
+        token = get_auth_token(username)
 
         response = requests.post(
             url,
             json={"username": username},
             headers={"authorization": token},
         )
-
-        click.echo(response.status_code)
-        click.echo(type(response.status_code))
 
         if response.status_code == 200:
             return True

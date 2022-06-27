@@ -1,6 +1,6 @@
 import click
 
-from .init import init
+from .create import create
 
 
 @click.group()
@@ -10,4 +10,4 @@ def project():
     """
 
 
-project.add_command(init)
+project.add_command(create)

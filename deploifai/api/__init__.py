@@ -5,7 +5,7 @@ import click
 import requests
 
 from deploifai.api.errors import DeploifaiAPIError
-from deploifai.auth.credentials import get_auth_token
+from deploifai.utilities.credentials import get_auth_token
 from deploifai.cloud_profile.cloud_profile import CloudProfile
 from deploifai.context import DeploifaiContextObj
 from deploifai.utilities import environment
@@ -304,3 +304,39 @@ class DeploifaiAPI:
                 if cloud_profile.workspace == workspace["username"]
             ]
         return cloud_profiles
+
+    def create_project(self, project_name: str):
+        mutation = """
+    mutation(
+      $whereAccount: AccountWhereUniqueInput!
+      $data: CreateDataStorageInput!
+    ) {
+      createProject(whereAccount: $whereAccount, data: $data) {
+        id
+      }
+    }
+    """
+
+        variables = {
+            "whereAccount": {"username": cloud_profile.workspace},
+            "data": {
+                "name": storage_name,
+                "containerNames": container_names,
+                "cloudProfileId": cloud_profile.id,
+                "cloudProviderYodaConfig": {
+                    "awsConfig": aws_config,
+                    "azureConfig": azure_config,
+                },
+            },
+        }
+
+        r = requests.post(
+            self.uri,
+            json={"query": mutation, "variables": variables},
+            headers=self.headers,
+        )
+
+        create_mutation_data = r.json()
+        return create_mutation_data["data"]["createProject"]
+
+
