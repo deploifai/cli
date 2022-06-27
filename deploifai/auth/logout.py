@@ -10,7 +10,7 @@ def logout(deploifai: DeploifaiContextObj):
     """
     Logout to remove access
     """
-    auth = deploifai.config["AUTH"]
+    auth = deploifai.global_config["AUTH"]
     username = auth.get("username")
 
     if username is None:
@@ -26,7 +26,7 @@ def logout(deploifai: DeploifaiContextObj):
         click.secho("Logout error")
         return
 
-    auth = deploifai.config["AUTH"]
+    auth = deploifai.global_config["AUTH"]
     auth.pop("username")
 
     deploifai.save_config()
