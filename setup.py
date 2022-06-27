@@ -5,7 +5,7 @@ with open("readme.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="deploifai",
-    version="0.1.0",
+    version="0.1.1",
     author="Deploifai Limited",
     description="Deploifai CLI",
     long_description=long_description,
@@ -25,7 +25,6 @@ setuptools.setup(
         "azure-storage-blob==12.9.0",
         "boto3",
         "PyInquirer",
-        "PyYaml",
         "cryptography==36.0.1",
     ],
     classifiers=[

@@ -1,28 +1,40 @@
 import click
 
 from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
-from deploifai.utilities.config import read_config_file
+from deploifai.api import DeploifaiAPI
 
 
 @click.command()
 @pass_deploifai_context_obj
 def info(context: DeploifaiContextObj):
-    try:
-        configs = read_config_file()
-    except FileNotFoundError:
-        return
-    datastorage_config = configs["datastorage"]
-    storage_account_id = datastorage_config.get("id")
-    storage_account_name = datastorage_config.get("storage")
-    container_name = datastorage_config.get("container")
-    cloud_provider = datastorage_config.get("provider")
+    data_storage_config = context.local_config['DATA_STORAGE']
 
-    if cloud_provider == "AZURE":
-        click.secho("Deploifai Storage ID: {}".format(storage_account_id), fg="green")
+    if 'id' not in data_storage_config:
+        click.secho("No data storage configured for this project", "fg")
+        return
+
+    deploifai_api = DeploifaiAPI(context)
+
+    data_storage_id = data_storage_config['id']
+    storage_details = deploifai_api.get_data_storage_info()
+
+    project_id = storage_details['project']['id']
+    cloud_provider = storage_details["cloudProviderYodaConfig"]["provider"]
+    container = storage_details['containers'][0]
+    container_name = container['directoryName']
+
+    if cloud_provider == "AWS":
+        click.secho("AWS data storages CLI support is coming soon.", fg="blue")
+
+    elif cloud_provider == "AZURE":
+        storage_account_name = storage_details['cloudProviderYodaConfig']['azureConfig']['storageAccount']
+
+        click.secho("Deploifai Storage ID: {}".format(data_storage_id), fg="green")
         click.secho(
-            "https://deploif.ai/dashboard/{username}/data-storages/{storage_account_id}\n".format(
+            "https://deploif.ai/dashboard/{username}/projects/{project_id}/datasets/{data_storage_id}\n".format(
                 username=context.config["AUTH"]["username"],
-                storage_account_id=storage_account_id,
+                project_id = project_id,
+                data_storage_id=data_storage_id,
             ),
             underline=True,
             fg="green",
@@ -41,5 +53,5 @@ def info(context: DeploifaiContextObj):
             fg="yellow",
         )
 
-    else:
-        click.secho("AWS data storages CLI support is coming soon.", fg="green")
+    elif cloud_provider == 'GCP':
+        click.secho("GCP data storages CLI support is coming soon.", fg="blue")

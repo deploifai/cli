@@ -6,8 +6,8 @@ from click import Abort
 
 from deploifai.api import DeploifaiAPIError, DeploifaiAPI
 from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
-from deploifai.utilities.config import (
-    add_storage_configs,
+from deploifai.utilities.local_config import (
+    add_data_storage_config,
     DeploifaiDataAlreadyInitialisedError,
 )
 from deploifai.utilities.user import parse_user_profiles
@@ -186,7 +186,6 @@ def init(context: DeploifaiContextObj, create_new, workspace):
             if answers == {}:
                 raise Abort()
             storage_id = answers.get("storage_option", "")
-            containers = deploifai_api.get_containers(storage_id)
         except DeploifaiAPIError as err:
             click.echo(err)
             raise Abort()
@@ -201,7 +200,7 @@ def init(context: DeploifaiContextObj, create_new, workspace):
         click.echo("Using the existing data directory")
 
     try:
-        add_storage_configs(storage_id, containers, context)
+        add_data_storage_config(storage_id)
     except DeploifaiDataAlreadyInitialisedError:
         click.echo(
             """

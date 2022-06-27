@@ -11,3 +11,5 @@ dist/
 **/deploifai.cfg
 
 **/__pycache__
+
+.deploifai/
