@@ -305,7 +305,7 @@ class DeploifaiAPI:
             ]
         return cloud_profiles
 
-    def create_project(self, project_name: str):
+    def create_project(self, project_name: str, cloud_profile: CloudProfile):
         mutation = """
     mutation(
       $whereAccount: AccountWhereUniqueInput!
@@ -317,11 +317,18 @@ class DeploifaiAPI:
     }
     """
 
+        aws_config = None
+        azure_config = None
+        # TODO: GCP (not sure how to go about this)
+        if cloud_profile.provider == "AWS":
+            aws_config = {"awsRegion": "us-east-1"}
+        elif cloud_profile.provider == "AZURE":
+            azure_config = {"azureRegion": "East US"}
+
         variables = {
             "whereAccount": {"username": cloud_profile.workspace},
             "data": {
-                "name": storage_name,
-                "containerNames": container_names,
+                "name": project_name,
                 "cloudProfileId": cloud_profile.id,
                 "cloudProviderYodaConfig": {
                     "awsConfig": aws_config,
