@@ -8,16 +8,18 @@ from PyInquirer import prompt
 
 
 @click.command()
-@click.argument("name", help="Project name", type=str)
+@click.argument("name")
 @click.option("--workspace", help="Workspace name", type=str)
 @pass_deploifai_context_obj
-def create(context: DeploifaiContextObj, name, workspace):
+def create(context: DeploifaiContextObj, name:str, workspace):
     """
     Create a new project
     """
     if not context.is_authenticated():
         click.echo("Login using deploifai login first")
         raise click.Abort()
+
+    # TODO: abort if project name existed
 
     deploifai_api = DeploifaiAPI(context=context)
 
@@ -63,7 +65,8 @@ def create(context: DeploifaiContextObj, name, workspace):
         click.echo("Could not fetch cloud profiles. Please try again.")
         return
 
-    choose_cloud_profile = prompt (
+    # TODO: prompt user if no existing cloud profiles exist
+    choose_cloud_profile = prompt(
         {
             "type": "list",
             "name": "cloud_profile",

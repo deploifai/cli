@@ -309,7 +309,7 @@ class DeploifaiAPI:
         mutation = """
     mutation(
       $whereAccount: AccountWhereUniqueInput!
-      $data: CreateDataStorageInput!
+      $data: CreateProjectInput!
     ) {
       createProject(whereAccount: $whereAccount, data: $data) {
         id
@@ -317,23 +317,11 @@ class DeploifaiAPI:
     }
     """
 
-        aws_config = None
-        azure_config = None
-        # TODO: GCP (not sure how to go about this)
-        if cloud_profile.provider == "AWS":
-            aws_config = {"awsRegion": "us-east-1"}
-        elif cloud_profile.provider == "AZURE":
-            azure_config = {"azureRegion": "East US"}
-
         variables = {
             "whereAccount": {"username": cloud_profile.workspace},
             "data": {
                 "name": project_name,
                 "cloudProfileId": cloud_profile.id,
-                "cloudProviderYodaConfig": {
-                    "awsConfig": aws_config,
-                    "azureConfig": azure_config,
-                },
             },
         }
 
@@ -343,7 +331,13 @@ class DeploifaiAPI:
             headers=self.headers,
         )
 
+        if r.status_code == 200:
+            click.secho(f"Successfully created new project named {project_name}.", fg="green")
+        else:
+            click.secho(f"An error has occured while trying to create a new project. Please try again.", fg="red")
+
         create_mutation_data = r.json()
+
         return create_mutation_data["data"]["createProject"]
 
 
