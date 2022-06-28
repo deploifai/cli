@@ -2,6 +2,7 @@ import click
 
 from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
 from deploifai.utilities import local_config
+from deploifai.api import DeploifaiAPI
 
 
 @click.command()
@@ -11,8 +12,12 @@ def create(context: DeploifaiContextObj, name: str):
     """
     Create a new project
     """
-    project_id = 'project_id'
+    if not context.is_authenticated():
+        click.echo("Login using deploifai login first")
+        raise click.Abort()
 
-    local_config.set_project_config(name, context.local_config)
+    deploifai_api = DeploifaiAPI(context=context)
 
-    click.echo("Created a new project")
+    project_id = deploifai_api.create_project(name)
+
+    local_config.set_project_config(project_id, context.local_config)
