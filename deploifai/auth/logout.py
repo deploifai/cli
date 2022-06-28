@@ -1,7 +1,7 @@
 import click
 
 from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
-from . import credentials
+from deploifai.utilities import credentials
 
 
 @click.command()

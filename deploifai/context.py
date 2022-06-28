@@ -1,8 +1,12 @@
 import os
 import click
 import configparser
+import requests
+import keyring
 
 from .utilities import environment, local_config
+
+from deploifai.utilities.credentials import get_auth_token
 
 APP_NAME = "deploifai-cli"
 
@@ -83,7 +87,20 @@ class DeploifaiContextObj:
                 click.secho(message, **kwargs)
 
     def is_authenticated(self):
-        if self.config["AUTH"]["username"]:
+        if "username" not in self.global_config["AUTH"]:
+            return False
+        username = self.global_config["AUTH"]["username"]
+
+        url = f"{environment.backend_url}/auth/check/cli"
+        token = get_auth_token(username)
+
+        response = requests.post(
+            url,
+            json={"username": username},
+            headers={"authorization": token},
+        )
+
+        if response.status_code == 200:
             return True
         return False
 
