@@ -19,8 +19,6 @@ def create(context: DeploifaiContextObj, name:str, workspace):
         click.echo("Login using deploifai login first")
         raise click.Abort()
 
-    # TODO: abort if project name existed
-
     deploifai_api = DeploifaiAPI(context=context)
 
     user_data = deploifai_api.get_user()
@@ -56,6 +54,46 @@ def create(context: DeploifaiContextObj, name:str, workspace):
         if _choose_workspace == {}:
             raise click.Abort()
         command_workspace = _choose_workspace["workspace"]
+
+    # ensure project name is unique to the chosen workspace
+    try:
+        project_names_dict = deploifai_api.get_project_names(workspace=command_workspace)
+    except DeploifaiAPIError as err:
+        click.echo("An error occured when fetching projects. Please try again.")
+        return
+
+    err_msg = "Project name taken. Choose a unique project name:"
+
+    project_names = []
+
+    for project_name_dict in project_names_dict:
+        project_names.append(project_name_dict["name"])
+
+    name_taken_err_msg = f"Project name taken. Existing names in chosen workspace: {' '.join(project_names)}\nChoose a unique project name:"
+    err_msg = name_taken_err_msg
+
+    is_valid_name = not(name in project_names)
+
+    while not is_valid_name:
+        prompt_name = prompt(
+            {
+                "type": "input",
+                "name": "project_name",
+                "message": err_msg,
+            }
+        )
+
+        new_project_name = prompt_name["project_name"]
+
+        if len(new_project_name) == 0:
+            err_msg = "Project name cannot be empty.\nChoose a non-empty project name:"
+        elif not new_project_name.isalnum():
+            err_msg = f"Project name should only contain alphanumeric characters.\nChoose a valid project name:"
+        elif new_project_name in project_names:
+            err_msg = name_taken_err_msg
+        else:
+            name = new_project_name
+            is_valid_name = True
 
     try:
         cloud_profiles = deploifai_api.get_cloud_profiles(

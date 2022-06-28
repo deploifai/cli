@@ -305,6 +305,29 @@ class DeploifaiAPI:
             ]
         return cloud_profiles
 
+    def get_project_names(self, workspace):
+        query = """
+            query($whereAccount: AccountWhereUniqueInput!){
+              projects(whereAccount: $whereAccount){
+                name
+              }
+            }
+            """
+
+        variables = {
+            "whereAccount": {"username": workspace["username"]},
+        }
+
+        r = requests.post(
+            self.uri,
+            json={"query": query, "variables": variables},
+            headers=self.headers,
+        )
+        api_data = r.json()
+
+        return api_data["data"]["projects"]
+
+
     def create_project(self, project_name: str, cloud_profile: CloudProfile):
         mutation = """
     mutation(
