@@ -122,12 +122,26 @@ def is_authenticated(f):
     @pass_context
     def wrapper(click_context, *args, **kwargs):
         deploifai_context = click_context.find_object(DeploifaiContextObj)
-        if deploifai_context.is_authenticated():
-            return click_context.invoke(f, *args, **kwargs)
-        else:
-            click.secho(
-                "Auth Missing: you need to login using deploifai auth login", fg="red"
+
+        if "username" in deploifai_context.global_config["AUTH"]:
+            username = deploifai_context.global_config["AUTH"]["username"]
+
+            url = f"{environment.backend_url}/auth/check/cli"
+            token = get_auth_token(username)
+
+            response = requests.post(
+                url,
+                json={"username": username},
+                headers={"authorization": token},
             )
-            raise click.Abort()
+
+            if response.status_code == 200:
+                return click_context.invoke(f, *args, **kwargs)
+
+        click.echo(
+            click.style("Auth Missing: you need to login using ", fg="red") +
+            click.style("deploifai auth login", fg="blue")
+        )
+        raise click.Abort()
 
     return functools.update_wrapper(wrapper, f)

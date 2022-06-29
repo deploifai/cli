@@ -9,13 +9,13 @@ def info(context: DeploifaiContextObj):
     data_storage_config = context.local_config["DATA_STORAGE"]
 
     if "id" not in data_storage_config:
-        click.secho("No data storage configured for this project", "fg")
+        click.secho("No data storage configured for this project", fg="red")
         return
 
     deploifai_api = context.api
 
     data_storage_id = data_storage_config["id"]
-    storage_details = deploifai_api.get_data_storage_info()
+    storage_details = deploifai_api.get_data_storage_info(data_storage_id)
 
     project_id = storage_details["project"]["id"]
     cloud_provider = storage_details["cloudProviderYodaConfig"]["provider"]
@@ -33,7 +33,7 @@ def info(context: DeploifaiContextObj):
         click.secho("Deploifai Storage ID: {}".format(data_storage_id), fg="green")
         click.secho(
             "https://deploif.ai/dashboard/{username}/projects/{project_id}/datasets/{data_storage_id}\n".format(
-                username=context.config["AUTH"]["username"],
+                username=context.global_config["AUTH"]["username"],
                 project_id=project_id,
                 data_storage_id=data_storage_id,
             ),
