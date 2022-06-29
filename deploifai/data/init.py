@@ -4,7 +4,7 @@ import click_spinner
 from PyInquirer import prompt
 from click import Abort
 
-from deploifai.api import DeploifaiAPIError, DeploifaiAPI
+from deploifai.api import DeploifaiAPIError, DeploifaiAPIContextual
 from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
 from deploifai.utilities.local_config import (
     add_data_storage_config,
@@ -42,7 +42,7 @@ def init(context: DeploifaiContextObj, create_new, workspace):
     storage_id = None
     container_name = None
     command_workspace = None
-    deploifai_api = DeploifaiAPI(context=context)
+    deploifai_api = DeploifaiAPIContextual()
 
     user_data = deploifai_api.get_user()
     personal_workspace, team_workspaces = parse_user_profiles(user_data)

@@ -1,7 +1,7 @@
 import click
 
 from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
-from deploifai.api import DeploifaiAPI
+from deploifai.api import DeploifaiAPIContextual
 
 
 @click.command()
@@ -13,7 +13,7 @@ def info(context: DeploifaiContextObj):
         click.secho("No data storage configured for this project", "fg")
         return
 
-    deploifai_api = DeploifaiAPI(context)
+    deploifai_api = DeploifaiAPIContextual(context)
 
     data_storage_id = data_storage_config['id']
     storage_details = deploifai_api.get_data_storage_info()

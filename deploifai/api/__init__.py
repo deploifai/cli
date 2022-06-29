@@ -1,7 +1,6 @@
 import typing
 from json import JSONDecodeError
 
-import click
 import requests
 
 from deploifai.api.errors import DeploifaiAPIError
@@ -35,10 +34,9 @@ def _parse_cloud_profile(cloud_profile_json, workspace) -> CloudProfile:
 
 
 class DeploifaiAPI:
-    def __init__(self, context: DeploifaiContextObj = None):
-        token = get_auth_token(context.global_config["AUTH"]["username"])
+    def __init__(self, auth_token: str):
         self.uri = "{backend_url}/graphql".format(backend_url=environment.backend_url)
-        self.headers = {"authorization": token}
+        self.headers = {"authorization": auth_token}
 
     def get_user(self):
         query = """
@@ -84,7 +82,6 @@ class DeploifaiAPI:
         )
         try:
             data_storage_containers = r.json()["data"]["dataStorage"]["containers"]
-            click.echo(data_storage_containers)
             data_storage_containers = map(
                 lambda d: {"name": d.get("directoryName"), "value": d.get("cloudName")},
                 data_storage_containers,
@@ -125,14 +122,12 @@ class DeploifaiAPI:
             Handle errors when the JSON is not decoded
             For Python3
             """
-            click.echo("Could not get information from Deploifai.")
             raise DeploifaiAPIError("The API did not return a JSON object")
         except ValueError as err:
             """
             Handle errors when the JSON is not decoded
             For Python2
             """
-            click.echo("Could not get information from Deploifai.")
             raise DeploifaiAPIError("The API did not return a JSON object")
 
     def get_data_storage_info(self, storage_id):
@@ -188,7 +183,6 @@ class DeploifaiAPI:
             json={"query": query, "variables": {"id": storage_id}},
             headers=self.headers,
         )
-        click.secho(r.text)
         return r.json()["data"]["dataStorage"]["cloudProviderYodaConfig"][
             "azureConfig"
         ]["storageAccessKey"]
@@ -369,3 +363,7 @@ class DeploifaiAPI:
             raise DeploifaiAPIError("Could not create project. Please try again.")
 
 
+class DeploifaiAPIContextual(DeploifaiAPI):
+    def __init__(self, context: DeploifaiContextObj):
+        token = get_auth_token(context.global_config["AUTH"]["username"])
+        super().__init__(token)

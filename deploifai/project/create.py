@@ -2,7 +2,7 @@ import click
 
 from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
 from deploifai.utilities import local_config
-from deploifai.api import DeploifaiAPI, DeploifaiAPIError
+from deploifai.api import DeploifaiAPIContextual, DeploifaiAPIError
 from deploifai.utilities.user import parse_user_profiles
 from PyInquirer import prompt
 
@@ -19,7 +19,7 @@ def create(context: DeploifaiContextObj, name:str, workspace):
         click.echo("Login using deploifai login first")
         raise click.Abort()
 
-    deploifai_api = DeploifaiAPI(context=context)
+    deploifai_api = DeploifaiAPIContextual()
 
     user_data = deploifai_api.get_user()
     personal_workspace, team_workspaces = parse_user_profiles(user_data)
