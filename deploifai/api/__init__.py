@@ -305,7 +305,7 @@ class DeploifaiAPI:
             ]
         return cloud_profiles
 
-    def get_project_names(self, workspace):
+    def get_projects(self, workspace):
         query = """
             query($whereAccount: AccountWhereUniqueInput!){
               projects(whereAccount: $whereAccount){
@@ -318,14 +318,19 @@ class DeploifaiAPI:
             "whereAccount": {"username": workspace["username"]},
         }
 
-        r = requests.post(
-            self.uri,
-            json={"query": query, "variables": variables},
-            headers=self.headers,
-        )
-        api_data = r.json()
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+            api_data = r.json()
 
-        return api_data["data"]["projects"]
+            return api_data["data"]["projects"]
+        except TypeError as err:
+            raise DeploifaiAPIError("Could not get projects. Please try again.")
+        except KeyError as err:
+            raise DeploifaiAPIError("Could not get projects. Please try again.")
 
 
     def create_project(self, project_name: str, cloud_profile: CloudProfile):
@@ -348,19 +353,19 @@ class DeploifaiAPI:
             },
         }
 
-        r = requests.post(
-            self.uri,
-            json={"query": mutation, "variables": variables},
-            headers=self.headers,
-        )
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": mutation, "variables": variables},
+                headers=self.headers,
+            )
 
-        if r.status_code == 200:
-            click.secho(f"Successfully created new project named {project_name}.", fg="green")
-        else:
-            click.secho(f"An error has occured while trying to create a new project. Please try again.", fg="red")
+            create_mutation_data = r.json()
 
-        create_mutation_data = r.json()
-
-        return create_mutation_data["data"]["createProject"]
+            return create_mutation_data["data"]["createProject"]
+        except TypeError as err:
+            raise DeploifaiAPIError("Could not create project. Please try again.")
+        except KeyError as err:
+            raise DeploifaiAPIError("Could not create project. Please try again.")
 
 

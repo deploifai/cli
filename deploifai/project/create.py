@@ -57,17 +57,14 @@ def create(context: DeploifaiContextObj, name:str, workspace):
 
     # ensure project name is unique to the chosen workspace
     try:
-        project_names_dict = deploifai_api.get_project_names(workspace=command_workspace)
+        projects = deploifai_api.get_projects(workspace=command_workspace)
     except DeploifaiAPIError as err:
         click.echo("An error occured when fetching projects. Please try again.")
         return
 
     err_msg = "Project name taken. Choose a unique project name:"
 
-    project_names = []
-
-    for project_name_dict in project_names_dict:
-        project_names.append(project_name_dict["name"])
+    project_names = [project['name'] for project in projects]
 
     name_taken_err_msg = f"Project name taken. Existing names in chosen workspace: {' '.join(project_names)}\nChoose a unique project name:"
     err_msg = name_taken_err_msg
@@ -125,6 +122,12 @@ def create(context: DeploifaiContextObj, name:str, workspace):
 
     cloud_profile = choose_cloud_profile["cloud_profile"]
 
-    project_id = deploifai_api.create_project(name, cloud_profile)
+    try:
+        project_id = deploifai_api.create_project(name, cloud_profile)["id"]
+    except DeploifaiAPIError as err:
+        click.echo("Could not create project. Please try again.")
+        return
+
+    click.secho(f"Successfully created new project named {name}.", fg="green")
 
     local_config.set_project_config(project_id, context.local_config)
