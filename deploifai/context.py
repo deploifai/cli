@@ -1,9 +1,11 @@
+import functools
 import os
 import click
 import configparser
 import requests
-import keyring
+from click import pass_context
 
+from .api import DeploifaiAPI
 from .utilities import environment, local_config
 
 from deploifai.utilities.credentials import get_auth_token
@@ -27,6 +29,7 @@ class DeploifaiContextObj:
     local_config = configparser.ConfigParser()
     debug = False
     debug_level = "info"
+    api: DeploifaiAPI = None
 
     def __init__(self):
         pass
@@ -69,6 +72,13 @@ class DeploifaiContextObj:
         # save local config file
         local_config.save_config_file(self.local_config)
 
+    def initialise_api(self):
+        if "username" in self.global_config["AUTH"]:
+            token = get_auth_token(self.global_config["AUTH"]["username"])
+            self.api = DeploifaiAPI(token)
+        else:
+            self.api = DeploifaiAPI()
+
     def debug_msg(self, message, level="info", **kwargs):
         if self.debug:
             debug_level_index = debug_levels.index(self.debug_level)
@@ -106,3 +116,18 @@ class DeploifaiContextObj:
 
 
 pass_deploifai_context_obj = click.make_pass_decorator(DeploifaiContextObj, ensure=True)
+
+
+def is_authenticated(f):
+    @pass_context
+    def wrapper(click_context, *args, **kwargs):
+        deploifai_context = click_context.find_object(DeploifaiContextObj)
+        if deploifai_context.is_authenticated():
+            return click_context.invoke(f, *args, **kwargs)
+        else:
+            click.secho(
+                "Auth Missing: you need to login using deploifai auth login", fg="red"
+            )
+            raise click.Abort()
+
+    return functools.update_wrapper(wrapper, f)

@@ -103,10 +103,10 @@ def set_project_config(project_id: str, config: configparser.ConfigParser):
     :param config: The current config
     :return:
     """
-    config['PROJECT'] = {'id': project_id}
+    config["PROJECT"] = {"id": project_id}
 
     save_config_file(config)
-    
+
 
 def add_data_storage_config(data_storage_id: str, config: configparser.ConfigParser):
     """

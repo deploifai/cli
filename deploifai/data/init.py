@@ -4,8 +4,12 @@ import click_spinner
 from PyInquirer import prompt
 from click import Abort
 
-from deploifai.api import DeploifaiAPIError, DeploifaiAPIContextual
-from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
+from deploifai.api import DeploifaiAPIError
+from deploifai.context import (
+    pass_deploifai_context_obj,
+    DeploifaiContextObj,
+    is_authenticated,
+)
 from deploifai.utilities.local_config import (
     add_data_storage_config,
     DeploifaiDataAlreadyInitialisedError,
@@ -23,15 +27,11 @@ from time import sleep
 )
 @click.option("--workspace", help="Workspace name", type=str)
 @pass_deploifai_context_obj
+@is_authenticated
 def init(context: DeploifaiContextObj, create_new, workspace):
     """
     Initialise the current directory as a dataset
     """
-
-    if not context.is_authenticated():
-        click.echo("Login using deploifai login first")
-        raise Abort()
-
     if create_new:
         click.secho(
             "Creating a new data storage. Select the configurations for your new data storage.",
@@ -42,7 +42,7 @@ def init(context: DeploifaiContextObj, create_new, workspace):
     storage_id = None
     container_name = None
     command_workspace = None
-    deploifai_api = DeploifaiAPIContextual()
+    deploifai_api = context.api
 
     user_data = deploifai_api.get_user()
     personal_workspace, team_workspaces = parse_user_profiles(user_data)

@@ -31,6 +31,7 @@ def cli(deploifai: DeploifaiContextObj, debug: bool, debug_level):
     deploifai.debug = debug
     deploifai.debug_level = debug_level
     deploifai.read_config()
+    deploifai.initialise_api()
 
 
 def main():

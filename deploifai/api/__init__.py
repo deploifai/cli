@@ -6,7 +6,6 @@ import requests
 from deploifai.api.errors import DeploifaiAPIError
 from deploifai.utilities.credentials import get_auth_token
 from deploifai.cloud_profile.cloud_profile import CloudProfile
-from deploifai.context import DeploifaiContextObj
 from deploifai.utilities import environment
 
 
@@ -34,9 +33,9 @@ def _parse_cloud_profile(cloud_profile_json, workspace) -> CloudProfile:
 
 
 class DeploifaiAPI:
-    def __init__(self, auth_token: str):
+    def __init__(self, auth_token: str = None):
         self.uri = "{backend_url}/graphql".format(backend_url=environment.backend_url)
-        self.headers = {"authorization": auth_token}
+        self.headers = {"authorization": auth_token} if auth_token else {}
 
     def get_user(self):
         query = """
@@ -299,14 +298,17 @@ class DeploifaiAPI:
             ]
         return cloud_profiles
 
-    def get_projects(self, workspace):
-        query = """
-            query($whereAccount: AccountWhereUniqueInput!){
-              projects(whereAccount: $whereAccount){
-                name
+    def get_projects(self, workspace, fragment: str):
+        query = (
+            """    
+            query($whereAccount: AccountWhereUniqueInput!) {
+              projects(whereAccount: $whereAccount) {
+                ...project
               }
             }
             """
+            + fragment
+        )
 
         variables = {
             "whereAccount": {"username": workspace["username"]},
@@ -325,7 +327,6 @@ class DeploifaiAPI:
             raise DeploifaiAPIError("Could not get projects. Please try again.")
         except KeyError as err:
             raise DeploifaiAPIError("Could not get projects. Please try again.")
-
 
     def create_project(self, project_name: str, cloud_profile: CloudProfile):
         mutation = """
@@ -361,9 +362,3 @@ class DeploifaiAPI:
             raise DeploifaiAPIError("Could not create project. Please try again.")
         except KeyError as err:
             raise DeploifaiAPIError("Could not create project. Please try again.")
-
-
-class DeploifaiAPIContextual(DeploifaiAPI):
-    def __init__(self, context: DeploifaiContextObj):
-        token = get_auth_token(context.global_config["AUTH"]["username"])
-        super().__init__(token)

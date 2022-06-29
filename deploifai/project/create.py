@@ -1,8 +1,12 @@
 import click
 
-from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
+from deploifai.context import (
+    pass_deploifai_context_obj,
+    DeploifaiContextObj,
+    is_authenticated,
+)
 from deploifai.utilities import local_config
-from deploifai.api import DeploifaiAPIContextual, DeploifaiAPIError
+from deploifai.api import DeploifaiAPIError
 from deploifai.utilities.user import parse_user_profiles
 from PyInquirer import prompt
 
@@ -11,15 +15,12 @@ from PyInquirer import prompt
 @click.argument("name")
 @click.option("--workspace", help="Workspace name", type=str)
 @pass_deploifai_context_obj
-def create(context: DeploifaiContextObj, name:str, workspace):
+@is_authenticated
+def create(context: DeploifaiContextObj, name: str, workspace):
     """
     Create a new project
     """
-    if not context.is_authenticated():
-        click.echo("Login using deploifai login first")
-        raise click.Abort()
-
-    deploifai_api = DeploifaiAPIContextual()
+    deploifai_api = context.api
 
     user_data = deploifai_api.get_user()
     personal_workspace, team_workspaces = parse_user_profiles(user_data)
@@ -57,19 +58,24 @@ def create(context: DeploifaiContextObj, name:str, workspace):
 
     # ensure project name is unique to the chosen workspace
     try:
-        projects = deploifai_api.get_projects(workspace=command_workspace)
+        fragment = """
+                fragment project on Project {
+                    id name 
+                }
+                """
+        projects = deploifai_api.get_projects(command_workspace, fragment)
     except DeploifaiAPIError as err:
-        click.echo("An error occured when fetching projects. Please try again.")
+        click.echo("An error occurred when fetching projects. Please try again.")
         return
 
     err_msg = "Project name taken. Choose a unique project name:"
 
-    project_names = [project['name'] for project in projects]
+    project_names = [project["name"] for project in projects]
 
     name_taken_err_msg = f"Project name taken. Existing names in chosen workspace: {' '.join(project_names)}\nChoose a unique project name:"
     err_msg = name_taken_err_msg
 
-    is_valid_name = not(name in project_names)
+    is_valid_name = not (name in project_names)
 
     while not is_valid_name:
         prompt_name = prompt(
@@ -93,9 +99,7 @@ def create(context: DeploifaiContextObj, name:str, workspace):
             is_valid_name = True
 
     try:
-        cloud_profiles = deploifai_api.get_cloud_profiles(
-            workspace=command_workspace
-        )
+        cloud_profiles = deploifai_api.get_cloud_profiles(workspace=command_workspace)
     except DeploifaiAPIError as err:
         click.echo("Could not fetch cloud profiles. Please try again.")
         return

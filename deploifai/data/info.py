@@ -1,39 +1,40 @@
 import click
 
 from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
-from deploifai.api import DeploifaiAPIContextual
 
 
 @click.command()
 @pass_deploifai_context_obj
 def info(context: DeploifaiContextObj):
-    data_storage_config = context.local_config['DATA_STORAGE']
+    data_storage_config = context.local_config["DATA_STORAGE"]
 
-    if 'id' not in data_storage_config:
+    if "id" not in data_storage_config:
         click.secho("No data storage configured for this project", "fg")
         return
 
-    deploifai_api = DeploifaiAPIContextual(context)
+    deploifai_api = context.api
 
-    data_storage_id = data_storage_config['id']
+    data_storage_id = data_storage_config["id"]
     storage_details = deploifai_api.get_data_storage_info()
 
-    project_id = storage_details['project']['id']
+    project_id = storage_details["project"]["id"]
     cloud_provider = storage_details["cloudProviderYodaConfig"]["provider"]
-    container = storage_details['containers'][0]
-    container_name = container['directoryName']
+    container = storage_details["containers"][0]
+    container_name = container["directoryName"]
 
     if cloud_provider == "AWS":
         click.secho("AWS data storages CLI support is coming soon.", fg="blue")
 
     elif cloud_provider == "AZURE":
-        storage_account_name = storage_details['cloudProviderYodaConfig']['azureConfig']['storageAccount']
+        storage_account_name = storage_details["cloudProviderYodaConfig"][
+            "azureConfig"
+        ]["storageAccount"]
 
         click.secho("Deploifai Storage ID: {}".format(data_storage_id), fg="green")
         click.secho(
             "https://deploif.ai/dashboard/{username}/projects/{project_id}/datasets/{data_storage_id}\n".format(
                 username=context.config["AUTH"]["username"],
-                project_id = project_id,
+                project_id=project_id,
                 data_storage_id=data_storage_id,
             ),
             underline=True,
@@ -53,5 +54,5 @@ def info(context: DeploifaiContextObj):
             fg="yellow",
         )
 
-    elif cloud_provider == 'GCP':
+    elif cloud_provider == "GCP":
         click.secho("GCP data storages CLI support is coming soon.", fg="blue")
