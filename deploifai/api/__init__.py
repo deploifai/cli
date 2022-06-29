@@ -1,13 +1,11 @@
 import typing
 from json import JSONDecodeError
 
-import click
 import requests
 
 from deploifai.api.errors import DeploifaiAPIError
 from deploifai.utilities.credentials import get_auth_token
 from deploifai.cloud_profile.cloud_profile import CloudProfile
-from deploifai.context import DeploifaiContextObj
 from deploifai.utilities import environment
 
 
@@ -35,10 +33,9 @@ def _parse_cloud_profile(cloud_profile_json, workspace) -> CloudProfile:
 
 
 class DeploifaiAPI:
-    def __init__(self, context: DeploifaiContextObj = None):
-        token = get_auth_token(context.global_config["AUTH"]["username"])
+    def __init__(self, auth_token: str = None):
         self.uri = "{backend_url}/graphql".format(backend_url=environment.backend_url)
-        self.headers = {"authorization": token}
+        self.headers = {"authorization": auth_token} if auth_token else {}
 
     def get_user(self):
         query = """
@@ -84,7 +81,6 @@ class DeploifaiAPI:
         )
         try:
             data_storage_containers = r.json()["data"]["dataStorage"]["containers"]
-            click.echo(data_storage_containers)
             data_storage_containers = map(
                 lambda d: {"name": d.get("directoryName"), "value": d.get("cloudName")},
                 data_storage_containers,
@@ -125,14 +121,12 @@ class DeploifaiAPI:
             Handle errors when the JSON is not decoded
             For Python3
             """
-            click.echo("Could not get information from Deploifai.")
             raise DeploifaiAPIError("The API did not return a JSON object")
         except ValueError as err:
             """
             Handle errors when the JSON is not decoded
             For Python2
             """
-            click.echo("Could not get information from Deploifai.")
             raise DeploifaiAPIError("The API did not return a JSON object")
 
     def get_data_storage_info(self, storage_id):
@@ -188,7 +182,6 @@ class DeploifaiAPI:
             json={"query": query, "variables": {"id": storage_id}},
             headers=self.headers,
         )
-        click.secho(r.text)
         return r.json()["data"]["dataStorage"]["cloudProviderYodaConfig"][
             "azureConfig"
         ]["storageAccessKey"]
@@ -305,11 +298,41 @@ class DeploifaiAPI:
             ]
         return cloud_profiles
 
-    def create_project(self, project_name: str):
+    def get_projects(self, workspace, fragment: str):
+        query = (
+            """    
+            query($whereAccount: AccountWhereUniqueInput!) {
+              projects(whereAccount: $whereAccount) {
+                ...project
+              }
+            }
+            """
+            + fragment
+        )
+
+        variables = {
+            "whereAccount": {"username": workspace["username"]},
+        }
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+            api_data = r.json()
+
+            return api_data["data"]["projects"]
+        except TypeError as err:
+            raise DeploifaiAPIError("Could not get projects. Please try again.")
+        except KeyError as err:
+            raise DeploifaiAPIError("Could not get projects. Please try again.")
+
+    def create_project(self, project_name: str, cloud_profile: CloudProfile):
         mutation = """
     mutation(
       $whereAccount: AccountWhereUniqueInput!
-      $data: CreateDataStorageInput!
+      $data: CreateProjectInput!
     ) {
       createProject(whereAccount: $whereAccount, data: $data) {
         id
@@ -320,23 +343,22 @@ class DeploifaiAPI:
         variables = {
             "whereAccount": {"username": cloud_profile.workspace},
             "data": {
-                "name": storage_name,
-                "containerNames": container_names,
+                "name": project_name,
                 "cloudProfileId": cloud_profile.id,
-                "cloudProviderYodaConfig": {
-                    "awsConfig": aws_config,
-                    "azureConfig": azure_config,
-                },
             },
         }
 
-        r = requests.post(
-            self.uri,
-            json={"query": mutation, "variables": variables},
-            headers=self.headers,
-        )
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": mutation, "variables": variables},
+                headers=self.headers,
+            )
 
-        create_mutation_data = r.json()
-        return create_mutation_data["data"]["createProject"]
+            create_mutation_data = r.json()
 
-
+            return create_mutation_data["data"]["createProject"]
+        except TypeError as err:
+            raise DeploifaiAPIError("Could not create project. Please try again.")
+        except KeyError as err:
+            raise DeploifaiAPIError("Could not create project. Please try again.")

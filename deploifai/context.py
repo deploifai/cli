@@ -1,9 +1,11 @@
+import functools
 import os
 import click
 import configparser
 import requests
-import keyring
+from click import pass_context
 
+from .api import DeploifaiAPI
 from .utilities import environment, local_config
 
 from deploifai.utilities.credentials import get_auth_token
@@ -27,6 +29,7 @@ class DeploifaiContextObj:
     local_config = configparser.ConfigParser()
     debug = False
     debug_level = "info"
+    api: DeploifaiAPI = None
 
     def __init__(self):
         pass
@@ -69,6 +72,13 @@ class DeploifaiContextObj:
         # save local config file
         local_config.save_config_file(self.local_config)
 
+    def initialise_api(self):
+        if "username" in self.global_config["AUTH"]:
+            token = get_auth_token(self.global_config["AUTH"]["username"])
+            self.api = DeploifaiAPI(token)
+        else:
+            self.api = DeploifaiAPI()
+
     def debug_msg(self, message, level="info", **kwargs):
         if self.debug:
             debug_level_index = debug_levels.index(self.debug_level)
@@ -106,3 +116,32 @@ class DeploifaiContextObj:
 
 
 pass_deploifai_context_obj = click.make_pass_decorator(DeploifaiContextObj, ensure=True)
+
+
+def is_authenticated(f):
+    @pass_context
+    def wrapper(click_context, *args, **kwargs):
+        deploifai_context = click_context.find_object(DeploifaiContextObj)
+
+        if "username" in deploifai_context.global_config["AUTH"]:
+            username = deploifai_context.global_config["AUTH"]["username"]
+
+            url = f"{environment.backend_url}/auth/check/cli"
+            token = get_auth_token(username)
+
+            response = requests.post(
+                url,
+                json={"username": username},
+                headers={"authorization": token},
+            )
+
+            if response.status_code == 200:
+                return click_context.invoke(f, *args, **kwargs)
+
+        click.echo(
+            click.style("Auth Missing: you need to login using ", fg="red") +
+            click.style("deploifai auth login", fg="blue")
+        )
+        raise click.Abort()
+
+    return functools.update_wrapper(wrapper, f)
