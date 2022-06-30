@@ -104,30 +104,136 @@ def create(context: DeploifaiContextObj, name: str, workspace):
         click.echo("Could not fetch cloud profiles. Please try again.")
         return
 
-    # TODO: prompt user if no existing cloud profiles exist
-    choose_cloud_profile = prompt(
-        {
-            "type": "list",
-            "name": "cloud_profile",
-            "message": "Choose a cloud profile for project",
-            "choices": [
-                {
-                    "name": "{name}({workspace}) - {provider}".format(
-                        name=cloud_profile.name,
-                        workspace=cloud_profile.workspace,
-                        provider=cloud_profile.provider,
-                    ),
-                    "value": cloud_profile,
-                }
-                for cloud_profile in cloud_profiles
-            ],
+    cloud_profile = None
+
+    if not cloud_profiles:
+        click.secho("No cloud profiles found.", fg="green")
+
+        choose_create = prompt(
+            {
+            "type": "confirm",
+            "name": "create_new",
+            "message": f"Do you wish to continue to create a new cloud profile?"
         }
-    )
+        )["create_new"]
 
-    cloud_profile = choose_cloud_profile["cloud_profile"]
+        if not choose_create:
+            return
 
+        provider = prompt(
+            {
+                "type": "list",
+                "name": "provider",
+                "message": "Choose a provider for the new cloud profile",
+                "choices": ["AWS", "AZURE", "GCP"],
+            }
+        )["provider"]
+
+        profile_name = ""
+
+        while len(profile_name) == 0 or profile_name.isspace():
+            profile_name = prompt(
+                {
+                    "type": "input",
+                    "name": "name",
+                    "message": "Enter a non-empty profile name",
+                }
+            )["name"]
+
+        cloud_credentials = {}
+        if provider == "AWS":
+            cloud_credentials["awsAccessKey"] = prompt(
+                {
+                    "type": "input",
+                    "name": "awsAccessKey",
+                    "message": "AWS Access Key ID (We'll keep these secured and encrypted)",
+                }
+            )["awsAccessKey"]
+            cloud_credentials["awsSecretAccessKey"] = prompt (
+                {
+                    "type": "input",
+                    "name": "awsSecretAccessKey",
+                    "message": "AWS Secret Access Key (We'll keep these secured and encrypted)",
+                }
+            )["awsSecretAccessKey"]
+        elif provider == "AZURE":
+            cloud_credentials["azureSubscriptionId"] = prompt(
+                {
+                    "type": "input",
+                    "name": "aws_access_key",
+                    "message": "Azure Account Subscription ID (We'll keep these secured and encrypted)",
+                }["azureSubscriptionId"]
+            )["azureSubscriptionId"]
+            cloud_credentials["azureTenantId"] = prompt(
+                {
+                    "type": "input",
+                    "name": "azure_tenant_id",
+                    "message": "Azure Active Directory Tenant ID (We'll keep these secured and encrypted)",
+                }["azureTenantId"]
+            )["azureTenantId"]
+            cloud_credentials["azureClientId"] = prompt(
+                {
+                    "type": "input",
+                    "name": "azure_client_id",
+                    "message": "Azure Client ID (We'll keep these secured and encrypted)",
+                }["azureClientId"]
+            )["azureClientId"]
+            cloud_credentials["azureClientSecret"] = prompt(
+                {
+                    "type": "input",
+                    "name": "azure_client_secret",
+                    "message": "Azure Client Secret / Password (We'll keep these secured and encrypted)",
+                }["azureClientSecret"]
+            )["azureClientSecret"]
+        else:
+            raise click.Abort("no gcp yet")
+            pass
+
+        try:
+            project_fragment = """
+            fragment cloud_profile on CloudProfile {
+                id name provider
+            }
+            """
+            cloud_profile = deploifai_api.create_cloud_profile(
+                provider,
+                profile_name,
+                cloud_credentials,
+                command_workspace,
+                project_fragment
+            )
+        except DeploifaiAPIError as err:
+            click.secho("An error occurred while trying to create a new cloud profile.", fg="red")
+            raise click.Abort()
+
+    else:
+        choose_cloud_profile = prompt(
+            {
+                "type": "list",
+                "name": "cloud_profile",
+                "message": "Choose a cloud profile for project",
+                "choices": [
+                    {
+                        "name": "{name}({workspace}) - {provider}".format(
+                            name=cloud_profile.name,
+                            workspace=cloud_profile.workspace,
+                            provider=cloud_profile.provider,
+                        ),
+                        "value": cloud_profile,
+                    }
+                    for cloud_profile in cloud_profiles
+                ],
+            }
+        )
+
+        cloud_profile = choose_cloud_profile["cloud_profile"]
     try:
-        project_id = deploifai_api.create_project(name, cloud_profile)["id"]
+        project_fragment = """
+        fragment project on Project {
+            id
+        }
+        """
+        project_id = deploifai_api.create_project(name, cloud_profile, project_fragment)["id"]
     except DeploifaiAPIError as err:
         click.echo("Could not create project. Please try again.")
         return
