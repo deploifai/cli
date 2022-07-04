@@ -1,5 +1,5 @@
 import click
-import os
+import json
 
 from deploifai.context import (
     pass_deploifai_context_obj,
@@ -132,7 +132,7 @@ def create(context: DeploifaiContextObj, name: str, workspace):
                 "type": "list",
                 "name": "provider",
                 "message": "Choose a provider for the new cloud profile",
-                "choices": list(Provider),
+                "choices": [provider.value for provider in Provider],
             }
         )["provider"]
 
@@ -212,23 +212,14 @@ def create(context: DeploifaiContextObj, name: str, workspace):
 
             gcp_service_account_key_file = prompt_gcp_key()
 
-            if gcp_service_account_key_file[0] == '/':
-                while True:
-                    try:
-                        cloud_credentials["gcpServiceAccountKey"] = open(gcp_service_account_key_file, 'r').read()
-                        break
-                    except FileNotFoundError as err:
-                        click.secho("File not found. Please input the correct file path.",fg="red")
-                        gcp_service_account_key_file = prompt_gcp_key()
-            else:
-                while True:
-                    try:
-                        cloud_credentials["gcpServiceAccountKey"] = open(
-                            os.path.join(os.getcwd(), gcp_service_account_key_file), 'r').read()
-                        break
-                    except FileNotFoundError as err:
-                        click.secho("File not found. Please input the correct file path.", fg="red")
-                        gcp_service_account_key_file = prompt_gcp_key()
+            while True:
+                try:
+                    with open(gcp_service_account_key_file) as gcp_service_account_key_json:
+                        cloud_credentials["gcpServiceAccountKey"] = gcp_service_account_key_json.read()
+                    break
+                except FileNotFoundError as err:
+                    click.secho("File not found. Please input the correct file path.", fg="red")
+                    gcp_service_account_key_file = prompt_gcp_key()
 
         try:
             project_fragment = """
