@@ -1,5 +1,4 @@
 import click
-import json
 
 from deploifai.context import (
     pass_deploifai_context_obj,
