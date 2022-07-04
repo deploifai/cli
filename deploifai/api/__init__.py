@@ -298,11 +298,11 @@ class DeploifaiAPI:
             ]
         return cloud_profiles
 
-    def get_projects(self, workspace, fragment: str):
+    def get_projects(self, workspace, fragment: str, where_project=None):
         query = (
             """    
-            query($whereAccount: AccountWhereUniqueInput!) {
-              projects(whereAccount: $whereAccount) {
+            query($whereAccount: AccountWhereUniqueInput!, $whereProject: ProjectWhereInput) {
+              projects(whereAccount: $whereAccount, whereProject: $whereProject) {
                 ...project
               }
             }
@@ -310,9 +310,13 @@ class DeploifaiAPI:
             + fragment
         )
 
-        variables = {
-            "whereAccount": {"username": workspace["username"]},
-        }
+        if where_project:
+            variables = {
+                "whereAccount": {"username": workspace["username"]},
+                "whereProject": where_project,
+            }
+        else:
+            variables = {"whereAccount": {"username": workspace["username"]}}
 
         try:
             r = requests.post(
@@ -327,6 +331,36 @@ class DeploifaiAPI:
             raise DeploifaiAPIError("Could not get projects. Please try again.")
         except KeyError as err:
             raise DeploifaiAPIError("Could not get projects. Please try again.")
+
+    def get_project(self, project_id: str, fragment: str):
+        query = (
+            """    
+                query ($where: ProjectWhereUniqueInput!){
+                    project(where: $where) {
+                    ...project
+                  }
+                }
+                """
+            + fragment
+        )
+
+        variables = {
+            "where": {"id": project_id},
+        }
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+            api_data = r.json()
+
+            return api_data["data"]["project"]
+        except TypeError as err:
+            raise DeploifaiAPIError("Could not get project. Please try again.")
+        except KeyError as err:
+            raise DeploifaiAPIError("Could not get project. Please try again.")
 
     def create_project(self, project_name: str, cloud_profile: CloudProfile):
         mutation = """
