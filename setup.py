@@ -5,7 +5,7 @@ with open("readme.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="deploifai",
-    version="0.1.2",
+    version="0.1.3",
     author="Deploifai Limited",
     description="Deploifai CLI",
     long_description=long_description,
