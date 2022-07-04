@@ -328,11 +328,11 @@ class DeploifaiAPI:
         except KeyError as err:
             raise DeploifaiAPIError("Could not get projects. Please try again.")
 
-    def get_workspace(self, project_id: str, fragment: str):
+    def get_project(self, project_id: str, fragment: str):
         query = (
                 """    
-                query($id:String) {
-                  projects(whereID: $id) {
+                query ($where: ProjectWhereUniqueInput!){
+                    project(where: $where) {
                     ...project
                   }
                 }
@@ -341,7 +341,7 @@ class DeploifaiAPI:
         )
 
         variables = {
-            "whereID": {"project_id": project_id},
+            "where": {"id": project_id},
         }
 
         try:
@@ -352,11 +352,11 @@ class DeploifaiAPI:
             )
             api_data = r.json()
 
-            return api_data["data"]["projects"]
+            return api_data["data"]["project"]
         except TypeError as err:
-            raise DeploifaiAPIError("Could not get projects. Please try again.")
+            raise DeploifaiAPIError("Could not get project. Please try again.")
         except KeyError as err:
-            raise DeploifaiAPIError("Could not get projects. Please try again.")
+            raise DeploifaiAPIError("Could not get project. Please try again.")
 
     def create_project(self, project_name: str, cloud_profile: CloudProfile):
         mutation = """

@@ -43,21 +43,22 @@ def browse(context: DeploifaiContextObj, project: str, workspace='unassigned'):
     else:
         # assume that the user should be in a project directory, that contains local configuration file
 
-        if 'id' in context.local_config['PROJECT']:
+        if 'id' not in context.local_config['PROJECT']:
+            click.secho("Missing workspace name and project name, use --work...")
+
+        else:
             project_id = context.local_config['PROJECT']['id']
 
             # query for workspace name from api
             fragment = """
                             fragment project on Project {
-                                workspace 
+                                account{
+                                    username
+                                }
                             }
                             """
-            projects = context.api.get_workspace(project_id=project_id, fragment=fragment)
-            project_workspace = [project["workspace"] for project in projects]
-            workspace = project_workspace[0]
-
-        else:
-            click.secho("Missing workspace name and project name, use --work...")
+            project_data = context.api.get_project(project_id=project_id, fragment=fragment)
+            workspace = project_data["account"]["username"]
 
     if workspace and project_id:
         # defining the url
