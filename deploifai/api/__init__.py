@@ -298,11 +298,11 @@ class DeploifaiAPI:
             ]
         return cloud_profiles
 
-    def get_projects(self, workspace, fragment: str):
+    def get_projects(self, workspace, fragment: str, where_project=None):
         query = (
             """    
-            query($whereAccount: AccountWhereUniqueInput!) {
-              projects(whereAccount: $whereAccount) {
+            query($whereAccount: AccountWhereUniqueInput!, $whereProject: ProjectWhereInput) {
+              projects(whereAccount: $whereAccount, whereProject: $whereProject) {
                 ...project
               }
             }
@@ -310,9 +310,13 @@ class DeploifaiAPI:
             + fragment
         )
 
-        variables = {
-            "whereAccount": {"username": workspace["username"]},
-        }
+        if where_project:
+            variables = {
+                "whereAccount": {"username": workspace["username"]},
+                "whereProject": where_project,
+            }
+        else:
+            variables = {"whereAccount": {"username": workspace["username"]}}
 
         try:
             r = requests.post(
@@ -330,14 +334,14 @@ class DeploifaiAPI:
 
     def get_project(self, project_id: str, fragment: str):
         query = (
-                """    
+            """    
                 query ($where: ProjectWhereUniqueInput!){
                     project(where: $where) {
                     ...project
                   }
                 }
                 """
-                + fragment
+            + fragment
         )
 
         variables = {
