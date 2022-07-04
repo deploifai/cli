@@ -35,19 +35,15 @@ class DeploifaiContextObj:
         pass
 
     def read_config(self):
-        global_config = configparser.ConfigParser()
-
         # read the global config file
-        global_config.read(global_config_filepath)
+        self.global_config.read(global_config_filepath)
 
         # initialise sections if they don't exist already
         for section in global_config_sections:
-            if section not in global_config.sections():
-                global_config[section] = {}
+            if section not in self.global_config.sections():
+                self.global_config[section] = {}
 
         self.debug_msg(f"Read global config file from {global_config_filepath}")
-
-        self.global_config = global_config
 
         # read local config file
         self.local_config = local_config.read_config_file()
