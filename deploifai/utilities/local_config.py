@@ -6,7 +6,7 @@ from PyInquirer import prompt
 
 def find_local_config_dir():
     """
-    Traverse up the file system and checks for a .deplooifai directory.
+    Traverse up the file system and checks for a .deploifai directory.
     If does not exist, raise error not found.
     :return: if local config file exists, return pathlib.Path object that points to the config file
     """
