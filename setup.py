@@ -5,7 +5,7 @@ with open("readme.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="deploifai",
-    version="0.1.3",
+    version="0.1.5",
     author="Deploifai Limited",
     description="Deploifai CLI",
     long_description=long_description,
@@ -13,7 +13,7 @@ setuptools.setup(
     url="https://github.com/deploifai/cli",
     packages=setuptools.find_packages(),
     include_package_data=True,
-    python_requires=">=3.6",
+    python_requires=">=3.6, <3.10",
     install_requires=[
         "click",
         "python-dotenv",
@@ -28,7 +28,10 @@ setuptools.setup(
         "cryptography==36.0.1",
     ],
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Operating System :: OS Independent",
     ],
     entry_points={
