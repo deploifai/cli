@@ -439,3 +439,32 @@ class DeploifaiAPI:
             raise DeploifaiAPIError("Could not create project. Please try again.")
         except KeyError:
             raise DeploifaiAPIError("Could not create project. Please try again.")
+
+    def can_create_experiment(self, workspace):
+        query = (
+                """    
+                query($whereAccount: AccountWhereUniqueInput!) {
+                  canCreateExperiment(whereAccount: $whereAccount)
+                }
+                """
+        )
+        variables = {"whereAccount": {"username": workspace}}
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+            api_data = r.json()
+
+            return api_data["data"]["canCreateExperiment"]
+
+        except TypeError as err:
+            raise DeploifaiAPIError("Could not check if user can create experiment. Please try again.")
+        except KeyError as err:
+            raise DeploifaiAPIError("Could not check if user can create experiment. Please try again.")
+
+
+    def create_experiment(self):
+        pass
