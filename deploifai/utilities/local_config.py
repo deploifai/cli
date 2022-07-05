@@ -69,10 +69,16 @@ def read_config_file() -> configparser.ConfigParser:
     Read the config file in the existing .deploifai/local.cfg file
     :return: A ConfigParser that contains all the configs in the config file
     """
+    path = pathlib.Path.cwd()
+    while not path.joinpath(".deploifai").exists() and path != path.parent:
+        path = path.parent
+
+    file_path = path.joinpath(".deploifai/local.cfg")
+
     try:
         config = configparser.ConfigParser()
         # read the config file
-        config.read(config_file_path)
+        config.read(file_path)
 
         for section in config_sections:
             if section not in config.sections():
