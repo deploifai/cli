@@ -1,8 +1,33 @@
 import configparser
 import pathlib
 import click
+from PyInquirer import prompt
 
-config_file_path = pathlib.Path(".deploifai").joinpath("local.cfg")
+
+def find_local_config_dir():
+    """
+    Traverse up the file system and checks for a .deplooifai directory.
+    If does not exist, raise error not found.
+    :return: if local config file exists, return pathlib.Path object that points to the config file
+    """
+    path = pathlib.Path.cwd()
+    while not path.joinpath(".deploifai").exists() and path != path.parent:
+        path = path.parent
+
+    # True if .deplofai is not created yet
+
+    # 2 cases:
+    # 1. user has not initialized a project
+    # 2. project is initialized but user is in the parent directory
+
+    # TODO: not yet handle the case where user is in the parent directory, which means user is assumed to be creating a new project
+    if path == path.parent:
+        return pathlib.Path.cwd().joinpath(".deploifai/local.cfg")
+
+    return path.joinpath(".deploifai/local.cfg")
+
+
+config_file_path = find_local_config_dir() # pathlib.Path(".deploifai").joinpath("local.cfg")
 
 """
 Manages a .deploifai/local.cfg file to store configuration info about a project.
@@ -42,7 +67,7 @@ def create_config_files():
     Creates the folder .deploifai that stores all the config files.
     :return: None
     """
-    if pathlib.Path(".deploifai").exists():
+    if config_file_path.parent.exists():
         raise DeploifaiAlreadyInitialisedError(
             "Deploifai has already been initialised in this directory."
         )
@@ -69,16 +94,10 @@ def read_config_file() -> configparser.ConfigParser:
     Read the config file in the existing .deploifai/local.cfg file
     :return: A ConfigParser that contains all the configs in the config file
     """
-    path = pathlib.Path.cwd()
-    while not path.joinpath(".deploifai").exists() and path != path.parent:
-        path = path.parent
-
-    file_path = path.joinpath(".deploifai/local.cfg")
-
     try:
         config = configparser.ConfigParser()
         # read the config file
-        config.read(file_path)
+        config.read(config_file_path)
 
         for section in config_sections:
             if section not in config.sections():
