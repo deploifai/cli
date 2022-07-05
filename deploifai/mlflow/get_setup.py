@@ -78,8 +78,8 @@ def get_setup(context: DeploifaiContextObj, external):
         if external or experiment_environment == "EXTERNAL":
 
             line1 = "# only if running an experiment outside deploifai (this must come before setting mlflow tracking uri and experiment)\n"
-            line2 = 'os.environ["MLFLOW_TRACKING_USERNAME"] = {} \n'.format(link)
-            line3 = 'os.environ["MLFLOW_TRACKING_PASSWORD"] = {} \n'.format(experiment_token)
+            line2 = 'os.environ["MLFLOW_TRACKING_USERNAME"] = "{}" \n'.format(link)
+            line3 = 'os.environ["MLFLOW_TRACKING_PASSWORD"] = "{}" \n'.format(experiment_token)
             required_code: str = line1+line2+line3+line4+line5+line6
 
         else:
