@@ -134,4 +134,8 @@ def create(context: DeploifaiContextObj, name: str, workspace):
 
     click.secho(f"Successfully created new project named {name}.", fg="green")
 
-    local_config.set_project_config(project_id, context.local_config)
+    # local_config.set_project_config(project_id, context.local_config)
+
+    # create a project directory, and create .deploifai directory within this
+
+    # tell the user that a new project directory called [...] has been created

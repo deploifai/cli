@@ -1,10 +1,9 @@
 import configparser
 import pathlib
 import click
-from PyInquirer import prompt
 
 
-def find_local_config_dir():
+def _find_local_config_dir():
     """
     Traverse up the file system and checks for a .deploifai directory.
     If does not exist, raise error not found.
@@ -14,20 +13,13 @@ def find_local_config_dir():
     while not path.joinpath(".deploifai").exists() and path != path.parent:
         path = path.parent
 
-    # True if .deplofai is not created yet
-
-    # 2 cases:
-    # 1. user has not initialized a project
-    # 2. project is initialized but user is in the parent directory
-
-    # TODO: not yet handle the case where user is in the parent directory, which means user is assumed to be creating a new project
     if path == path.parent:
-        return pathlib.Path.cwd().joinpath(".deploifai/local.cfg")
+        raise DeploifaiNotInitialisedError("Deploifai project not found.")
 
-    return path.joinpath(".deploifai/local.cfg")
+    return path.joinpath(".deploifai", "local.cfg")
 
 
-config_file_path = find_local_config_dir() # pathlib.Path(".deploifai").joinpath("local.cfg")
+config_file_path = _find_local_config_dir()
 
 """
 Manages a .deploifai/local.cfg file to store configuration info about a project.
@@ -62,7 +54,16 @@ class DeploifaiDataAlreadyInitialisedError(Exception):
         super(DeploifaiDataAlreadyInitialisedError, self).__init__(message)
 
 
-def create_config_files():
+class DeploifaiNotInitialisedError(Exception):
+    """
+    Exception when Deploifai project is not found.
+    """
+
+    def __init__(self, message):
+        super(DeploifaiNotInitialisedError, self).__init__(message)
+
+
+def create_config_files(new_project_dir: str):
     """
     Creates the folder .deploifai that stores all the config files.
     :return: None
@@ -72,6 +73,7 @@ def create_config_files():
             "Deploifai has already been initialised in this directory."
         )
 
+    pathlib.Path(new_project_dir).join
     pathlib.Path(".deploifai").mkdir()
     config_file_path.touch(exist_ok=True)
 
@@ -112,11 +114,8 @@ def read_config_file() -> configparser.ConfigParser:
 def save_config_file(config: configparser.ConfigParser):
     """
     Save the local config from the context in the local.cfg file.
-    :param context: The deploifai context object
+    :param config: A ConfigParser object representing config data
     """
-    if not config_file_path.exists():
-        create_config_files()
-
     with config_file_path.open("w") as config_file:
         config.write(config_file)
 
