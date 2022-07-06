@@ -24,10 +24,7 @@ def create(context: DeploifaiContextObj):
     """
     Creating a new data storage
     """
-    click.secho(
-        "Creating a new data storage. Select the configurations for your new data storage.",
-        fg="blue",
-    )
+
     deploifai_api = context.api
     # assume that the user should be in a project directory, that contains local configuration file
     if "id" in context.local_config["PROJECT"]:
@@ -36,6 +33,7 @@ def create(context: DeploifaiContextObj):
         # query for workspace name from api
         fragment = """
                         fragment project on Project {
+                            name
                             account{
                                 username
                             }
@@ -45,7 +43,10 @@ def create(context: DeploifaiContextObj):
         project_data = context.api.get_project(
             project_id=project_id, fragment=fragment
         )
+        project_name = project_data["name"]
         command_workspace = project_data["account"]["username"]
+        click.secho("Workspace:{}\n".format(command_workspace), fg='green')
+        click.secho("Project:{}<{}>\n".format(project_name,project_id), fg='green')
 
     else:
         click.secho("Could not find a project in the current directory", fg='yellow')
@@ -91,11 +92,17 @@ def create(context: DeploifaiContextObj):
     if new_storage_answers == {}:
         raise Abort()
     storage_name = new_storage_answers["storage_name_input"]
-    container_names = new_storage_answers["container_name_input"].split(" ")
     cloud_profile = new_storage_answers["cloud_profile"]
+
+    click.secho("Cloud Profile:{}".format(cloud_profile), fg='green')
+    click.secho("Dataset Name:{}".format(storage_name), fg='green')
+
+    click.secho("Creating a new data storage.", fg="blue")
+    
     create_storage_response = deploifai_api.create_data_storage(
-        storage_name, container_names, cloud_profile
+        storage_name, cloud_profile
     )
+
     with click_spinner.spinner():
         click.echo("Deploying data storage")
         while True:
