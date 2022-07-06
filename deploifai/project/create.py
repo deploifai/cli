@@ -148,5 +148,6 @@ def create(context: DeploifaiContextObj, name: str, workspace):
 
     click.secho(f"A new directory named {name} has been created locally.", fg="green")
 
+    context.local_config = local_config.read_config_file()
     # set id in local config file
     local_config.set_project_config(project_id, context.local_config)
