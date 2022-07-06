@@ -85,8 +85,7 @@ def create_config_files(new_project_dir: str):
 
     click.secho(
         """A .deploifai directory has been created, which contains configuration that Deploifai requires.
-            You should version control this directory.
-        """,
+            You should version control this directory.""",
         fg="blue",
     )
 

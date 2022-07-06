@@ -105,10 +105,7 @@ def create(context: DeploifaiContextObj, name: str, workspace):
         click.echo("Could not fetch cloud profiles. Please try again.")
         return
 
-    if not cloud_profiles:
-        click.secho("No cloud profiles found. To create a cloud profile: deploifai cloud-profile create", fg="yellow")
-        raise click.Abort()
-
+    # TODO: prompt user if no existing cloud profiles exist
     choose_cloud_profile = prompt(
         {
             "type": "list",
@@ -129,13 +126,9 @@ def create(context: DeploifaiContextObj, name: str, workspace):
     )
 
     cloud_profile = choose_cloud_profile["cloud_profile"]
+
     try:
-        project_fragment = """
-        fragment project on Project {
-            id
-        }
-        """
-        project_id = deploifai_api.create_project(name, cloud_profile, project_fragment)["id"]
+        project_id = deploifai_api.create_project(name, cloud_profile)["id"]
     except DeploifaiAPIError as err:
         click.echo("Could not create project. Please try again.")
         return
