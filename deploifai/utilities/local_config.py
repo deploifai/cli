@@ -61,6 +61,9 @@ class DeploifaiNotInitialisedError(Exception):
     """
 
     def __init__(self, message):
+        click.echo(click.style("Project not found. To create a project: ", fg="red") +
+                   click.style("deploifai project create NAME", fg="blue")
+                   )
         super(DeploifaiNotInitialisedError, self).__init__(message)
 
 
