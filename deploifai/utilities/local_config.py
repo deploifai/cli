@@ -14,7 +14,11 @@ def _find_local_config_dir():
         path = path.parent
 
     if path == path.parent:
-        raise DeploifaiNotInitialisedError("Deploifai project not found.")
+        click.echo(click.style("Project not found. To create a project: ", fg="red") +
+                   click.style("deploifai project create NAME", fg="blue")
+                   )
+        return None
+        # raise DeploifaiNotInitialisedError("Deploifai project not found.")
 
     return path.joinpath(".deploifai", "local.cfg")
 
