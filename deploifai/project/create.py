@@ -131,7 +131,7 @@ def create(context: DeploifaiContextObj, name: str, workspace):
                 "type": "list",
                 "name": "provider",
                 "message": "Choose a provider for the new cloud profile",
-                "choices": [provider.value for provider in Provider],
+                "choices": [{"name": provider.value, "value": provider} for provider in Provider]
             }
         )["provider"]
 

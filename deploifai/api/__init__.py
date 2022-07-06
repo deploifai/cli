@@ -298,6 +298,44 @@ class DeploifaiAPI:
             ]
         return cloud_profiles
 
+    def create_cloud_profile(self, provider, name, credentials, workspace, fragment):
+        mutation = """
+            mutation(
+              $whereAccount: AccountWhereUniqueInput!
+              $data: CloudProfileCreateInput!
+            ) {
+              createCloudProfile(whereAccount: $whereAccount, data: $data) {
+                ...cloud_profile
+              }
+            }
+        """
+
+        variables = {
+            "whereAccount": {"username": workspace["username"]},
+            "data": {
+                "name": name,
+                "provider": provider.value,
+                provider.value.lower() + "Credentials": credentials,
+            },
+        }
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": mutation + fragment, "variables": variables},
+                headers=self.headers,
+            )
+
+            create_mutation_data = r.json()
+
+            cloud_profile = _parse_cloud_profile(create_mutation_data["data"]["createCloudProfile"], workspace["username"])
+            return cloud_profile
+        except TypeError as err:
+            raise DeploifaiAPIError("Could not create cloud profile. Please try again.")
+        except KeyError as err:
+            raise DeploifaiAPIError("Could not create cloud profile. Please try again.")
+
+
     def get_projects(self, workspace, fragment: str, where_project=None):
         query = (
             """    
@@ -362,14 +400,14 @@ class DeploifaiAPI:
         except KeyError as err:
             raise DeploifaiAPIError("Could not get project. Please try again.")
 
-    def create_project(self, project_name: str, cloud_profile: CloudProfile):
+    def create_project(self, project_name: str, cloud_profile: CloudProfile, fragment):
         mutation = """
     mutation(
       $whereAccount: AccountWhereUniqueInput!
       $data: CreateProjectInput!
     ) {
       createProject(whereAccount: $whereAccount, data: $data) {
-        id
+        ...project
       }
     }
     """
@@ -385,7 +423,7 @@ class DeploifaiAPI:
         try:
             r = requests.post(
                 self.uri,
-                json={"query": mutation, "variables": variables},
+                json={"query": mutation + fragment, "variables": variables},
                 headers=self.headers,
             )
 
