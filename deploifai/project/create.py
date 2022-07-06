@@ -127,6 +127,20 @@ def create(context: DeploifaiContextObj, name: str, workspace):
 
     cloud_profile = choose_cloud_profile["cloud_profile"]
 
+    # create a project directory, along with .deploifai directory within this project
+    try:
+        os.mkdir(name)
+    except FileExistsError:
+        click.secho("A directory exists with the same name as the project name you just specified", fg="yellow")
+        raise click.Abort()
+    except OSError:
+        click.secho("An error when creating the project locally", fg="red")
+
+    click.secho(f"A new directory named {name} has been created locally.", fg="green")
+
+    project_path = os.path.join(os.getcwd(), name)
+    local_config.create_config_files(project_path)
+
     try:
         project_id = deploifai_api.create_project(name, cloud_profile)["id"]
     except DeploifaiAPIError as err:
@@ -134,19 +148,6 @@ def create(context: DeploifaiContextObj, name: str, workspace):
         return
 
     click.secho(f"Successfully created new project named {name}.", fg="green")
-
-    # create a project directory, along with .deploifai directory within this project
-    try:
-        os.mkdir(name)
-    except FileExistsError:
-        click.secho("A directory exists with the same name as the project name you just specified", fg="yellow")
-    except OSError:
-        click.secho("An error when creating the project locally", fg="red")
-
-    project_path = os.path.join(os.getcwd(), name)
-    local_config.create_config_files(project_path)
-
-    click.secho(f"A new directory named {name} has been created locally.", fg="green")
 
     context.local_config = local_config.read_config_file()
     # set id in local config file
