@@ -68,13 +68,11 @@ def create_config_files(new_project_dir: str):
     Creates the folder .deploifai that stores all the config files.
     :return: None
     """
-    if config_file_path.parent.exists():
-        raise DeploifaiAlreadyInitialisedError(
-            "Deploifai has already been initialised in this directory."
-        )
+    local_config_dir = pathlib.Path(new_project_dir).joinpath(".deploifai")
+    local_config_dir.mkdir(exist_ok=True)
 
-    pathlib.Path(new_project_dir).join
-    pathlib.Path(".deploifai").mkdir()
+    config_file_path = local_config_dir.joinpath("local.cfg")
+
     config_file_path.touch(exist_ok=True)
 
     # initialise sections if they don't exist already
@@ -96,6 +94,9 @@ def read_config_file() -> configparser.ConfigParser:
     Read the config file in the existing .deploifai/local.cfg file
     :return: A ConfigParser that contains all the configs in the config file
     """
+    if config_file_path is None:
+        return None
+
     try:
         config = configparser.ConfigParser()
         # read the config file
