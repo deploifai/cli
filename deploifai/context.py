@@ -141,3 +141,15 @@ def is_authenticated(f):
         raise click.Abort()
 
     return functools.update_wrapper(wrapper, f)
+
+
+def project_found(f):
+    @pass_context
+    def wrapper(click_context, *args, **kwargs):
+        deploifai_context = click_context.find_object(DeploifaiContextObj)
+        if deploifai_context.local_config is not None:
+            return click_context.invoke(f, *args, **kwargs)
+
+        raise local_config.DeploifaiNotInitialisedError("Deploifai project not found")
+
+    return functools.update_wrapper(wrapper, f)
