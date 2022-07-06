@@ -5,6 +5,7 @@ import requests
 from deploifai.api import DeploifaiAPIError
 from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
 from deploifai.utilities.frontend_routing import get_project_route
+from deploifai.utilities.local_config import DeploifaiNotInitialisedError
 
 
 @click.command()
@@ -56,6 +57,8 @@ def browse(context: DeploifaiContextObj, project: str, workspace="unassigned"):
 
     else:
         # assume that the user should be in a project directory, that contains local configuration file
+        if context.local_config is None:
+            raise DeploifaiNotInitialisedError("Deploifai project not found")
 
         if "id" not in context.local_config["PROJECT"]:
             click.secho("Missing workspace name and project name", fg='yellow')
