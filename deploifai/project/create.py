@@ -69,14 +69,19 @@ def create(context: DeploifaiContextObj, name: str, workspace):
         click.echo("An error occurred when fetching projects. Please try again.")
         return
 
-    err_msg = "Project name taken. Choose a unique project name:"
-
     project_names = [project["name"] for project in projects]
+    user_pwd_dir_names = os.listdir()
 
-    name_taken_err_msg = f"Project name taken. Existing names in chosen workspace: {' '.join(project_names)}\nChoose a unique project name:"
-    err_msg = name_taken_err_msg
+    dup_local_err_msg = f"There are existing files/directories in your computer also named {name}"
+    dup_backend_err_msg = f"Project name taken. Existing names in chosen workspace: {' '.join(project_names)}\nChoose a unique project name:"
 
-    is_valid_name = not (name in project_names)
+    err_msg = ""
+    if name in user_pwd_dir_names:
+        err_msg = dup_local_err_msg
+    elif name in project_names:
+        err_msg = dup_backend_err_msg
+
+    is_valid_name = not (name in project_names or name in user_pwd_dir_names)
 
     while not is_valid_name:
         prompt_name = prompt(
@@ -89,12 +94,14 @@ def create(context: DeploifaiContextObj, name: str, workspace):
 
         new_project_name = prompt_name["project_name"]
 
-        if len(new_project_name) == 0:
+        if len(new_project_name) == 0 or new_project_name.isspace():
             err_msg = "Project name cannot be empty.\nChoose a non-empty project name:"
         elif not new_project_name.isalnum():
             err_msg = f"Project name should only contain alphanumeric characters.\nChoose a valid project name:"
+        elif new_project_name in user_pwd_dir_names:
+            err_msg = dup_local_err_msg
         elif new_project_name in project_names:
-            err_msg = name_taken_err_msg
+            err_msg = dup_backend_err_msg
         else:
             name = new_project_name
             is_valid_name = True
@@ -127,26 +134,26 @@ def create(context: DeploifaiContextObj, name: str, workspace):
 
     cloud_profile = choose_cloud_profile["cloud_profile"]
 
+    # create proejct in the backend
     try:
         project_id = deploifai_api.create_project(name, cloud_profile)["id"]
     except DeploifaiAPIError as err:
-        click.echo("Could not create project. Please try again.")
-        return
+        click.secho(err, fg="red")
+        raise click.Abort()
 
     click.secho(f"Successfully created new project named {name}.", fg="green")
 
-    # create a project directory, along with .deploifai directory within this project
+    # create a project directory locally, along with .deploifai directory within this project
     try:
         os.mkdir(name)
-    except FileExistsError:
-        click.secho("A directory exists with the same name as the project name you just specified", fg="yellow")
+        raise click.Abort()
     except OSError:
         click.secho("An error when creating the project locally", fg="red")
 
+    click.secho(f"A new directory named {name} has been created locally.", fg="green")
+
     project_path = os.path.join(os.getcwd(), name)
     local_config.create_config_files(project_path)
-
-    click.secho(f"A new directory named {name} has been created locally.", fg="green")
 
     context.local_config = local_config.read_config_file()
     # set id in local config file
