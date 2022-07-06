@@ -1,15 +1,16 @@
 import click
 
-from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
-from deploifai.utilities.local_config import DeploifaiNotInitialisedError
+from deploifai.context import (
+    pass_deploifai_context_obj,
+    DeploifaiContextObj,
+    project_found,
+)
 
 
 @click.command()
 @pass_deploifai_context_obj
+@project_found
 def info(context: DeploifaiContextObj):
-    if context.local_config is None:
-        raise DeploifaiNotInitialisedError("Deploifai project not found")
-
     data_storage_config = context.local_config["DATA_STORAGE"]
 
     if "id" not in data_storage_config:
