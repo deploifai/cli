@@ -9,6 +9,7 @@ from deploifai.utilities import local_config
 from deploifai.api import DeploifaiAPIError
 from deploifai.utilities.user import parse_user_profiles
 from PyInquirer import prompt
+import os
 
 
 @click.command()
@@ -134,8 +135,18 @@ def create(context: DeploifaiContextObj, name: str, workspace):
 
     click.secho(f"Successfully created new project named {name}.", fg="green")
 
-    # local_config.set_project_config(project_id, context.local_config)
+    # create a project directory, along with .deploifai directory within this project
+    try:
+        os.mkdir(name)
+    except FileExistsError:
+        click.secho("A directory exists with the same name as the project name you just specified", fg="yellow")
+    except OSError:
+        click.secho("An error when creating the project locally", fg="red")
 
-    # create a project directory, and create .deploifai directory within this
+    project_path = os.path.join(os.getcwd(), name)
+    local_config.create_config_files(project_path)
 
-    # tell the user that a new project directory called [...] has been created
+    click.secho(f"A new directory named {name} has been created locally.", fg="green")
+
+    # set id in local config file
+    local_config.set_project_config(project_id, context.local_config)
