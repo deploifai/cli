@@ -14,9 +14,6 @@ def _find_local_config_dir():
         path = path.parent
 
     if path == path.parent:
-        click.echo(click.style("Project not found. To create a project: ", fg="red") +
-                   click.style("deploifai project create NAME", fg="blue")
-                   )
         return None
         # raise DeploifaiNotInitialisedError("Deploifai project not found.")
 
@@ -68,6 +65,7 @@ class DeploifaiNotInitialisedError(Exception):
 
 
 def create_config_files(new_project_dir: str):
+    global config_file_path
     """
     Creates the folder .deploifai that stores all the config files.
     :return: None
@@ -87,7 +85,7 @@ def create_config_files(new_project_dir: str):
 
     click.secho(
         """A .deploifai directory has been created, which contains configuration that Deploifai requires.
-        You should version control this directory.
+            You should version control this directory.
         """,
         fg="blue",
     )
