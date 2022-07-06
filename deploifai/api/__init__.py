@@ -187,11 +187,11 @@ class DeploifaiAPI:
         ]["storageAccessKey"]
 
     def create_data_storage(
-        self,
-        storage_name: str,
-        container_names: typing.List[str],
-        cloud_profile: CloudProfile,
-        region=None,
+            self,
+            storage_name: str,
+            container_names: typing.List[str],
+            cloud_profile: CloudProfile,
+            region=None,
     ):
         mutation = """
     mutation(
@@ -343,14 +343,14 @@ class DeploifaiAPI:
 
     def get_projects(self, workspace, fragment: str, where_project=None):
         query = (
-            """    
+                """    
             query($whereAccount: AccountWhereUniqueInput!, $whereProject: ProjectWhereInput) {
               projects(whereAccount: $whereAccount, whereProject: $whereProject) {
                 ...project
               }
             }
             """
-            + fragment
+                + fragment
         )
 
         if where_project:
@@ -377,14 +377,14 @@ class DeploifaiAPI:
 
     def get_project(self, project_id: str, fragment: str):
         query = (
-            """    
+                """    
                 query ($where: ProjectWhereUniqueInput!){
                     project(where: $where) {
                     ...project
                   }
                 }
                 """
-            + fragment
+                + fragment
         )
 
         variables = {
@@ -442,7 +442,7 @@ class DeploifaiAPI:
 
     def can_create_experiment(self, workspace):
         query = (
-                """    
+            """    
                 query($whereAccount: AccountWhereUniqueInput!) {
                   canCreateExperiment(whereAccount: $whereAccount)
                 }
@@ -465,6 +465,42 @@ class DeploifaiAPI:
         except KeyError as err:
             raise DeploifaiAPIError("Could not check if user can create experiment. Please try again.")
 
+    def create_experiment(self, experiment_name, experiment_environment, project_id):
+        mutation = """
+            mutation(
+              $whereProject: ProjectWhereUniqueInput!
+              $data: CreateExperimentInput!
+            ) {
+              createExperiment(whereProject: $whereProject, data: $data) {
+                id
+              }
+            }
+            """
 
-    def create_experiment(self):
-        pass
+        variables = None
+        if experiment_environment.value == "EXTERNAL":
+            variables = {
+                "whereProject": {"id": project_id},
+                "data": {
+                    "name": experiment_name,
+                    "environment": experiment_environment.value,
+                },
+            }
+        else:
+            # TODO: support for non managed runner
+            pass
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": mutation, "variables": variables},
+                headers=self.headers,
+            )
+
+            create_mutation_data = r.json()
+
+            return create_mutation_data["data"]["createExperiment"]
+        except TypeError as err:
+            raise DeploifaiAPIError("Could not create experiment. Please try again.")
+        except KeyError as err:
+            raise DeploifaiAPIError("Could not create experiment. Please try again.")

@@ -5,10 +5,14 @@ from deploifai.context import (
     DeploifaiContextObj,
     is_authenticated,
 )
-from deploifai.utilities import local_config
 from deploifai.api import DeploifaiAPIError
-from deploifai.utilities.user import parse_user_profiles
 from PyInquirer import prompt
+from enum import Enum
+
+
+class Environment(Enum):
+    DEPLOIFAI = "DEPLOIFAI"
+    EXTERNAL = "EXTERNAL"
 
 
 @click.command()
@@ -16,10 +20,10 @@ from PyInquirer import prompt
 @pass_deploifai_context_obj
 @is_authenticated
 def create(context: DeploifaiContextObj, name: str):
+    # TODO: use decorator for checking if project found
     # get project
     if "id" not in context.local_config["PROJECT"]:
         click.secho("Local configuration file missing!", fg="yellow")
-        click.echo(click.style("Create a project first by doing ", fg="yellow") + click.style("deploifai project create", fg="blue"))
         return
 
     project_id = context.local_config["PROJECT"]["id"]
@@ -44,6 +48,7 @@ def create(context: DeploifaiContextObj, name: str):
 
     if not can_create:
         click.secho("You are not authorized to create any experiments.", fg="red")
+        raise click.Abort()
 
     # query for project and workspace name from api
     fragment = """
@@ -81,5 +86,24 @@ def create(context: DeploifaiContextObj, name: str):
         else:
             name = new_experiment_name
             is_valid_name = True
+
+    is_deploifai_environment = prompt(
+        {
+            "type": "confirm",
+            "name": "is_deploifai_environment",
+            "message": "Run experiments on a managed runner on your own cloud service",
+        }
+    )["is_deploifai_environment"]
+
+    # TODO: prompt user for more info if run experiment in deploifai
+    if is_deploifai_environment:
+        pass
+    else:
+        environment = Environment.EXTERNAL
+        try:
+            context.api.create_experiment(name, environment, project_id)
+        except DeploifaiAPIError as err:
+            click.secho(err, fg="red")
+            raise click.Abort()
 
     click.secho(f"Created new experiment {name} on project {project_name}.",fg="green")
