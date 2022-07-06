@@ -53,6 +53,10 @@ def init(context: DeploifaiContextObj, create_new):
         )
         command_workspace = project_data["account"]["username"]
 
+    else:
+        click.secho("Please run code in project directory", fg='yellow')
+        return
+
     if create_new:
         try:
             cloud_profiles = deploifai_api.get_cloud_profiles(
