@@ -19,16 +19,10 @@ from time import sleep
 
 
 @click.command()
-@click.option(
-    "--create-new",
-    prompt="Create a new data storage on Deploifai?",
-    type=bool,
-    default=False,
-)
-@click.option("--workspace", help="Workspace name", type=str)
+@click.option("--create-new", help="Create a new data storage on Deploifai", is_flag=True)
 @pass_deploifai_context_obj
 @is_authenticated
-def init(context: DeploifaiContextObj, create_new, workspace):
+def init(context: DeploifaiContextObj, create_new):
     """
     Initialise the current directory as a dataset
     """
@@ -39,48 +33,25 @@ def init(context: DeploifaiContextObj, create_new, workspace):
         )
     else:
         click.secho("Connecting with an existing data storage", fg="blue")
-    storage_id = None
-    container_name = None
-    command_workspace = None
     deploifai_api = context.api
 
-    user_data = deploifai_api.get_user()
-    personal_workspace, team_workspaces = parse_user_profiles(user_data)
+    # assume that the user should be in a project directory, that contains local configuration file
+    if "id" in context.local_config["PROJECT"]:
+        project_id = context.local_config["PROJECT"]["id"]
 
-    workspaces_from_api = [personal_workspace] + team_workspaces
-
-    # We need to check if the workspace was passed in. Also, we need to make sure that it is a part of the list of
-    # workspaces that this user has access to. Otherwise, we need to ask the user to give a valid workspace to use for
-    # this command.
-    if workspace and len(workspace):
-        if any(ws["username"] == workspace for ws in workspaces_from_api):
-            for w in workspaces_from_api:
-                if w["username"] == workspace:
-                    command_workspace = w
-                    break
-        else:
-            # the workspace user input does not match with any of the workspaces the user has access to
-            click.secho(
-                "{workspace} cannot be found. Please put in a workspace you have access to.".format(
-                    workspace=workspace
-                ),
-                fg="red",
-            )
-            raise Abort()
-    else:
-        _choose_workspace = prompt(
-            {
-                "type": "list",
-                "name": "workspace",
-                "message": "Choose a workspace",
-                "choices": [
-                    {"name": ws["username"], "value": ws} for ws in workspaces_from_api
-                ],
-            }
+        # query for workspace name from api
+        fragment = """
+                        fragment project on Project {
+                            account{
+                                username
+                            }
+                        }
+                        """
+        context.debug_msg(project_id)
+        project_data = context.api.get_project(
+            project_id=project_id, fragment=fragment
         )
-        if _choose_workspace == {}:
-            raise Abort()
-        command_workspace = _choose_workspace["workspace"]
+        command_workspace = project_data["account"]["username"]
 
     if create_new:
         try:
