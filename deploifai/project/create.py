@@ -105,9 +105,7 @@ def create(context: DeploifaiContextObj, name: str, workspace):
         return
 
     if not cloud_profiles:
-        click.echo(click.style("No cloud profiles found. To create a cloud profile: ", fg="red") +
-                   click.style("deploifai cloud-profile create", fg="blue")
-                   )
+        click.secho("No cloud profiles found. To create a cloud profile: deploifai cloud-profile create", fg="yellow")
         raise click.Abort()
 
     choose_cloud_profile = prompt(
