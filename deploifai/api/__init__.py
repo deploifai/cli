@@ -5,7 +5,7 @@ import requests
 
 from deploifai.api.errors import DeploifaiAPIError
 from deploifai.utilities.credentials import get_auth_token
-from deploifai.cloud_profile.cloud_profile import CloudProfile
+from deploifai.utilities.cloud_profile import CloudProfile
 from deploifai.utilities import environment
 
 
@@ -328,8 +328,7 @@ class DeploifaiAPI:
 
             create_mutation_data = r.json()
 
-            cloud_profile = _parse_cloud_profile(create_mutation_data["data"]["createCloudProfile"], workspace["username"])
-            return cloud_profile
+            return create_mutation_data["data"]["createCloudProfile"]["id"]
         except TypeError as err:
             raise DeploifaiAPIError("Could not create cloud profile. Please try again.")
         except KeyError as err:
