@@ -7,11 +7,11 @@ from PyInquirer import prompt
 
 
 @click.command('get-setup')
-@click.option("--external", is_flag=True, help="Use code externally")
+@click.option("--external", is_flag=True, help="Use mlflow integration outside of Deploifai managed runner")
 @pass_deploifai_context_obj
 def get_setup(context: DeploifaiContextObj, external):
     """
-    Command to obtain code for mlflow integration
+    Get setup to integrate mlflow in training scripts
     """
 
     # assume that the user should be in a project directory, that contains local configuration file
@@ -37,14 +37,18 @@ def get_setup(context: DeploifaiContextObj, external):
         )
         project_name = project_data["name"]
         workspace_name = project_data["account"]["username"]
-        experiment_data = project_data["experiment"]
+        experiment_data = project_data["experiments"]
         experiment_names = [experiment["name"] for experiment in experiment_data]
         experiment_environments = [experiment["environment"] for experiment in experiment_data]
         experiment_tokens = [experiment["resourceAccessTokenString"] for experiment in experiment_data]
 
+        click.secho("Workspace: {}".format(workspace_name), fg='blue')
+        click.secho("Project: {}<{}>".format(project_name, project_id), fg='blue')
+
         # selecting experiment name from the options
         if len(experiment_names) == 0:
-            click.secho("No experiments exist for the project")
+            click.secho("No experiments exist for the project", fg='yellow')
+            return
         # elif len(experiment_names) == 1:
         # experiment_name = experiment_names[0]
         else:
@@ -61,6 +65,8 @@ def get_setup(context: DeploifaiContextObj, external):
             if choose_experiment == {}:
                 raise click.Abort()
             experiment_name = choose_experiment["experiment"]
+
+        click.secho("Experiment: {}".format(experiment_name), fg='blue')
 
         index = -1
         for i, x in enumerate(experiment_names):
@@ -85,9 +91,10 @@ def get_setup(context: DeploifaiContextObj, external):
         else:
             required_code: str = line4+line5+line6
 
-        click.secho("The following code needs to be added for mlflow integration", fg='green')
+        click.secho("The following code snippet needs to be added after importing mlflow", fg='green')
         click.secho(required_code)
         pyperclip.copy(required_code)
         click.secho("The code has been copied to your clipboard", fg='green')
     else:
-        click.secho("Please run code in project directory")
+        click.secho("Unable to get project information (could not find .deploifai directory)", fg='red')
+        return
