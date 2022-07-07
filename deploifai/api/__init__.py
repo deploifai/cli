@@ -322,7 +322,7 @@ class DeploifaiAPI:
             variables["data"]["awsCredentials"] = credentials
         elif provider.value == "AZURE":
             variables["data"]["azureCredentials"] = credentials
-        else:
+        elif provider.value == "GCP":
             variables["data"]["gcpCredentials"] = credentials
 
         try:
