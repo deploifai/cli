@@ -315,9 +315,15 @@ class DeploifaiAPI:
             "data": {
                 "name": name,
                 "provider": provider.value,
-                provider.value.lower() + "Credentials": credentials,
             },
         }
+
+        if provider.value == "AWS":
+            variables["data"]["awsCredentials"] = credentials
+        elif provider.value == "AZURE":
+            variables["data"]["azureCredentials"] = credentials
+        else:
+            variables["data"]["gcpCredentials"] = credentials
 
         try:
             r = requests.post(
