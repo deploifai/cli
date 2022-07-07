@@ -130,9 +130,9 @@ def create(context: DeploifaiContextObj, name: str, workspace):
     # create a project directory locally, along with .deploifai directory within this project
     try:
         os.mkdir(name)
-        raise click.Abort()
     except OSError:
         click.secho("An error when creating the project locally", fg="red")
+        raise click.Abort()
 
     click.secho(f"A new directory named {name} has been created locally.", fg="green")
 
