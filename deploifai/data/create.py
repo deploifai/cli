@@ -98,7 +98,7 @@ def create(context: DeploifaiContextObj):
     click.secho("Dataset Name:{}".format(storage_name), fg='green')
 
     click.secho("Creating a new data storage.", fg="blue")
-    
+
     create_storage_response = deploifai_api.create_data_storage(
         storage_name, cloud_profile
     )
@@ -116,38 +116,3 @@ def create(context: DeploifaiContextObj):
                 click.echo("There was an error in deployment.")
                 break
             sleep(10)
-    container_name = prompt(
-        {
-            "type": "list",
-            "name": "container",
-            "message": "Choose the container to connect this folder to.",
-            "choices": lambda ans: deploifai_api.get_containers(
-                create_storage_response["id"]
-            ),
-        }
-    )["container"]
-
-    if container_name == {}:
-        raise Abort()
-
-    storage_id = create_storage_response["id"]
-
-    try:
-        os.mkdir("data")
-        click.echo(
-            "Creating the data directory. If your data is outside the data directory, move it into the the data "
-            "directory so that it can be uploaded"
-        )
-    except FileExistsError as err:
-        click.echo("Using the existing data directory")
-
-    try:
-        add_data_storage_config(storage_id)
-    except DeploifaiDataAlreadyInitialisedError:
-        click.echo(
-            """
-    A different storage is already initialised in the folder.
-    Consider removing it from the config file.
-    """
-        )
-        raise Abort()
