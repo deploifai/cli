@@ -9,8 +9,8 @@ from PyInquirer import prompt
 
 class Environment(Enum):
     # Experiment Environment, DEPLOIFAI means usage of a managed runner, EXTERNAL means lack of a managed runner
-    DEPLOIFAI = 1
-    EXTERNAL = 2
+    DEPLOIFAI = 'DEPLOIFAI'
+    EXTERNAL = 'EXTERNAL'
 
 
 @click.command('get-setup')
@@ -99,7 +99,7 @@ def get_setup(context: DeploifaiContextObj, external):
         line5 = "mlflow.set_tracking_uri('https://community.mlflow.deploif.ai')\n"
         line6 = 'mlflow.set_experiment("{}")\n'.format(link)
 
-        if external or experiment_environment == Environment.EXTERNAL.name:
+        if external or experiment_environment == Environment.EXTERNAL.value:
 
             line1 = "# only if running an experiment outside deploifai (this must come before setting mlflow tracking uri and experiment)\n"
             line2 = 'os.environ["MLFLOW_TRACKING_USERNAME"] = "{}" \n'.format(link)
