@@ -500,7 +500,7 @@ class DeploifaiAPI:
             create_mutation_data = r.json()
 
             return create_mutation_data["data"]["createExperiment"]
-        except TypeError as err:
+        except TypeError:
             raise DeploifaiAPIError("Could not create experiment. Please try again.")
-        except KeyError as err:
+        except KeyError:
             raise DeploifaiAPIError("Could not create experiment. Please try again.")

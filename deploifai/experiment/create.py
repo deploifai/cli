@@ -4,6 +4,7 @@ from deploifai.context import (
     pass_deploifai_context_obj,
     DeploifaiContextObj,
     is_authenticated,
+    project_found
 )
 from deploifai.api import DeploifaiAPIError
 from PyInquirer import prompt
@@ -16,11 +17,11 @@ class Environment(Enum):
 
 
 @click.command()
-@click.option("--name", "-n", help="Experiment name", type=str, required=True)
+@click.option("--name", "-n", help="Experiment name", type=str, prompt="Choose an experiment name")
 @pass_deploifai_context_obj
 @is_authenticated
+@project_found
 def create(context: DeploifaiContextObj, name: str):
-    # TODO: use decorator for checking if project found
     # get project
     if "id" not in context.local_config["PROJECT"]:
         click.secho("Local configuration file missing!", fg="yellow")
@@ -28,15 +29,15 @@ def create(context: DeploifaiContextObj, name: str):
 
     project_id = context.local_config["PROJECT"]["id"]
 
-    # query for project and workspace name from api
+    # query for project name and workspace from api
     fragment = """
-                    fragment project on Project {
-                        name
-                        account{
-                            username
-                        }
-                    }
-                    """
+    fragment project on Project {
+        name
+        account{
+            username
+        }
+    }
+    """
     project_data = context.api.get_project(
         project_id=project_id, fragment=fragment
     )
@@ -50,42 +51,33 @@ def create(context: DeploifaiContextObj, name: str):
         click.secho("You are not authorized to create any experiments.", fg="red")
         raise click.Abort()
 
-    # query for project and workspace name from api
+    # query for existing experiment names from api
     fragment = """
-                    fragment project on Project {
-                        experiments {
-                            name
-                        }
-                    }
-                    """
+    fragment project on Project {
+        experiments {
+            name
+        }
+    }
+    """
     project_data = context.api.get_project(
         project_id=project_id, fragment=fragment
     )
     experiment_names = [experiment["name"] for experiment in project_data["experiments"]]
 
-    name_taken_err_msg = f"Experiment name taken. Existing names in current project: {' '.join(experiment_names)}\nChoose a unique experiment name:"
-    err_msg = name_taken_err_msg
+    err_msg = ""
 
-    is_valid_name = not (name in experiment_names)
+    is_valid_name = True
 
-    while not is_valid_name:
-        prompt_name = prompt(
-            {
-                "type": "input",
-                "name": "experiment_name",
-                "message": err_msg,
-            }
-        )
+    if name in experiment_names:
+        is_valid_name = False
+        err_msg = f"Experiment name taken. Existing names in current project: {' '.join(experiment_names)}"
+    elif name.isspace():
+        is_valid_name = False
+        err_msg = f"Experiment name cannot be empty."
 
-        new_experiment_name = prompt_name["experiment_name"]
-
-        if len(new_experiment_name) == 0 or new_experiment_name.isspace():
-            err_msg = "Experiment name cannot be empty.\nChoose a non-empty Experiment name:"
-        elif new_experiment_name in experiment_names:
-            err_msg = name_taken_err_msg
-        else:
-            name = new_experiment_name
-            is_valid_name = True
+    if not is_valid_name:
+        click.secho(err_msg, fg="red")
+        raise click.Abort()
 
     is_deploifai_environment = prompt(
         {
