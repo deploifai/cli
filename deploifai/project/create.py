@@ -72,43 +72,27 @@ def create(context: DeploifaiContextObj, name: str, workspace):
     project_names = [project["name"] for project in projects]
     user_pwd_dir_names = os.listdir()
 
-    dup_local_err_msg = f"There are existing files/directories in your computer also named {name}"
-    dup_backend_err_msg = f"Project name taken. Existing names in chosen workspace: {' '.join(project_names)}\nChoose a unique project name:"
+    is_valid_name = True
 
     err_msg = ""
+
     if name in user_pwd_dir_names:
-        err_msg = dup_local_err_msg
+        is_valid_name = False
+        err_msg = f"There are existing files/directories in your computer also named {name}"
     elif name in project_names:
-        err_msg = dup_backend_err_msg
+        is_valid_name = False
+        err_msg = f"Project name taken. Existing names in chosen workspace: {' '.join(project_names)}."
+    elif name.isalnum():
+        is_valid_name = False
+        err_msg = "Project name should only contain alphanumeric characters."
 
-    is_valid_name = not (name in project_names or name in user_pwd_dir_names)
-
-    while not is_valid_name:
-        prompt_name = prompt(
-            {
-                "type": "input",
-                "name": "project_name",
-                "message": err_msg,
-            }
-        )
-
-        new_project_name = prompt_name["project_name"]
-
-        if len(new_project_name) == 0 or new_project_name.isspace():
-            err_msg = "Project name cannot be empty.\nChoose a non-empty project name:"
-        elif not new_project_name.isalnum():
-            err_msg = f"Project name should only contain alphanumeric characters.\nChoose a valid project name:"
-        elif new_project_name in user_pwd_dir_names:
-            err_msg = dup_local_err_msg
-        elif new_project_name in project_names:
-            err_msg = dup_backend_err_msg
-        else:
-            name = new_project_name
-            is_valid_name = True
+    if not is_valid_name:
+        click.secho(err_msg, fg="red")
+        raise click.Abort()
 
     try:
         cloud_profiles = deploifai_api.get_cloud_profiles(workspace=command_workspace)
-    except DeploifaiAPIError as err:
+    except DeploifaiAPIError:
         click.echo("Could not fetch cloud profiles. Please try again.")
         return
 
