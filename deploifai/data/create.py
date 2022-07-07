@@ -40,9 +40,7 @@ def create(context: DeploifaiContextObj):
                         }
                         """
         context.debug_msg(project_id)
-        project_data = context.api.get_project(
-            project_id=project_id, fragment=fragment
-        )
+        project_data = context.api.get_project(project_id=project_id, fragment=fragment)
         project_name = project_data["name"]
         command_workspace = project_data["account"]["username"]
         click.secho("Workspace:{}\n".format(command_workspace), fg='green')
@@ -116,3 +114,47 @@ def create(context: DeploifaiContextObj):
                 click.echo("There was an error in deployment.")
                 break
             sleep(10)
+
+    # Obtaining information of cloud provider for data storage created
+    fragment = """
+        dataStorages{
+          name
+          cloudProfile{
+            provider
+          }
+          cloudProviderYodaConfig {
+            azureConfig {
+              storageAccount
+              }
+            }
+          containers {
+            cloudName  
+          }
+        }
+    """
+    cloud_datas = context.api.get_project(project_id=project_id, fragment=fragment)
+    storage = (cloud["name"] for cloud in cloud_datas)
+
+    index = -1
+    for i, name in enumerate(storage):
+        if name == storage_name:
+            index = i
+    cloud_data = cloud_datas[index]
+    cloud_provider = cloud_data["cloudProfile"]["provider"]
+
+    click.secho("Storage Name: {}".format(storage_name), fg="blue")
+    click.secho("Cloud Provider: {}".format(cloud_provider), fg="blue")
+
+    if cloud_provider == "AWS":
+        cloud_name = cloud_data["containers"]["cloudName"]
+        link = "s3://" + cloud_name
+        click.secho("AWS s3 link: {}".format(link))
+    elif cloud_provider == "GCP":
+        cloud_name = cloud_data["containers"]["cloudName"]
+        link = "gs://" + cloud_name
+        click.secho("GCP link: {}".format(link))
+    elif cloud_provider == "AZURE":
+        cloud_name = cloud_data["containers"]["cloudName"]
+        azure_account = cloud_data["cloudProviderYodaConfig"]["azureConfig"]["storageAccount"]
+        click.secho("account-name: {}".format(azure_account))
+        click.secho("container-name: {}".format(cloud_name))
