@@ -5,7 +5,7 @@ import requests
 
 from deploifai.api.errors import DeploifaiAPIError
 from deploifai.utilities.credentials import get_auth_token
-from deploifai.cloud_profile.cloud_profile import CloudProfile
+from deploifai.utilities.cloud_profile import CloudProfile
 from deploifai.utilities import environment
 
 
@@ -298,6 +298,49 @@ class DeploifaiAPI:
             ]
         return cloud_profiles
 
+    def create_cloud_profile(self, provider, name, credentials, workspace, fragment):
+        mutation = """
+            mutation(
+              $whereAccount: AccountWhereUniqueInput!
+              $data: CloudProfileCreateInput!
+            ) {
+              createCloudProfile(whereAccount: $whereAccount, data: $data) {
+                ...cloud_profile
+              }
+            }
+        """
+
+        variables = {
+            "whereAccount": {"username": workspace["username"]},
+            "data": {
+                "name": name,
+                "provider": provider.value,
+            },
+        }
+
+        if provider.value == "AWS":
+            variables["data"]["awsCredentials"] = credentials
+        elif provider.value == "AZURE":
+            variables["data"]["azureCredentials"] = credentials
+        elif provider.value == "GCP":
+            variables["data"]["gcpCredentials"] = credentials
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": mutation + fragment, "variables": variables},
+                headers=self.headers,
+            )
+
+            create_mutation_data = r.json()
+
+            return create_mutation_data["data"]["createCloudProfile"]["id"]
+        except TypeError as err:
+            raise DeploifaiAPIError("Could not create cloud profile. Please try again.")
+        except KeyError as err:
+            raise DeploifaiAPIError("Could not create cloud profile. Please try again.")
+
+
     def get_projects(self, workspace, fragment: str, where_project=None):
         query = (
             """    
@@ -362,14 +405,14 @@ class DeploifaiAPI:
         except KeyError as err:
             raise DeploifaiAPIError("Could not get project. Please try again.")
 
-    def create_project(self, project_name: str, cloud_profile: CloudProfile):
+    def create_project(self, project_name: str, cloud_profile: CloudProfile, fragment):
         mutation = """
     mutation(
       $whereAccount: AccountWhereUniqueInput!
       $data: CreateProjectInput!
     ) {
       createProject(whereAccount: $whereAccount, data: $data) {
-        id
+        ...project
       }
     }
     """
@@ -385,7 +428,7 @@ class DeploifaiAPI:
         try:
             r = requests.post(
                 self.uri,
-                json={"query": mutation, "variables": variables},
+                json={"query": mutation + fragment, "variables": variables},
                 headers=self.headers,
             )
 
