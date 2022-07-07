@@ -82,7 +82,7 @@ def create(context: DeploifaiContextObj, name: str, workspace):
     elif name in project_names:
         is_valid_name = False
         err_msg = f"Project name taken. Existing names in chosen workspace: {' '.join(project_names)}."
-    elif name.isalnum():
+    elif not name.isalnum():
         is_valid_name = False
         err_msg = "Project name should only contain alphanumeric characters."
 
@@ -96,7 +96,10 @@ def create(context: DeploifaiContextObj, name: str, workspace):
         click.echo("Could not fetch cloud profiles. Please try again.")
         return
 
-    # TODO: prompt user if no existing cloud profiles exist
+    if not cloud_profiles:
+        click.secho("No cloud profiles found. To create a cloud profile: deploifai cloud-profile create", fg="yellow")
+        raise click.Abort()
+
     choose_cloud_profile = prompt(
         {
             "type": "list",
@@ -120,7 +123,12 @@ def create(context: DeploifaiContextObj, name: str, workspace):
 
     # create proejct in the backend
     try:
-        project_id = deploifai_api.create_project(name, cloud_profile)["id"]
+        project_fragment = """
+                fragment project on Project {
+                    id
+                }
+        """
+        project_id = deploifai_api.create_project(name, cloud_profile, project_fragment)["id"]
     except DeploifaiAPIError as err:
         click.secho(err, fg="red")
         raise click.Abort()
@@ -131,7 +139,7 @@ def create(context: DeploifaiContextObj, name: str, workspace):
     try:
         os.mkdir(name)
     except OSError:
-        click.secho("An error when creating the project locally", fg="red")
+        click.secho("An error occured when creating the project locally", fg="red")
         raise click.Abort()
 
     click.secho(f"A new directory named {name} has been created locally.", fg="green")

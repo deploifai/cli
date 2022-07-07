@@ -335,9 +335,9 @@ class DeploifaiAPI:
             create_mutation_data = r.json()
 
             return create_mutation_data["data"]["createCloudProfile"]["id"]
-        except TypeError as err:
+        except TypeError:
             raise DeploifaiAPIError("Could not create cloud profile. Please try again.")
-        except KeyError as err:
+        except KeyError:
             raise DeploifaiAPIError("Could not create cloud profile. Please try again.")
 
 
@@ -405,7 +405,7 @@ class DeploifaiAPI:
         except KeyError:
             raise DeploifaiAPIError("Could not get project. Please try again.")
 
-    def create_project(self, project_name: str, cloud_profile: CloudProfile, fragment):
+    def create_project(self, project_name: str, cloud_profile: CloudProfile, fragment: str):
         mutation = """
     mutation(
       $whereAccount: AccountWhereUniqueInput!
