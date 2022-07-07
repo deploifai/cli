@@ -1,10 +1,15 @@
 import click
 
-from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
+from deploifai.context import (
+    pass_deploifai_context_obj,
+    DeploifaiContextObj,
+    project_found,
+)
 
 
 @click.command()
 @pass_deploifai_context_obj
+@project_found
 def info(context: DeploifaiContextObj):
     data_storage_config = context.local_config["DATA_STORAGE"]
 

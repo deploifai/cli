@@ -370,9 +370,9 @@ class DeploifaiAPI:
             api_data = r.json()
 
             return api_data["data"]["projects"]
-        except TypeError as err:
+        except TypeError:
             raise DeploifaiAPIError("Could not get projects. Please try again.")
-        except KeyError as err:
+        except KeyError:
             raise DeploifaiAPIError("Could not get projects. Please try again.")
 
     def get_project(self, project_id: str, fragment: str):
@@ -400,9 +400,9 @@ class DeploifaiAPI:
             api_data = r.json()
 
             return api_data["data"]["project"]
-        except TypeError as err:
+        except TypeError:
             raise DeploifaiAPIError("Could not get project. Please try again.")
-        except KeyError as err:
+        except KeyError:
             raise DeploifaiAPIError("Could not get project. Please try again.")
 
     def create_project(self, project_name: str, cloud_profile: CloudProfile, fragment):
@@ -435,7 +435,7 @@ class DeploifaiAPI:
             create_mutation_data = r.json()
 
             return create_mutation_data["data"]["createProject"]
-        except TypeError as err:
+        except TypeError:
             raise DeploifaiAPIError("Could not create project. Please try again.")
-        except KeyError as err:
+        except KeyError:
             raise DeploifaiAPIError("Could not create project. Please try again.")

@@ -9,6 +9,7 @@ from deploifai.utilities import local_config
 from deploifai.api import DeploifaiAPIError
 from deploifai.utilities.user import parse_user_profiles
 from PyInquirer import prompt
+import os
 
 
 @click.command()
@@ -68,46 +69,34 @@ def create(context: DeploifaiContextObj, name: str, workspace):
         click.echo("An error occurred when fetching projects. Please try again.")
         return
 
-    err_msg = "Project name taken. Choose a unique project name:"
-
     project_names = [project["name"] for project in projects]
+    user_pwd_dir_names = os.listdir()
 
-    name_taken_err_msg = f"Project name taken. Existing names in chosen workspace: {' '.join(project_names)}\nChoose a unique project name:"
-    err_msg = name_taken_err_msg
+    is_valid_name = True
 
-    is_valid_name = not (name in project_names)
+    err_msg = ""
 
-    while not is_valid_name:
-        prompt_name = prompt(
-            {
-                "type": "input",
-                "name": "project_name",
-                "message": err_msg,
-            }
-        )
+    if name in user_pwd_dir_names:
+        is_valid_name = False
+        err_msg = f"There are existing files/directories in your computer also named {name}"
+    elif name in project_names:
+        is_valid_name = False
+        err_msg = f"Project name taken. Existing names in chosen workspace: {' '.join(project_names)}."
+    elif name.isalnum():
+        is_valid_name = False
+        err_msg = "Project name should only contain alphanumeric characters."
 
-        new_project_name = prompt_name["project_name"]
-
-        if len(new_project_name) == 0:
-            err_msg = "Project name cannot be empty.\nChoose a non-empty project name:"
-        elif not new_project_name.isalnum():
-            err_msg = f"Project name should only contain alphanumeric characters.\nChoose a valid project name:"
-        elif new_project_name in project_names:
-            err_msg = name_taken_err_msg
-        else:
-            name = new_project_name
-            is_valid_name = True
+    if not is_valid_name:
+        click.secho(err_msg, fg="red")
+        raise click.Abort()
 
     try:
         cloud_profiles = deploifai_api.get_cloud_profiles(workspace=command_workspace)
-    except DeploifaiAPIError as err:
+    except DeploifaiAPIError:
         click.echo("Could not fetch cloud profiles. Please try again.")
         return
 
-    if not cloud_profiles:
-        click.secho("No cloud profiles found. To create a cloud profile: deploifai cloud-profile create", fg="yellow")
-        raise click.Abort()
-
+    # TODO: prompt user if no existing cloud profiles exist
     choose_cloud_profile = prompt(
         {
             "type": "list",
@@ -128,17 +117,28 @@ def create(context: DeploifaiContextObj, name: str, workspace):
     )
 
     cloud_profile = choose_cloud_profile["cloud_profile"]
+
+    # create proejct in the backend
     try:
-        project_fragment = """
-        fragment project on Project {
-            id
-        }
-        """
-        project_id = deploifai_api.create_project(name, cloud_profile, project_fragment)["id"]
+        project_id = deploifai_api.create_project(name, cloud_profile)["id"]
     except DeploifaiAPIError as err:
-        click.echo("Could not create project. Please try again.")
-        return
+        click.secho(err, fg="red")
+        raise click.Abort()
 
     click.secho(f"Successfully created new project named {name}.", fg="green")
 
+    # create a project directory locally, along with .deploifai directory within this project
+    try:
+        os.mkdir(name)
+    except OSError:
+        click.secho("An error when creating the project locally", fg="red")
+        raise click.Abort()
+
+    click.secho(f"A new directory named {name} has been created locally.", fg="green")
+
+    project_path = os.path.join(os.getcwd(), name)
+    local_config.create_config_files(project_path)
+
+    context.local_config = local_config.read_config_file()
+    # set id in local config file
     local_config.set_project_config(project_id, context.local_config)
