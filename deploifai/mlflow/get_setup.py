@@ -3,7 +3,7 @@ import pyperclip
 from enum import Enum
 
 from deploifai.api import DeploifaiAPIError
-from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
+from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj, is_authenticated
 from PyInquirer import prompt
 
 
@@ -16,6 +16,7 @@ class Environment(Enum):
 @click.command('get-setup')
 @click.option("--external", is_flag=True, help="Use mlflow integration outside of Deploifai managed runner")
 @pass_deploifai_context_obj
+@is_authenticated
 def get_setup(context: DeploifaiContextObj, external):
     """
     Get setup to integrate mlflow in training scripts
@@ -35,13 +36,11 @@ def get_setup(context: DeploifaiContextObj, external):
                           name
                           environment
                           resourceAccessTokenString
-                        }
-                        
+                        } 
                     }
                     """
-        project_data = context.api.get_project(
-            project_id=project_id, fragment=fragment
-        )
+        context.debug_msg(project_id)
+        project_data = context.api.get_project(project_id=project_id, fragment=fragment)
         project_name = project_data["name"]
         workspace_name = project_data["account"]["username"]
         experiment_data = project_data["experiments"]
