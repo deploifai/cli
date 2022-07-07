@@ -70,6 +70,7 @@ def get_setup(context: DeploifaiContextObj, external):
                             "name": "{}".format(experiment_data["name"]),
                             "value": experiment_data
                         }
+                        for experiment_data in experiment_data
                     ],
                 }
             )
@@ -112,7 +113,7 @@ def get_setup(context: DeploifaiContextObj, external):
         click.secho("The following code snippet needs to be added after importing mlflow", fg='green')
         click.secho(required_code)
         pyperclip.copy(required_code)
-        click.secho("The code has been copied to your clipboard", fg='green')
+        click.secho("It has also been copied to your clipboard", fg='green')
     else:
         click.secho("Unable to get project information (could not find .deploifai directory)", fg='red')
         return
