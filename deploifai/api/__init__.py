@@ -45,12 +45,14 @@ class DeploifaiAPI:
         account {
           id
           username
+          isTeam
         }
         teams {
           id
           account {
             id
             username
+            isTeam
           }
         }
       }
