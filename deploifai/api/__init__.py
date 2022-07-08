@@ -460,9 +460,9 @@ class DeploifaiAPI:
 
             return api_data["data"]["canCreateExperiment"]
 
-        except TypeError as err:
+        except TypeError:
             raise DeploifaiAPIError("Could not check if user can create experiment. Please try again.")
-        except KeyError as err:
+        except KeyError:
             raise DeploifaiAPIError("Could not check if user can create experiment. Please try again.")
 
     def create_experiment(self, experiment_name, experiment_environment, project_id):

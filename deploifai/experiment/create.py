@@ -8,12 +8,7 @@ from deploifai.context import (
 )
 from deploifai.api import DeploifaiAPIError
 from PyInquirer import prompt
-from enum import Enum
-
-
-class Environment(Enum):
-    DEPLOIFAI = "DEPLOIFAI"
-    EXTERNAL = "EXTERNAL"
+from deploifai.utilities.experiment import Environment
 
 
 @click.command()
@@ -42,10 +37,14 @@ def create(context: DeploifaiContextObj, name: str):
         project_id=project_id, fragment=fragment
     )
 
-    workspace = project_data["account"]["username"]
+    workspace = project_data["account"]
     project_name = project_data["name"]
 
-    can_create = context.api.can_create_experiment(workspace)
+    try:
+        can_create = context.api.can_create_experiment(workspace["username"])
+    except DeploifaiAPIError as err:
+        click.secho(err, fg="red")
+        raise click.Abort()
 
     if not can_create:
         click.secho("You are not authorized to create any experiments.", fg="red")
@@ -89,7 +88,38 @@ def create(context: DeploifaiContextObj, name: str):
 
     # TODO: prompt user for more info if run experiment in deploifai
     if is_deploifai_environment:
-        pass
+        try:
+            cloud_profiles = context.api.get_cloud_profiles(workspace=workspace)
+        except DeploifaiAPIError:
+            click.echo("Could not fetch cloud profiles. Please try again.")
+            return
+
+        if not cloud_profiles:
+            click.secho("No cloud profiles found. To create a cloud profile: deploifai cloud-profile create",
+                        fg="yellow")
+            raise click.Abort()
+
+        choose_cloud_profile = prompt(
+            {
+                "type": "list",
+                "name": "cloud_profile",
+                "message": "Choose a cloud profile for project",
+                "choices": [
+                    {
+                        "name": "{name}({workspace}) - {provider}".format(
+                            name=cloud_profile.name,
+                            workspace=cloud_profile.workspace,
+                            provider=cloud_profile.provider,
+                        ),
+                        "value": cloud_profile,
+                    }
+                    for cloud_profile in cloud_profiles
+                ],
+            }
+        )
+
+        cloud_profile_id = choose_cloud_profile["cloud_profile"].id
+
     else:
         environment = Environment.EXTERNAL
         try:
@@ -98,4 +128,4 @@ def create(context: DeploifaiContextObj, name: str):
             click.secho(err, fg="red")
             raise click.Abort()
 
-    click.secho(f"Created new experiment {name} on project {project_name}.",fg="green")
+    click.secho(f"Created new experiment {name} on project {project_name}.", fg="green")
