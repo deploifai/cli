@@ -14,7 +14,6 @@ from deploifai.utilities.local_config import (
     add_data_storage_config,
     DeploifaiDataAlreadyInitialisedError,
 )
-from deploifai.utilities.user import parse_user_profiles
 from time import sleep
 
 
