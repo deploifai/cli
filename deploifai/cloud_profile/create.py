@@ -66,6 +66,9 @@ def create(context: DeploifaiContextObj, name: str, workspace: str):
     if name in existing_names:
         click.echo(click.style("Cloud profile name taken. Existing names: ", fg="red") + ' '.join(existing_names))
         raise click.Abort()
+    elif name.isspace():
+        click.secho("Cloud profile name cannot be empty.", fg="red")
+        raise click.Abort()
 
     provider = prompt(
         {
