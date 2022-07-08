@@ -7,7 +7,6 @@ from deploifai.context import (
 )
 from deploifai.utilities import local_config
 from deploifai.api import DeploifaiAPIError
-from deploifai.utilities.user import parse_user_profiles
 from PyInquirer import prompt
 import os
 
@@ -23,39 +22,11 @@ def create(context: DeploifaiContextObj, name: str, workspace):
     """
     deploifai_api = context.api
 
-    user_data = deploifai_api.get_user()
-    personal_workspace, team_workspaces = parse_user_profiles(user_data)
+    if not "username" in context.global_config["WORKSPACE"]:
+        click.secho("Error in getting workspace")
+        raise click.Abort()
 
-    workspaces_from_api = [personal_workspace] + team_workspaces
-
-    # checking validity of workspace, and prompting workspaces choices if not specified
-    if workspace and len(workspace):
-        if any(ws["username"] == workspace for ws in workspaces_from_api):
-            for w in workspaces_from_api:
-                if w["username"] == workspace:
-                    command_workspace = w
-                    break
-        else:
-            # the workspace user input does not match with any of the workspaces the user has access to
-            click.secho(
-                f"{workspace} cannot be found. Please put in a workspace you have access to.",
-                fg="red",
-            )
-            raise click.Abort()
-    else:
-        _choose_workspace = prompt(
-            {
-                "type": "list",
-                "name": "workspace",
-                "message": "Choose a workspace",
-                "choices": [
-                    {"name": ws["username"], "value": ws} for ws in workspaces_from_api
-                ],
-            }
-        )
-        if _choose_workspace == {}:
-            raise click.Abort()
-        command_workspace = _choose_workspace["workspace"]
+    command_workspace = context.global_config["WORKSPACE"]["username"]
 
     # ensure project name is unique to the chosen workspace
     try:
