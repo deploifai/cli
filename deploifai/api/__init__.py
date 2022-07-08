@@ -135,7 +135,7 @@ class DeploifaiAPI:
       dataStorage(where:{id:$id}){
         name
         status
-        project {
+        projects {
           id
         }
         containers{
@@ -187,39 +187,42 @@ class DeploifaiAPI:
         ]["storageAccessKey"]
 
     def create_data_storage(
-        self,
-        storage_name: str,
-        container_names: typing.List[str],
-        cloud_profile: CloudProfile,
-        region=None,
+            self,
+            storage_name: str,
+            project_id: str,
+            cloud_profile: CloudProfile,
+            region=None,
     ):
         mutation = """
     mutation(
-      $whereAccount: AccountWhereUniqueInput!
+      $whereProject: ProjectWhereUniqueInput!
       $data: CreateDataStorageInput!
     ) {
-      createDataStorage(whereAccount: $whereAccount, data: $data) {
+      createDataStorage(whereProject: $whereProject, data: $data) {
         id
       }
     }
     """
         aws_config = None
         azure_config = None
+        gcp_config = None
         # TODO: Support more regions
         if cloud_profile.provider == "AWS":
             aws_config = {"awsRegion": "us-east-1"}
         elif cloud_profile.provider == "AZURE":
             azure_config = {"azureRegion": "East US"}
+        elif cloud_profile.provider == "GCP":
+            gcp_config = {"gcpRegion": "us-central1", "gcpZone": "us-central1-a"}
 
         variables = {
-            "whereAccount": {"username": cloud_profile.workspace},
+            "whereProject": {"id": project_id},
             "data": {
                 "name": storage_name,
-                "containerNames": container_names,
                 "cloudProfileId": cloud_profile.id,
                 "cloudProviderYodaConfig": {
                     "awsConfig": aws_config,
                     "azureConfig": azure_config,
+                    "gcpConfig": gcp_config
                 },
             },
         }
@@ -229,6 +232,10 @@ class DeploifaiAPI:
             headers=self.headers,
         )
         create_mutation_data = r.json()
+
+        if "errors" in create_mutation_data:
+            raise DeploifaiAPIError(create_mutation_data['errors'][0]['message'])
+
         return create_mutation_data["data"]["createDataStorage"]
 
     def get_cloud_profiles(self, workspace=None) -> typing.List[CloudProfile]:
@@ -343,14 +350,14 @@ class DeploifaiAPI:
 
     def get_projects(self, workspace, fragment: str, where_project=None):
         query = (
-            """    
+                """    
             query($whereAccount: AccountWhereUniqueInput!, $whereProject: ProjectWhereInput) {
               projects(whereAccount: $whereAccount, whereProject: $whereProject) {
                 ...project
               }
             }
             """
-            + fragment
+                + fragment
         )
 
         if where_project:
@@ -377,14 +384,14 @@ class DeploifaiAPI:
 
     def get_project(self, project_id: str, fragment: str):
         query = (
-            """    
+                """    
                 query ($where: ProjectWhereUniqueInput!){
                     project(where: $where) {
                     ...project
                   }
                 }
                 """
-            + fragment
+                + fragment
         )
 
         variables = {

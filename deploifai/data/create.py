@@ -42,9 +42,11 @@ def create(context: DeploifaiContextObj):
         context.debug_msg(project_id)
         project_data = context.api.get_project(project_id=project_id, fragment=fragment)
         project_name = project_data["name"]
-        command_workspace = project_data["account"]["username"]
+        workspace_username = project_data["account"]["username"]
+        command_workspace = {"username": workspace_username}
+        context.debug_msg(command_workspace)
         click.secho("Workspace:{}\n".format(command_workspace), fg='green')
-        click.secho("Project:{}<{}>\n".format(project_name,project_id), fg='green')
+        click.secho("Project:{}<{}>\n".format(project_name, project_id), fg='green')
 
     else:
         click.secho("Could not find a project in the current directory", fg='yellow')
@@ -62,11 +64,6 @@ def create(context: DeploifaiContextObj):
             "type": "input",
             "name": "storage_name_input",
             "message": "Name the data storage",
-        },
-        {
-            "type": "input",
-            "name": "container_name_input",
-            "message": "Input container partition names (space separated: ex: first second-name third)",
         },
         {
             "type": "list",
@@ -97,9 +94,17 @@ def create(context: DeploifaiContextObj):
 
     click.secho("Creating a new data storage.", fg="blue")
 
-    create_storage_response = deploifai_api.create_data_storage(
-        storage_name, cloud_profile
-    )
+    context.debug_msg(cloud_profile)
+
+    try:
+        create_storage_response = deploifai_api.create_data_storage(
+            storage_name, project_id, cloud_profile
+        )
+    except DeploifaiAPIError as err:
+        click.secho(err, fg='red')
+        raise click.Abort()
+
+    context.debug_msg(create_storage_response)
 
     with click_spinner.spinner():
         click.echo("Deploying data storage")
@@ -116,45 +121,27 @@ def create(context: DeploifaiContextObj):
             sleep(10)
 
     # Obtaining information of cloud provider for data storage created
-    fragment = """
-        dataStorages{
-          name
-          cloudProfile{
-            provider
-          }
-          cloudProviderYodaConfig {
-            azureConfig {
-              storageAccount
-              }
-            }
-          containers {
-            cloudName  
-          }
-        }
-    """
-    cloud_datas = context.api.get_project(project_id=project_id, fragment=fragment)
-    storage = (cloud["name"] for cloud in cloud_datas)
+    storage_id = create_storage_response["id"]
+    cloud_data = context.api.get_data_storage_info(storage_id=storage_id)
 
-    index = -1
-    for i, name in enumerate(storage):
-        if name == storage_name:
-            index = i
-    cloud_data = cloud_datas[index]
-    cloud_provider = cloud_data["cloudProfile"]["provider"]
+    dataset_name = cloud_data["name"]
+    cloud_provider = cloud_data["cloudProviderYodaConfig"]["provider"]
 
-    click.secho("Storage Name: {}".format(storage_name), fg="blue")
+    click.secho("Storage Name: {}".format(dataset_name), fg="blue")
     click.secho("Cloud Provider: {}".format(cloud_provider), fg="blue")
+    context.debug_msg(cloud_data["containers"][0])
+    context.debug_msg(cloud_data["cloudProviderYodaConfig"])
 
     if cloud_provider == "AWS":
-        cloud_name = cloud_data["containers"]["cloudName"]
+        cloud_name = cloud_data["containers"][0]["cloudName"]
         link = "s3://" + cloud_name
         click.secho("AWS s3 link: {}".format(link))
     elif cloud_provider == "GCP":
-        cloud_name = cloud_data["containers"]["cloudName"]
+        cloud_name = cloud_data["containers"][0]["cloudName"]
         link = "gs://" + cloud_name
         click.secho("GCP link: {}".format(link))
     elif cloud_provider == "AZURE":
-        cloud_name = cloud_data["containers"]["cloudName"]
+        cloud_name = cloud_data["containers"][0]["cloudName"]
         azure_account = cloud_data["cloudProviderYodaConfig"]["azureConfig"]["storageAccount"]
         click.secho("account-name: {}".format(azure_account))
         click.secho("container-name: {}".format(cloud_name))
