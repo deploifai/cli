@@ -9,6 +9,7 @@ from deploifai.context import (
     pass_deploifai_context_obj,
     DeploifaiContextObj,
     is_authenticated,
+    project_found,
 )
 from deploifai.utilities.local_config import (
     add_data_storage_config,
@@ -19,6 +20,7 @@ from time import sleep
 
 @click.command()
 @pass_deploifai_context_obj
+@project_found
 @is_authenticated
 def create(context: DeploifaiContextObj):
     """
@@ -27,30 +29,25 @@ def create(context: DeploifaiContextObj):
 
     deploifai_api = context.api
     # assume that the user should be in a project directory, that contains local configuration file
-    if "id" in context.local_config["PROJECT"]:
-        project_id = context.local_config["PROJECT"]["id"]
+    project_id = context.local_config["PROJECT"]["id"]
 
-        # query for workspace name from api
-        fragment = """
-                        fragment project on Project {
-                            name
-                            account{
-                                username
-                            }
+    # query for workspace name from api
+    fragment = """
+                    fragment project on Project {
+                        name
+                        account{
+                            username
                         }
-                        """
-        context.debug_msg(project_id)
-        project_data = context.api.get_project(project_id=project_id, fragment=fragment)
-        project_name = project_data["name"]
-        workspace_username = project_data["account"]["username"]
-        command_workspace = {"username": workspace_username}
-        context.debug_msg(command_workspace)
-        click.secho("Workspace:{}\n".format(command_workspace), fg='green')
-        click.secho("Project:{}<{}>\n".format(project_name, project_id), fg='green')
-
-    else:
-        click.secho("Could not find a project in the current directory", fg='yellow')
-        return
+                    }
+                    """
+    context.debug_msg(project_id)
+    project_data = context.api.get_project(project_id=project_id, fragment=fragment)
+    project_name = project_data["name"]
+    workspace_username = project_data["account"]["username"]
+    command_workspace = {"username": workspace_username}
+    context.debug_msg(command_workspace)
+    click.secho("Workspace:{}\n".format(command_workspace), fg='green')
+    click.secho("Project:{}<{}>\n".format(project_name, project_id), fg='green')
 
     try:
         cloud_profiles = deploifai_api.get_cloud_profiles(
@@ -80,7 +77,6 @@ def create(context: DeploifaiContextObj):
                 }
                 for cloud_profile in cloud_profiles
             ],
-            "when": lambda ans: ans.get("storage_option") != "New",
         },
     ]
     new_storage_answers = prompt(questions=new_storage_questions)
