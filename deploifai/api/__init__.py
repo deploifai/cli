@@ -240,71 +240,24 @@ class DeploifaiAPI:
 
         return create_mutation_data["data"]["createDataStorage"]
 
-    def get_cloud_profiles(self, workspace=None) -> typing.List[CloudProfile]:
+    def get_cloud_profiles(self, workspace: str) -> typing.List[CloudProfile]:
         query = """
-    query{
-      me{
-        teams{
-          account{
-            username
-            cloudProfiles{
-              id
-              name
-              provider
+            query($whereAccount: AccountWhereUniqueInput!){
+                cloudProfiles(whereAccount: $whereAccount){
+                    id 
+                    name 
+                    provider
+                } 
             }
-          }
-        }
-        account{
-          username
-          cloudProfiles{
-            id
-            name
-            provider
-          }
-        }
-      }
-    }
-    """
-        r = requests.post(self.uri, json={"query": query}, headers=self.headers)
+        """
+
+        variables = {"whereAccount": {"username": workspace}}
+
+        r = requests.post(self.uri, json={"query": query, "variables": variables}, headers=self.headers)
         api_data = r.json()
 
-        personal_cloud_profile_account = api_data["data"]["me"]["account"]
-        personal_cloud_profiles_json = personal_cloud_profile_account["cloudProfiles"]
-        # Get personal cloud profiles from a part of the query
-        personal_cloud_profiles = list(
-            map(
-                lambda x: _parse_cloud_profile(
-                    x, personal_cloud_profile_account["username"]
-                ),
-                personal_cloud_profiles_json,
-            )
-        )
+        cloud_profiles = api_data["data"]["cloudProfiles"]
 
-        team_cloud_profiles_json = api_data["data"]["me"]["teams"]
-        team_cloud_profiles_accounts = list(
-            map(lambda teams: teams["account"], team_cloud_profiles_json)
-        )
-
-        team_cloud_profiles = []
-        for team_cloud_profiles_account in team_cloud_profiles_accounts:
-            cps = list(
-                map(
-                    lambda x: _parse_cloud_profile(
-                        x, team_cloud_profiles_account["username"]
-                    ),
-                    team_cloud_profiles_account["cloudProfiles"],
-                )
-            )
-            team_cloud_profiles += cps
-
-        cloud_profiles = personal_cloud_profiles + team_cloud_profiles
-
-        if workspace:
-            return [
-                cloud_profile
-                for cloud_profile in cloud_profiles
-                if cloud_profile.workspace == workspace["username"]
-            ]
         return cloud_profiles
 
     def create_cloud_profile(self, provider, name, credentials, workspace, fragment):
@@ -348,7 +301,6 @@ class DeploifaiAPI:
             raise DeploifaiAPIError("Could not create cloud profile. Please try again.")
         except KeyError:
             raise DeploifaiAPIError("Could not create cloud profile. Please try again.")
-
 
     def get_projects(self, workspace, fragment: str, where_project=None):
         query = (

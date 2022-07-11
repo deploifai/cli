@@ -21,7 +21,7 @@ def create(context: DeploifaiContextObj, name: str, workspace: str):
     deploifai_api = context.api
 
     if not "username" in context.global_config["WORKSPACE"]:
-        click.secho("Error in getting workspace")
+        click.secho("Error in getting workspace\n Please do ...auth login to access information", fg="red")
         raise click.Abort()
 
     command_workspace = context.global_config["WORKSPACE"]["username"]
