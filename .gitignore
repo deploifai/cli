@@ -14,4 +14,4 @@ dist/
 
 .deploifai/
 
-**/.DS_STORE
+.DS_STORE
