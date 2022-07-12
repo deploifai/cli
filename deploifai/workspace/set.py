@@ -7,11 +7,11 @@ from deploifai.context import (
 from deploifai.utilities.user import parse_user_profiles
 
 
-@click.command()
+@click.command('set')
 @click.argument("workspace")
 @pass_deploifai_context_obj
 @is_authenticated
-def set(context: DeploifaiContextObj, workspace: str):
+def set_workspace(context: DeploifaiContextObj, workspace: str):
     """
     Changes current workspace
     """
@@ -24,11 +24,10 @@ def set(context: DeploifaiContextObj, workspace: str):
 
     # checking validity of workspace, and prompting workspaces choices if not specified
     if workspace and len(workspace):
-        if any(ws["username"] == workspace for ws in workspaces_from_api):
-            for w in workspaces_from_api:
-                if w["username"] == workspace:
-                    command_workspace = w
-                    break
+        for w in workspaces_from_api:
+            if w["username"] == workspace:
+                command_workspace = w
+                break
         else:
             # the workspace user input does not match with any of the workspaces the user has access to
             click.secho(

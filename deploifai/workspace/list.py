@@ -7,10 +7,10 @@ from deploifai.context import (
 from deploifai.utilities.user import parse_user_profiles
 
 
-@click.command()
+@click.command('list')
 @pass_deploifai_context_obj
 @is_authenticated
-def list(context: DeploifaiContextObj):
+def list_workspace(context: DeploifaiContextObj):
     """
     Lists out all available workspaces
     """
