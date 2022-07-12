@@ -21,12 +21,13 @@ def list_workspace(context: DeploifaiContextObj):
 
     workspaces_from_api = [personal_workspace] + team_workspaces
 
-    current_workspace = context.global_config["AUTH"]["username"]
+    current_workspace = context.global_config["WORKSPACE"]["username"]
 
     click.secho("All accessible workspaces:", fg="blue")
 
     for workspace in workspaces_from_api:
         workspace_type = "TEAM" if workspace["isTeam"] else "PERSONAL"
+        context.debug_msg(workspace)
         is_current_workspace = " (Current Workspace)" if workspace["username"] == current_workspace else ""
 
         click.echo(f"{workspace['username']} - {workspace_type}{is_current_workspace}")
