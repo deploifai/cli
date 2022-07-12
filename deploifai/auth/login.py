@@ -42,6 +42,7 @@ def login(deploifai: DeploifaiContextObj, username: str, token: str):
     click.secho("Login success", fg="green")
 
     deploifai.global_config["AUTH"]["username"] = username
+    deploifai.global_config["WORKSPACE"]["username"] = username
 
     try:
         credentials.save_auth_token(username, token)

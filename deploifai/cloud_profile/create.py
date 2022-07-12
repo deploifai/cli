@@ -6,54 +6,20 @@ from deploifai.context import (
     DeploifaiContextObj,
     is_authenticated,
 )
-from deploifai.utilities.user import parse_user_profiles
 from deploifai.api import DeploifaiAPIError
 
 
 @click.command()
-@click.option("--name", "-n", help="Cloud profile name", prompt="Choose a cloud profile name")
-@click.option("--workspace", "-w", help="Workspace name", type=str)
+@click.argument("name")
 @pass_deploifai_context_obj
 @is_authenticated
-def create(context: DeploifaiContextObj, name: str, workspace: str):
+def create(context: DeploifaiContextObj, name: str):
     """
     Create a new cloud profile
     """
     deploifai_api = context.api
 
-    user_data = deploifai_api.get_user()
-    personal_workspace, team_workspaces = parse_user_profiles(user_data)
-
-    workspaces_from_api = [personal_workspace] + team_workspaces
-
-    # checking validity of workspace, and prompting workspaces choices if not specified
-    if workspace and len(workspace):
-        if any(ws["username"] == workspace for ws in workspaces_from_api):
-            for w in workspaces_from_api:
-                if w["username"] == workspace:
-                    command_workspace = w
-                    break
-        else:
-            # the workspace user input does not match with any of the workspaces the user has access to
-            click.secho(
-                f"{workspace} cannot be found. Please put in a workspace you have access to.",
-                fg="red",
-            )
-            raise click.Abort()
-    else:
-        _choose_workspace = prompt(
-            {
-                "type": "list",
-                "name": "workspace",
-                "message": "Choose a workspace",
-                "choices": [
-                    {"name": ws["username"], "value": ws} for ws in workspaces_from_api
-                ],
-            }
-        )
-        if _choose_workspace == {}:
-            raise click.Abort()
-        command_workspace = _choose_workspace["workspace"]
+    command_workspace = context.global_config["WORKSPACE"]["username"]
 
     try:
         cloud_profiles = deploifai_api.get_cloud_profiles(workspace=command_workspace)
@@ -145,6 +111,7 @@ def create(context: DeploifaiContextObj, name: str, workspace: str):
             click.secho("File not found. Please input the correct file path.", fg="red")
             raise click.Abort()
 
+    context.debug_msg(cloud_credentials)
     try:
         cloud_profile_fragment = """
         fragment cloud_profile on CloudProfile {

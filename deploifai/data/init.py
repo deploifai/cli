@@ -14,7 +14,6 @@ from deploifai.utilities.local_config import (
     add_data_storage_config,
     DeploifaiDataAlreadyInitialisedError,
 )
-from deploifai.utilities.user import parse_user_profiles
 from time import sleep
 
 
@@ -45,7 +44,6 @@ def init(context: DeploifaiContextObj):
             project_id=project_id, fragment=fragment
         )
         command_workspace = project_data["account"]["username"]
-
     else:
         click.secho("Could not find a project in the current directory", fg='yellow')
         return

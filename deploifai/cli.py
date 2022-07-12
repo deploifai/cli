@@ -10,11 +10,19 @@ from .auth import auth
 from .application import application
 from .project import project
 from .data import data
-
 from .mlflow import mlflow
 from .cloud_profile import cloud_profile
-commands = {"auth": auth, "project": project, "data": data, "application": application, "cloud-profile": cloud_profile, "mlflow": mlflow}
+from .workspace import workspace
 
+commands = {
+    "auth": auth,
+    "project": project,
+    "data": data,
+    "application": application,
+    "cloud-profile": cloud_profile,
+    "mlflow": mlflow,
+    "workspace": workspace
+}
 
 
 @click.group(commands=commands)

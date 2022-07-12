@@ -19,7 +19,7 @@ global_config_directory = (
     else os.path.dirname(os.path.realpath(__file__))
 )
 global_config_filepath = os.path.join(global_config_directory, global_config_filename)
-global_config_sections = ["AUTH"]
+global_config_sections = ["AUTH", "WORKSPACE"]
 
 debug_levels = ["info", "warning", "error"]
 

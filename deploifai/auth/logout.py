@@ -29,6 +29,9 @@ def logout(deploifai: DeploifaiContextObj):
     auth = deploifai.global_config["AUTH"]
     auth.pop("username")
 
+    workspace = deploifai.global_config["WORKSPACE"]
+    workspace.pop("username")
+
     deploifai.save_config()
 
     click.secho("Logout success", fg="green")
