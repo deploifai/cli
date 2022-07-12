@@ -147,7 +147,11 @@ def project_found(f):
     @pass_context
     def wrapper(click_context, *args, **kwargs):
         deploifai_context = click_context.find_object(DeploifaiContextObj)
-        if deploifai_context.local_config is not None:
+        if (
+            deploifai_context.local_config is not None
+            and "PROJECT" in deploifai_context.local_config
+            and "id" in deploifai_context.local_config["PROJECT"]
+        ):
             return click_context.invoke(f, *args, **kwargs)
 
         raise local_config.DeploifaiNotInitialisedError("Deploifai project not found")
