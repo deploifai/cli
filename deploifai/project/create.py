@@ -13,18 +13,13 @@ import os
 
 @click.command()
 @click.argument("name")
-@click.option("--workspace", help="Workspace name", type=str)
 @pass_deploifai_context_obj
 @is_authenticated
-def create(context: DeploifaiContextObj, name: str, workspace):
+def create(context: DeploifaiContextObj, name: str):
     """
     Create a new project
     """
     deploifai_api = context.api
-
-    if not "username" in context.global_config["WORKSPACE"]:
-        click.secho("Error in getting workspace")
-        raise click.Abort()
 
     command_workspace = context.global_config["WORKSPACE"]["username"]
 
@@ -92,7 +87,7 @@ def create(context: DeploifaiContextObj, name: str, workspace):
 
     cloud_profile = choose_cloud_profile["cloud_profile"]
 
-    # create proejct in the backend
+    # create project in the backend
     try:
         project_fragment = """
                 fragment project on Project {

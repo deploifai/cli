@@ -270,7 +270,7 @@ class DeploifaiAPI:
 
         return cloud_profiles
 
-    def create_cloud_profile(self, provider, name, credentials, workspace, fragment):
+    def create_cloud_profile(self, provider, name, credentials, workspace: str, fragment):
         mutation = """
             mutation(
               $whereAccount: AccountWhereUniqueInput!
@@ -283,7 +283,7 @@ class DeploifaiAPI:
         """
 
         variables = {
-            "whereAccount": {"username": workspace["username"]},
+            "whereAccount": {"username": workspace},
             "data": {
                 "name": name,
                 "provider": provider.value,
@@ -312,7 +312,7 @@ class DeploifaiAPI:
         except KeyError:
             raise DeploifaiAPIError("Could not create cloud profile. Please try again.")
 
-    def get_projects(self, workspace, fragment: str, where_project=None):
+    def get_projects(self, workspace: str, fragment: str, where_project=None):
         query = (
                 """    
             query($whereAccount: AccountWhereUniqueInput!, $whereProject: ProjectWhereInput) {
@@ -330,7 +330,7 @@ class DeploifaiAPI:
                 "whereProject": where_project,
             }
         else:
-            variables = {"whereAccount": {"username": workspace["username"]}}
+            variables = {"whereAccount": {"username": workspace}}
 
         try:
             r = requests.post(

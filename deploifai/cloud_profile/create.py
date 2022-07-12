@@ -10,19 +10,14 @@ from deploifai.api import DeploifaiAPIError
 
 
 @click.command()
-@click.option("--name", "-n", help="Cloud profile name", prompt="Choose a cloud profile name")
-@click.option("--workspace", "-w", help="Workspace name", type=str)
+@click.argument("name")
 @pass_deploifai_context_obj
 @is_authenticated
-def create(context: DeploifaiContextObj, name: str, workspace: str):
+def create(context: DeploifaiContextObj, name: str):
     """
     Create a new cloud profile
     """
     deploifai_api = context.api
-
-    if not "username" in context.global_config["WORKSPACE"]:
-        click.secho("Error in getting workspace\n Please do ...auth login to access information", fg="red")
-        raise click.Abort()
 
     command_workspace = context.global_config["WORKSPACE"]["username"]
 
@@ -116,6 +111,7 @@ def create(context: DeploifaiContextObj, name: str, workspace: str):
             click.secho("File not found. Please input the correct file path.", fg="red")
             raise click.Abort()
 
+    context.debug_msg(cloud_credentials)
     try:
         cloud_profile_fragment = """
         fragment cloud_profile on CloudProfile {

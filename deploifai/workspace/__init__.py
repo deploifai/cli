@@ -1,7 +1,8 @@
 import click
 
-from .list import list
-from .set import set
+from .list import list_workspace
+from .set import set_workspace
+
 
 @click.group()
 def workspace():
@@ -10,5 +11,6 @@ def workspace():
     """
     pass
 
-workspace.add_command(list)
-workspace.add_command(set)
+
+workspace.add_command(list_workspace)
+workspace.add_command(set_workspace)
