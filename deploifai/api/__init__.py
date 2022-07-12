@@ -249,7 +249,16 @@ class DeploifaiAPI:
         r = requests.post(self.uri, json={"query": query, "variables": variables}, headers=self.headers)
         api_data = r.json()
 
-        cloud_profiles = api_data["data"]["cloudProfiles"]
+        cloud_profiles_data = api_data["data"]["cloudProfiles"]
+
+        cloud_profiles = list(
+            map(
+                lambda x: _parse_cloud_profile(
+                    x, workspace
+                ),
+                cloud_profiles_data,
+            )
+        )
 
         return cloud_profiles
 
