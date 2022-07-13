@@ -91,7 +91,7 @@ class DeploifaiAPI:
         except TypeError:
             return []
 
-    def get_data_storages(self, workspace):
+    def get_data_storages(self, workspace_id):
         query = """
       query($id:String){
         dataStorages(whereAccount:{
@@ -110,7 +110,7 @@ class DeploifaiAPI:
         }
       }
     """
-        query_json = {"query": query, "variables": {"id": workspace["id"]}}
+        query_json = {"query": query, "variables": {"id": workspace_id}}
 
         try:
             query_response = requests.post(
@@ -239,7 +239,6 @@ class DeploifaiAPI:
             raise DeploifaiAPIError(create_mutation_data['errors'][0]['message'])
 
         return create_mutation_data["data"]["createDataStorage"]
-
 
     def get_cloud_profiles(self, workspace: str) -> typing.List[CloudProfile]:
         query = """
@@ -410,3 +409,99 @@ class DeploifaiAPI:
             raise DeploifaiAPIError("Could not create project. Please try again.")
         except KeyError:
             raise DeploifaiAPIError("Could not create project. Please try again.")
+
+    def cloud_provider_falcon_config(self, use_gpu:bool, cloud_provider: str):
+        query = (
+            """
+            query($wheregpu: Boolean $whereProvider: CloudProvider){
+            trainingInfrastructurePlans(usesGpu: $wheregpu provider: $whereProvider){
+                plan
+                config{
+                  ... on AWSFalconDefaultConfig{
+                    ec2InstanceType
+                  }
+                  ... on AzureFalconDefaultConfig{
+                    vmSize
+                  }
+                  ... on GCPFalconDefaultConfig{
+                    computeMachineType
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables = {
+            "wheregpu": use_gpu,
+            "whereProvider": cloud_provider
+        }
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+            api_data = r.json()
+
+            return api_data["data"]["trainingInfrastructurePlans"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not get information. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not get information. Please try again.")
+
+    def falcon_ml_config(self, python_version: str, framework: str, framework_version: str):
+        query = (
+            """    
+            query ($where: FalconMLConfigWhereInput)
+                {
+                    falconMLConfigs(where: $where){
+                        id
+                        pythonVersion
+                        frameworkVersion
+                        cudaVersion
+                        cudnnVersion
+                    }
+                }
+            """
+        )
+        variables = {
+            "pythonVersion": {"startsWith": python_version},
+            "framework": {"equals": framework},
+            "frameworkVersion": {"startsWith": framework_version}
+        }
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+            api_data = r.json()
+
+            return api_data["data"]["falconMLConfigs"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not get information. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not get information. Please try again.")
+
+    def create_training_server(self, name: str, data_storage_name: str,
+                               data_storage_cloud_profile: str, data_storage_id: str,
+                               cloud_profile_id: str, falcon_plan: str, falcon_gpu: str,
+                               falcon_id: str,project_id: str):
+        mutation = """
+        mutation($whereProject: ProjectWhereUniqueInput! $data: CreateProjectInput!){
+            createTraining(whereProject: $whereProject data: $data){
+            name
+            }
+        }
+        """
+
+        variables = {
+            "whereProject": {"id": project_id},
+            "data": {
+                "name": name,
+                "cloudProfileId": cloud_profile_id,
+
+            },
+        }

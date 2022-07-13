@@ -18,6 +18,7 @@ import os
 def create(context: DeploifaiContextObj, name: str):
     """
     Create a new project
+    Create a new project
     """
     deploifai_api = context.api
 

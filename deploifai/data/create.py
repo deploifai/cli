@@ -43,8 +43,7 @@ def create(context: DeploifaiContextObj):
     context.debug_msg(project_id)
     project_data = context.api.get_project(project_id=project_id, fragment=fragment)
     project_name = project_data["name"]
-    workspace_username = project_data["account"]["username"]
-    command_workspace = {"username": workspace_username}
+    command_workspace = project_data["account"]["username"]
     context.debug_msg(command_workspace)
     click.secho("Workspace:{}\n".format(command_workspace), fg='green')
     click.secho("Project:{}<{}>\n".format(project_name, project_id), fg='green')
@@ -81,7 +80,7 @@ def create(context: DeploifaiContextObj):
     ]
     new_storage_answers = prompt(questions=new_storage_questions)
     if new_storage_answers == {}:
-        raise Abort()
+        raise click.Abort()
     storage_name = new_storage_answers["storage_name_input"]
     cloud_profile = new_storage_answers["cloud_profile"]
 
