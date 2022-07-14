@@ -26,6 +26,7 @@ setuptools.setup(
         "boto3",
         "PyInquirer",
         "pyperclip",
+        "semver",
         "cryptography==36.0.1",
     ],
     classifiers=[
