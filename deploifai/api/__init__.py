@@ -450,7 +450,7 @@ class DeploifaiAPI:
         except KeyError:
             raise DeploifaiAPIError("Could not get information. Please try again.")
 
-    def falcon_ml_config(self, python_version: str, framework: str, framework_version: str):
+    def falcon_ml_config(self, variable):
         query = (
             """    
             query ($where: FalconMLConfigWhereInput)
@@ -466,9 +466,7 @@ class DeploifaiAPI:
             """
         )
         variables = {
-            "where": {"pythonVersion": {"startsWith": python_version},
-                      "framework": {"equals": framework},
-                      "frameworkVersion": {"startsWith": framework_version}, }
+            "where": variable
         }
 
         try:
@@ -485,52 +483,24 @@ class DeploifaiAPI:
         except KeyError:
             raise DeploifaiAPIError("Could not get information. Please try again.")
 
-    def falcon_ml_config_python(self, framework: str, framework_version: str):
+    def falcon_ml_config_distinct(self, variable, distinct_option: str):
         query = (
             """    
-            query ($where: FalconMLConfigWhereInput)
+            query ($where: FalconMLConfigWhereInput $distinct: [FalconMLConfigScalarFieldEnum!])
                 {
-                    falconMLConfigs(where: $where distinct: [pythonVersion]){
+                    falconMLConfigs(where: $where distinct: $distinct){
+                        id
                         pythonVersion
-                    }
-                }
-            """
-        )
-        variables = {
-            "where": {"pythonVersion": {"endsWith": '.0'},
-                      "framework": {"equals": framework},
-                      "frameworkVersion": {"startsWith": framework_version},
-                      }
-        }
-
-        try:
-            r = requests.post(
-                self.uri,
-                json={"query": query, "variables": variables},
-                headers=self.headers,
-            )
-            api_data = r.json()
-
-            return api_data["data"]["falconMLConfigs"]
-        except TypeError:
-            raise DeploifaiAPIError("Could not get information. Please try again.")
-        except KeyError:
-            raise DeploifaiAPIError("Could not get information. Please try again.")
-
-    def falcon_ml_config_framework(self, framework: str):
-        query = (
-            """    
-            query ($where: FalconMLConfigWhereInput)
-                {
-                    falconMLConfigs(where: $where distinct: [frameworkVersion]){
                         frameworkVersion
+                        cudaVersion
+                        cudnnVersion
                     }
                 }
             """
         )
         variables = {
-            "where": {"framework": {"equals": framework},
-                      "frameworkVersion": {"endsWith": '.0'}, }
+            "where": variable,
+            "distinct": [distinct_option],
         }
 
         try:
@@ -547,9 +517,9 @@ class DeploifaiAPI:
         except KeyError:
             raise DeploifaiAPIError("Could not get information. Please try again.")
 
-    def create_training_server(self, name: str, data_storage_id: str,
-                               cloud_profile_id: str, falcon_plan: str, falcon_gpu: str,
-                               falcon_id: str, project_id: str):
+    def create_training_server(self, name: str, project_id: str, cloud_profile_id: str,
+                               falcon_plan: str, falcon_gpu: str,
+                               data_storage_id: str = None, falcon_id: str = None):
         mutation = """
         mutation($whereProject: ProjectWhereUniqueInput! $data: CreateTrainingInput!){
             createTraining(whereProject: $whereProject data: $data){
@@ -559,20 +529,60 @@ class DeploifaiAPI:
         }
         """
 
-        variables = {
-            "whereProject": {"id": project_id},
-            "data": {
-                "name": name,
-                "cloudProfileId": cloud_profile_id,
-                "cloudProviderFalconConfig": {
-                    "plan": falcon_plan,
-                    "usesGpu": falcon_gpu,
-                },
-                "falconMLConfigId": falcon_id,
-                "dataStorageIds": data_storage_id,
-            },
-        }
-
+        if falcon_id:
+            if data_storage_id:
+                variables = {
+                    "whereProject": {"id": project_id},
+                    "data": {
+                        "name": name,
+                        "cloudProfileId": cloud_profile_id,
+                        "cloudProviderFalconConfig": {
+                            "plan": falcon_plan,
+                            "usesGpu": falcon_gpu,
+                        },
+                        "falconMLConfigId": falcon_id,
+                        "dataStorageIds": data_storage_id,
+                    },
+                }
+            else:
+                variables = {
+                    "whereProject": {"id": project_id},
+                    "data": {
+                        "name": name,
+                        "cloudProfileId": cloud_profile_id,
+                        "cloudProviderFalconConfig": {
+                            "plan": falcon_plan,
+                            "usesGpu": falcon_gpu,
+                        },
+                        "falconMLConfigId": falcon_id,
+                    },
+                }
+        else:
+            if data_storage_id:
+                variables = {
+                    "whereProject": {"id": project_id},
+                    "data": {
+                        "name": name,
+                        "cloudProfileId": cloud_profile_id,
+                        "cloudProviderFalconConfig": {
+                            "plan": falcon_plan,
+                            "usesGpu": falcon_gpu,
+                        },
+                        "dataStorageIds": data_storage_id,
+                    },
+                }
+            else:
+                variables = {
+                    "whereProject": {"id": project_id},
+                    "data": {
+                        "name": name,
+                        "cloudProfileId": cloud_profile_id,
+                        "cloudProviderFalconConfig": {
+                            "plan": falcon_plan,
+                            "usesGpu": falcon_gpu,
+                        },
+                    },
+                }
         try:
             r = requests.post(
                 self.uri,
