@@ -5,7 +5,8 @@ from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj, i
 from deploifai.utilities.version_comparision import compare, multi_compare
 from deploifai.utilities.python_supported import supported
 
-framework_options = ["tensorflow", "pytorch", "No Framework"]
+framework_options = ["tensorflow", "pytorch", "no_framework"]
+server_options = ["SMALL", "MEDIUM", "LARGE"]
 
 
 @click.command()
@@ -14,14 +15,20 @@ framework_options = ["tensorflow", "pytorch", "No Framework"]
               help='ML framework to be installed in the server: {}'.format(framework_options))
 @click.option("--framework-version", '-fwv', type=str, help="ML framework version to be installed")
 @click.option("--python-version", '-py', type=str, help="Python version to be installed (works with selected ML framework)")
+@click.option("--datastorage", "-ds", type=str, help="Name of datastorage to be used(type <no_datastorage> to work without one)")
+@click.option("--cloud-profile-name", "-cp", type=str, help="Name of cloud profile to be used")
+@click.option("--use-gpu/--dont-use-gpu", "-use/-dont", default=True, show_default=True,
+              help="Create training server with or without GPU")
+@click.option("--server-size", "-size", type=str, help="Size of server to be generated: {}".format(server_options))
 @pass_deploifai_context_obj
 @is_authenticated
 @project_found
-def create(context: DeploifaiContextObj, name, framework, framework_version, python_version):
+def create(context: DeploifaiContextObj, name, framework, framework_version, python_version,
+           datastorage, cloud_profile_name, use_gpu, server_size):
     """
     Create a new Training Server
     """
-
+    context.debug_msg(use_gpu)
     # checking if provided python version is supported or is substring of a supported version
     if python_version:
         python_supported = supported(python_version)
@@ -64,30 +71,42 @@ def create(context: DeploifaiContextObj, name, framework, framework_version, pyt
 
     # obtaining the desired datastorage
     datastorage_info = project_data["dataStorages"]
-    empty_option = {"name": "No datastorage"}
+    empty_option = {"name": "no_datastorage"}
     datastorage_info.append(empty_option)
-    choose_datastorage = prompt(
-        {
-            "type": "list",
-            "name": "datastorage",
-            "message": "Choose a datastorage",
-            "choices": [
-                {
-                    "name": "{}".format(info["name"]),
-                    "value": info
-                }
-                for info in datastorage_info
-            ],
-        }
-    )
-    if choose_datastorage == {}:
-        raise click.Abort()
+    if datastorage:
+        pick_datastorage = False
+        for info in datastorage_info:
+            if info["name"] == datastorage:
+                pick_datastorage = info
+                context.debug_msg("datastorage_info: {}".format(pick_datastorage))
+        if not pick_datastorage:
+            click.secho("Please provide a valid datastorage name", fg="red")
+            raise click.Abort()
+    else:
+        choose_datastorage = prompt(
+            {
+                "type": "list",
+                "name": "datastorage",
+                "message": "Choose a datastorage",
+                "choices": [
+                    {
+                        "name": "{}".format(info["name"]),
+                        "value": info
+                    }
+                    for info in datastorage_info
+                ],
+            }
+        )
+        if choose_datastorage == {}:
+            raise click.Abort()
+        pick_datastorage = choose_datastorage["datastorage"]
     use_datastorage = True
-    if choose_datastorage["datastorage"]["name"] == "No datastorage":
+    if pick_datastorage["name"] == "no_datastorage":
         use_datastorage = False
+    context.debug_msg("use_datastorage: {}".format(use_datastorage))
     if use_datastorage:
         # extract all the datastorage information required
-        datastorage = choose_datastorage["datastorage"]
+        datastorage = pick_datastorage
         datastorage_id = datastorage["id"]
 
     # extracting cloud profile information
@@ -96,47 +115,41 @@ def create(context: DeploifaiContextObj, name, framework, framework_version, pyt
         click.secho("Please create a cloud profile with")
         click.secho("deploifai cloud-profile create", fg="yellow")
         raise click.Abort()
-    choose_cloud_profile = prompt(
-        {
-            "type": "list",
-            "name": "cloud_profile",
-            "message": "Choose a cloud profile for training server",
-            "choices": [
-                {
-                    "name": "{name}({workspace}) - {provider}".format(
-                        name=cloud_profile.name,
-                        workspace=cloud_profile.workspace,
-                        provider=cloud_profile.provider,
-                    ),
-                    "value": cloud_profile,
-                }
-                for cloud_profile in cloud_profiles
-            ],
-        }
-    )
-    if choose_cloud_profile == {}:
-        raise click.Abort()
+    if cloud_profile_name:
+        cloud_profile = False
+        for profile in cloud_profiles:
+            if profile.name == cloud_profile_name:
+                cloud_profile = profile
+                context.debug_msg("cloud profile info: {}".format(cloud_profile))
+        if not cloud_profile:
+            click.secho("Please provide a valid cloud profile name", fg="red")
+            raise click.Abort()
+    else:
+        choose_cloud_profile = prompt(
+            {
+                "type": "list",
+                "name": "cloud_profile",
+                "message": "Choose a cloud profile for training server",
+                "choices": [
+                    {
+                        "name": "{name}({workspace}) - {provider}".format(
+                            name=cloud_profile.name,
+                            workspace=cloud_profile.workspace,
+                            provider=cloud_profile.provider,
+                        ),
+                        "value": cloud_profile,
+                    }
+                    for cloud_profile in cloud_profiles
+                ],
+            }
+        )
+        if choose_cloud_profile == {}:
+            raise click.Abort()
+        cloud_profile = choose_cloud_profile["cloud_profile"]
 
     # extracting the cloud profile information
-    cloud_profile = choose_cloud_profile["cloud_profile"]
     cloud_profile_id = cloud_profile.id
     cloud_profile_provider = cloud_profile.provider
-
-    gpu_prompt = prompt(
-        {
-            "type": "list",
-            "name": "use_gpu",
-            "message": "Would you like the training server to use GPU?",
-            "choices": ["Yes", "No"]
-        }
-    )
-    if gpu_prompt == {}:
-        raise click.Abort()
-    gpu_option = gpu_prompt["use_gpu"]
-    if gpu_option == "Yes":
-        use_gpu = True
-    elif gpu_option == "No":
-        use_gpu = False
 
     # Obtaining information of python and framework version if using framework
 
@@ -154,7 +167,7 @@ def create(context: DeploifaiContextObj, name, framework, framework_version, pyt
             raise click.Abort()
         framework = version["ML Framework"]
 
-    if framework != "No Framework":
+    if framework != "no_framework":
         if not python_version:
             if not framework and framework_version:
                 variable = {"pythonVersion": {"endsWith": '.0'}}
@@ -304,27 +317,39 @@ def create(context: DeploifaiContextObj, name, framework, framework_version, pyt
 
     # extracting and choosing server instance size
     falcon_config = context.api.cloud_provider_falcon_config(use_gpu=use_gpu, cloud_provider=cloud_profile_provider)
-    choose_falcon_config = prompt(
-        {
-            "type": "list",
-            "name": "falcon",
-            "message": "Choose a server instance size",
-            "choices": [
-                {
-                    "name": "{plan} ({config_type}) - {provider}".format(
-                        plan=config["plan"],
-                        config_type=config["config"],
-                        provider=cloud_profile_provider,
-                    ),
-                    "value": config,
-                }
-                for config in falcon_config
-            ],
-        }
-    )
-    if choose_falcon_config == {}:
-        raise click.Abort()
-    falcon_config_chosen = choose_falcon_config["falcon"]
+    if server_size:
+        if use_gpu:
+            server_size = server_size + "_GPU"
+        else:
+            server_size = server_size + "_CPU"
+        falcon_config_chosen = False
+        for config in falcon_config:
+            if config["plan"] == server_size:
+                falcon_config_chosen = config
+        if not falcon_config_chosen:
+            click.secho("Please provide a valid server size: {}".format(server_options))
+    else:
+        choose_falcon_config = prompt(
+            {
+                "type": "list",
+                "name": "falcon",
+                "message": "Choose a server instance size",
+                "choices": [
+                    {
+                        "name": "{plan} ({config_type}) - {provider}".format(
+                            plan=config["plan"],
+                            config_type=config["config"],
+                            provider=cloud_profile_provider,
+                        ),
+                        "value": config,
+                    }
+                    for config in falcon_config
+                ],
+            }
+        )
+        if choose_falcon_config == {}:
+            raise click.Abort()
+        falcon_config_chosen = choose_falcon_config["falcon"]
     falcon_plan = falcon_config_chosen["plan"]
 
     # creating server info and providing its information to user
