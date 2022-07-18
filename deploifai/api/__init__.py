@@ -91,11 +91,11 @@ class DeploifaiAPI:
         except TypeError:
             return []
 
-    def get_data_storages(self, workspace_id):
+    def get_data_storages(self, workspace: str):
         query = """
-      query($id:String){
+      query($username:String){
         dataStorages(whereAccount:{
-          id: $id
+          username: $username
         }, whereDataStorage:{
           status: {
             equals: DEPLOY_SUCCESS
@@ -110,7 +110,8 @@ class DeploifaiAPI:
         }
       }
     """
-        query_json = {"query": query, "variables": {"id": workspace_id}}
+
+        query_json = {"query": query, "variables": {"username": workspace}}
 
         try:
             query_response = requests.post(
@@ -325,7 +326,7 @@ class DeploifaiAPI:
 
         if where_project:
             variables = {
-                "whereAccount": {"username": workspace["username"]},
+                "whereAccount": {"username": workspace},
                 "whereProject": where_project,
             }
         else:
