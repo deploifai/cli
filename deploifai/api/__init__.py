@@ -410,11 +410,11 @@ class DeploifaiAPI:
         except KeyError:
             raise DeploifaiAPIError("Could not create project. Please try again.")
 
-    def cloud_provider_falcon_config(self, use_gpu: bool, cloud_provider: str):
+    def get_training_infrastructure_plans(self, uses_gpu: bool, cloud_provider: CloudProfile):
         query = (
             """
-            query($wheregpu: Boolean $whereProvider: CloudProvider){
-            trainingInfrastructurePlans(usesGpu: $wheregpu provider: $whereProvider){
+            query($usesGpu: Boolean $whereProvider: CloudProvider){
+            trainingInfrastructurePlans(usesGpu: $usesGpu provider: $whereProvider){
                 plan
                 config{
                   ... on AWSFalconDefaultConfig{
@@ -432,7 +432,7 @@ class DeploifaiAPI:
             """
         )
         variables = {
-            "wheregpu": use_gpu,
+            "usesGpu": uses_gpu,
             "whereProvider": cloud_provider
         }
 

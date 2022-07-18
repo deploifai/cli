@@ -13,7 +13,7 @@ from .data import data
 from .mlflow import mlflow
 from .cloud_profile import cloud_profile
 from .workspace import workspace
-from .training_server import training_server
+from .server import server
 
 commands = {
     "auth": auth,
@@ -23,7 +23,7 @@ commands = {
     "cloud-profile": cloud_profile,
     "mlflow": mlflow,
     "workspace": workspace,
-    "training-server": training_server,
+    "server": server,
 }
 
 
