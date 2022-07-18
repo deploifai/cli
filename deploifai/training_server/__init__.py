@@ -1,5 +1,7 @@
 import click
-from deploifai.training_server.create import create
+
+from .create import create
+from .list import list_server
 
 
 @click.group()
@@ -11,3 +13,4 @@ def training_server():
 
 
 training_server.add_command(create)
+training_server.add_command(list_server)

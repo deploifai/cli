@@ -597,3 +597,25 @@ class DeploifaiAPI:
             raise DeploifaiAPIError("Could not create Training Server. Please try again.")
         except KeyError:
             raise DeploifaiAPIError("Could not create Training Server. Please try again.")
+
+    def get_server(self, workspace: str):
+        query = """
+        query ($whereAccount: AccountWhereUniqueInput!){
+          trainings(whereAccount: $whereAccount){
+            id
+            name
+            status
+          }
+        }
+        """
+
+        variables = {"whereAccount": {"username": workspace}}
+
+        r = requests.post(
+            self.uri,
+            json={"query": query, "variables": variables},
+            headers=self.headers,
+        )
+        server_details = r.json()["data"]["trainings"]
+        return server_details
+
