@@ -24,7 +24,7 @@ from time import sleep
 @is_authenticated
 def create(context: DeploifaiContextObj):
     """
-    Creating a new data storage
+    Creating a new dataset storage
     """
 
     deploifai_api = context.api
@@ -59,12 +59,12 @@ def create(context: DeploifaiContextObj):
         {
             "type": "input",
             "name": "storage_name_input",
-            "message": "Name the data storage",
+            "message": "Name the dataset storage",
         },
         {
             "type": "list",
             "name": "cloud_profile",
-            "message": "Choose a cloud profile for data storage",
+            "message": "Choose a cloud profile for dataset storage",
             "choices": [
                 {
                     "name": "{name}({workspace}) - {provider}".format(
@@ -87,7 +87,7 @@ def create(context: DeploifaiContextObj):
     click.secho("Cloud Profile:{}".format(cloud_profile), fg='green')
     click.secho("Dataset Name:{}".format(storage_name), fg='green')
 
-    click.secho("Creating a new data storage.", fg="blue")
+    click.secho("Creating a new dataset storage.", fg="blue")
 
     context.debug_msg(cloud_profile)
 
@@ -102,7 +102,7 @@ def create(context: DeploifaiContextObj):
     context.debug_msg(create_storage_response)
 
     with click_spinner.spinner():
-        click.echo("Deploying data storage")
+        click.echo("Deploying dataset storage")
         while True:
             data_storage_info = deploifai_api.get_data_storage_info(
                 create_storage_response["id"]
@@ -115,7 +115,7 @@ def create(context: DeploifaiContextObj):
                 break
             sleep(10)
 
-    # Obtaining information of cloud provider for data storage created
+    # Obtaining information of cloud provider for dataset storage created
     storage_id = create_storage_response["id"]
     cloud_data = context.api.get_data_storage_info(storage_id=storage_id)
 

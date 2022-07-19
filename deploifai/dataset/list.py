@@ -1,21 +1,25 @@
 import click
-
+from deploifai.context import (
+    pass_deploifai_context_obj,
+    DeploifaiContextObj,
+    is_authenticated,
+    project_found,
+)
 from deploifai.api import DeploifaiAPIError
-from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj, is_authenticated, project_found
 
 
 @click.command("list")
 @click.option("--project", "-p", help="Project Name")
 @pass_deploifai_context_obj
 @is_authenticated
-def list_server(context: DeploifaiContextObj, project: str):
+def list_data(context: DeploifaiContextObj, project: str):
     """
-        Command to list out all training servers in current workspace
+    Command to list all datasets in the current project
     """
 
     current_workspace = context.global_config["WORKSPACE"]["username"]
 
-    click.echo("Workspace Name: {}".format(current_workspace))
+    click.secho("Workspace Name: {}".format(current_workspace))
 
     if project:
         # checking if project exists
@@ -40,22 +44,22 @@ def list_server(context: DeploifaiContextObj, project: str):
                 fg="red",
             )
             return
-        variables = {"project": {"is": {"name": {"equals": project}}}}
+        variables = {"projects": {"every": {"id": {"equals": project}}}}
 
     elif "id" in context.local_config["PROJECT"]:
         project_id = context.local_config["PROJECT"]["id"]
-        variables = {"project": {"is": {"id": {"equals": project_id}}}}
+        variables = {"projects": {"every": {"id": {"equals": project_id}}}}
 
     else:
         variables = None
 
-    server_info = context.api.get_training_server(current_workspace, variables)
+    data_storage_info = context.api.get_data_storages(current_workspace, variables)
 
-    if len(server_info) == 0:
-        click.secho("No Training Servers Exist", fg="yellow")
+    if len(data_storage_info) == 0:
+        click.secho("No Datasets Exist", fg="yellow")
         return
 
-    click.echo("Training Server List:")
-    for info in server_info:
+    click.echo("Data Storages:")
+    for info in data_storage_info:
         click.echo(f"{info['name']} - {info['status']}")
     return

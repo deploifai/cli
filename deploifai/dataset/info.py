@@ -14,7 +14,7 @@ def info(context: DeploifaiContextObj):
     data_storage_config = context.local_config["DATA_STORAGE"]
 
     if "id" not in data_storage_config:
-        click.secho("No data storage configured for this project", fg="red")
+        click.secho("No dataset storage configured for this project", fg="red")
         return
 
     deploifai_api = context.api
@@ -28,7 +28,7 @@ def info(context: DeploifaiContextObj):
     container_name = container["directoryName"]
 
     if cloud_provider == "AWS":
-        click.secho("AWS data storages CLI support is coming soon.", fg="blue")
+        click.secho("AWS dataset storages CLI support is coming soon.", fg="blue")
 
     elif cloud_provider == "AZURE":
         storage_account_name = storage_details["cloudProviderYodaConfig"][
@@ -60,4 +60,4 @@ def info(context: DeploifaiContextObj):
         )
 
     elif cloud_provider == "GCP":
-        click.secho("GCP data storages CLI support is coming soon.", fg="blue")
+        click.secho("GCP dataset storages CLI support is coming soon.", fg="blue")

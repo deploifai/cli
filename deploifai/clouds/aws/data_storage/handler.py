@@ -13,7 +13,7 @@ class AWSDataStorageHandler:
     def push(self):
         for container in self.containers:
             self.upload_dataset(
-                Path("data/{}".format(container.get("name"))), container.get("value")
+                Path("dataset/{}".format(container.get("name"))), container.get("value")
             )
 
     def upload_file(self, file: Path, directory, container_name, pbar):
