@@ -91,7 +91,7 @@ class DeploifaiAPI:
         except TypeError:
             return []
 
-    def get_data_storages(self, workspace):
+    def get_data_storages(self, workspace_id):
         query = """
       query($id:String){
         dataStorages(whereAccount:{
@@ -110,7 +110,7 @@ class DeploifaiAPI:
         }
       }
     """
-        query_json = {"query": query, "variables": {"id": workspace["id"]}}
+        query_json = {"query": query, "variables": {"id": workspace_id}}
 
         try:
             query_response = requests.post(
@@ -239,7 +239,6 @@ class DeploifaiAPI:
             raise DeploifaiAPIError(create_mutation_data['errors'][0]['message'])
 
         return create_mutation_data["data"]["createDataStorage"]
-
 
     def get_cloud_profiles(self, workspace: str) -> typing.List[CloudProfile]:
         query = """
@@ -410,3 +409,179 @@ class DeploifaiAPI:
             raise DeploifaiAPIError("Could not create project. Please try again.")
         except KeyError:
             raise DeploifaiAPIError("Could not create project. Please try again.")
+
+    def get_training_infrastructure_plans(self, uses_gpu: bool, cloud_provider: CloudProfile):
+        query = (
+            """
+            query($usesGpu: Boolean $whereProvider: CloudProvider){
+            trainingInfrastructurePlans(usesGpu: $usesGpu provider: $whereProvider){
+                plan
+                config{
+                  ... on AWSFalconDefaultConfig{
+                    ec2InstanceType
+                  }
+                  ... on AzureFalconDefaultConfig{
+                    vmSize
+                  }
+                  ... on GCPFalconDefaultConfig{
+                    computeMachineType
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables = {
+            "usesGpu": uses_gpu,
+            "whereProvider": cloud_provider
+        }
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+            api_data = r.json()
+
+            return api_data["data"]["trainingInfrastructurePlans"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not get information. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not get information. Please try again.")
+
+    def falcon_ml_config(self, variable):
+        query = (
+            """    
+            query ($where: FalconMLConfigWhereInput)
+                {
+                    falconMLConfigs(where: $where){
+                        id
+                        pythonVersion
+                        frameworkVersion
+                        cudaVersion
+                        cudnnVersion
+                    }
+                }
+            """
+        )
+        variables = {
+            "where": variable
+        }
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+            api_data = r.json()
+
+            return api_data["data"]["falconMLConfigs"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not get ML Configs. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not get ML Configs. Please try again.")
+
+    def falcon_ml_config_distinct(self, variable, distinct_option: str):
+        query = (
+            """    
+            query ($where: FalconMLConfigWhereInput $distinct: [FalconMLConfigScalarFieldEnum!])
+                {
+                    falconMLConfigs(where: $where distinct: $distinct){
+                        id
+                        pythonVersion
+                        frameworkVersion
+                        cudaVersion
+                        cudnnVersion
+                    }
+                }
+            """
+        )
+        variables = {
+            "where": variable,
+            "distinct": [distinct_option],
+        }
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+            api_data = r.json()
+
+            return api_data["data"]["falconMLConfigs"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not get ML Configs. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not get ML Configs. Please try again.")
+
+    def create_training_server(self, name: str, project_id: str, cloud_profile_id: str,
+                               falcon_plan: str, uses_gpu: bool,
+                               data_storage_ids: typing.List[str] = None, falcon_ml_config_id: str = None):
+        mutation = """
+        mutation($whereProject: ProjectWhereUniqueInput! $data: CreateTrainingInput!){
+            createTraining(whereProject: $whereProject data: $data){
+            name
+            status
+            }
+        }
+        """
+
+        variables = {
+            "whereProject": {"id": project_id},
+            "data": {
+                "name": name,
+                "cloudProfileId": cloud_profile_id,
+                "cloudProviderFalconConfig": {
+                    "plan": falcon_plan,
+                    "usesGpu": uses_gpu,
+                },
+                "falconMLConfigId": falcon_ml_config_id,
+                "dataStorageIds": data_storage_ids,
+            },
+        }
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": mutation, "variables": variables},
+                headers=self.headers,
+            )
+
+            create_mutation_data = r.json()
+
+            return create_mutation_data["data"]["createTraining"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not create Training Server. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not create Training Server. Please try again.")
+
+    def get_training_server(self, workspace: str):
+        query = """
+        query ($whereAccount: AccountWhereUniqueInput!){
+          trainings(whereAccount: $whereAccount){
+            id
+            name
+            status
+          }
+        }
+        """
+
+        variables = {"whereAccount": {"username": workspace}}
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+            server_details = r.json()["data"]["trainings"]
+            return server_details
+
+        except TypeError:
+            raise DeploifaiAPIError("Could not find Training Server. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not find Training Server. Please try again.")
+
