@@ -519,7 +519,7 @@ class DeploifaiAPI:
 
     def create_training_server(self, name: str, project_id: str, cloud_profile_id: str,
                                falcon_plan: str, uses_gpu: bool,
-                               data_storage_id: str = None, falcon_ml_config_id: str = None):
+                               data_storage_ids: typing.List[str] = None, falcon_ml_config_id: str = None):
         mutation = """
         mutation($whereProject: ProjectWhereUniqueInput! $data: CreateTrainingInput!){
             createTraining(whereProject: $whereProject data: $data){
@@ -539,7 +539,7 @@ class DeploifaiAPI:
                     "usesGpu": uses_gpu,
                 },
                 "falconMLConfigId": falcon_ml_config_id,
-                "dataStorageIds": data_storage_id,
+                "dataStorageIds": data_storage_ids,
             },
         }
 

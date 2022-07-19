@@ -6,7 +6,12 @@ from deploifai.utilities.version_comparison import compare, multi_compare
 from deploifai.utilities.python_supported import supported
 
 framework_options = ["tensorflow", "pytorch"]
-server_options = ["SMALL", "MEDIUM", "LARGE"]
+server_options = ["small", "medium", "large"]
+
+server_sizes = {
+    "cpu": {"small": "SMALL_CPU", "medium": "MEDIUM_CPU", "large": "LARGE_CPU"},
+    "gpu": {"small": "SMALL_GPU", "medium": "MEDIUM_GPU", "large": "LARGE_GPU"},
+}
 
 
 @click.command()
@@ -31,7 +36,6 @@ def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profil
     """
     Create a new Training Server
     """
-    context.debug_msg(gpu)
     # checking if provided python version is supported or is substring of a supported version
     if python_version:
         python_supported = supported(python_version)
@@ -74,16 +78,16 @@ def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profil
     click.secho("Project Name: {}".format(project_data["name"]), fg="blue")
 
     # obtaining the desired dataset
-    use_dataset = True
     context.debug_msg(no_dataset)
     if not no_dataset:
         dataset_info = project_data["dataStorages"]
         if dataset:
-            pick_dataset = False
+            pick_dataset = None
             for info in dataset_info:
                 if info["name"] == dataset:
                     pick_dataset = info
                     context.debug_msg("dataset_info: {}".format(pick_dataset))
+                    break
             if not pick_dataset:
                 click.secho("Please provide a valid dataset name", fg="red")
                 raise click.Abort()
@@ -105,22 +109,23 @@ def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profil
             if choose_dataset == {}:
                 raise click.Abort()
             pick_dataset = choose_dataset["dataset"]
-        dataset_id = pick_dataset["id"]
+        dataset_ids = [pick_dataset["id"]]
     else:
-        dataset_id = None
+        dataset_ids = None
 
     # extracting cloud profile information
-    cloud_profiles = context.api.get_cloud_profiles(workspace=workspace_name)
-    if len(cloud_profiles) == 0:
+    existing_cloud_profiles = context.api.get_cloud_profiles(workspace=workspace_name)
+    if len(existing_cloud_profiles) == 0:
         click.secho("Please create a cloud profile with")
         click.secho("deploifai cloud-profile create", fg="yellow")
         raise click.Abort()
     if cloud_profile:
-        profile = False
-        for profiles in cloud_profiles:
-            if profiles.name == cloud_profile:
-                profile = profiles
+        profile = None
+        for existing_cloud_profile in existing_cloud_profiles:
+            if existing_cloud_profile.name == cloud_profile:
+                profile = existing_cloud_profile
                 context.debug_msg("cloud profile info: {}".format(profile))
+                break
         if not profile:
             click.secho("Please provide a valid cloud profile name", fg="red")
             raise click.Abort()
@@ -139,7 +144,7 @@ def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profil
                         ),
                         "value": profile,
                     }
-                    for profile in cloud_profiles
+                    for profile in existing_cloud_profiles
                 ],
             }
         )
@@ -314,16 +319,22 @@ def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profil
     # extracting and choosing server instance size
     falcon_config = context.api.get_training_infrastructure_plans(uses_gpu=gpu, cloud_provider=cloud_profile_provider)
     if server_size:
+        if server_size not in server_options:
+            click.secho("Server size {} is not supported. Please choose from one of {}".format(server_size, server_options), fg="red")
+            raise click.Abort()
+
         if gpu:
-            server_size = server_size + "_GPU"
+            server_family = server_sizes['gpu']
         else:
-            server_size = server_size + "_CPU"
-        falcon_config_chosen = False
+            server_family = server_sizes["cpu"]
+        size = server_family[server_size]
+
+        falcon_config_chosen = None
         for config in falcon_config:
-            if config["plan"] == server_size:
+            if config["plan"] == size:
                 falcon_config_chosen = config
-        if not falcon_config_chosen:
-            click.secho("Please provide a valid server size: {}".format(server_options))
+                break
+
     else:
         choose_falcon_config = prompt(
             {
@@ -349,7 +360,7 @@ def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profil
     falcon_plan = falcon_config_chosen["plan"]
 
     # creating server info and providing its information to user
-    server_info = context.api.create_training_server(name=name, data_storage_id=dataset_id,
+    server_info = context.api.create_training_server(name=name, data_storage_ids=dataset_ids,
                                                      cloud_profile_id=cloud_profile_id,
                                                      falcon_plan=falcon_plan, uses_gpu=gpu,
                                                      falcon_ml_config_id=falcon_config_id, project_id=project_id)
