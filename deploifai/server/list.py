@@ -15,7 +15,7 @@ def list_server(context: DeploifaiContextObj, project: str):
 
     current_workspace = context.global_config["WORKSPACE"]["username"]
 
-    click.secho("Workspace Name: {}".format(current_workspace), fg="blue")
+    click.echo("Workspace Name: {}".format(current_workspace))
 
     if project:
         # checking if project exists
@@ -40,36 +40,22 @@ def list_server(context: DeploifaiContextObj, project: str):
                 fg="red",
             )
             return
-        click.secho("Project Name: {}".format(project), fg="blue")
-        project_id = projects_data[0]["id"]
-        where_training = {"project": {"is": {"id": {"equals": project_id}}}}
+        variables = {"project": {"is": {"name": {"equals": project}}}}
 
     elif "id" in context.local_config["PROJECT"]:
         project_id = context.local_config["PROJECT"]["id"]
-        # query for workspace name from api
-        fragment = """
-                        fragment project on Project {
-                            name
-                        }
-                        """
-        context.debug_msg(project_id)
-        project_data = context.api.get_project(
-            project_id=project_id, fragment=fragment
-        )
-        project = project_data["name"]
-        click.secho("Project Name: {}".format(project), fg="blue")
-        where_training = {"project": {"is": {"id": {"equals": project_id}}}}
+        variables = {"project": {"is": {"id": {"equals": project_id}}}}
 
     else:
-        where_training = None
+        variables = None
 
-    server_info = context.api.get_training_servers(current_workspace, where_training)
+    server_info = context.api.get_training_server(current_workspace, variables)
 
     if len(server_info) == 0:
-        click.secho("No training servers exist", fg="yellow")
+        click.secho("No Training Servers Exist", fg="yellow")
         return
 
-    click.secho("All training servers:", fg="blue")
+    click.echo("Training Server List:")
     for info in server_info:
         click.echo(f"{info['name']} - {info['status']}")
     return
