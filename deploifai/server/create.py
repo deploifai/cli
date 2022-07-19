@@ -48,9 +48,16 @@ def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profil
         click.secho("The ML framework <{}> provided is not supported by Deploifai".format(framework), fg="red")
         raise click.Abort()
 
+    # checking if framework version exists when framework is not specified
     if framework_version and not framework:
         click.secho("Missing --framework option", fg="red")
         raise click.Abort()
+
+    # validating server size input
+    if server_size:
+        if server_size not in server_options:
+            click.secho("Server size <{}> is not supported. Please choose from one of {}".format(server_size, server_options), fg="red")
+            raise click.Abort()
 
     # assume that the user should be in a project directory, that contains local configuration file
     project_id = context.local_config['PROJECT']['id']
@@ -76,6 +83,23 @@ def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profil
 
     click.secho("Workspace Name: {}".format(workspace_name), fg="blue")
     click.secho("Project Name: {}".format(project_data["name"]), fg="blue")
+
+    # extracting cloud profile information
+    existing_cloud_profiles = context.api.get_cloud_profiles(workspace=workspace_name)
+    if len(existing_cloud_profiles) == 0:
+        click.secho("Please create a cloud profile with")
+        click.secho("deploifai cloud-profile create", fg="yellow")
+        raise click.Abort()
+    if cloud_profile:
+        profile = None
+        for existing_cloud_profile in existing_cloud_profiles:
+            if existing_cloud_profile.name == cloud_profile:
+                profile = existing_cloud_profile
+                context.debug_msg("cloud profile info: {}".format(profile))
+                break
+        if not profile:
+            click.secho("Please provide a valid cloud profile name", fg="red")
+            raise click.Abort()
 
     # obtaining the desired dataset
     context.debug_msg(no_dataset)
@@ -114,22 +138,7 @@ def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profil
         dataset_ids = None
 
     # extracting cloud profile information
-    existing_cloud_profiles = context.api.get_cloud_profiles(workspace=workspace_name)
-    if len(existing_cloud_profiles) == 0:
-        click.secho("Please create a cloud profile with")
-        click.secho("deploifai cloud-profile create", fg="yellow")
-        raise click.Abort()
-    if cloud_profile:
-        profile = None
-        for existing_cloud_profile in existing_cloud_profiles:
-            if existing_cloud_profile.name == cloud_profile:
-                profile = existing_cloud_profile
-                context.debug_msg("cloud profile info: {}".format(profile))
-                break
-        if not profile:
-            click.secho("Please provide a valid cloud profile name", fg="red")
-            raise click.Abort()
-    else:
+    if not cloud_profile:
         choose_cloud_profile = prompt(
             {
                 "type": "list",
@@ -319,10 +328,6 @@ def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profil
     # extracting and choosing server instance size
     falcon_config = context.api.get_training_infrastructure_plans(uses_gpu=gpu, cloud_provider=cloud_profile_provider)
     if server_size:
-        if server_size not in server_options:
-            click.secho("Server size {} is not supported. Please choose from one of {}".format(server_size, server_options), fg="red")
-            raise click.Abort()
-
         if gpu:
             server_family = server_sizes['gpu']
         else:
