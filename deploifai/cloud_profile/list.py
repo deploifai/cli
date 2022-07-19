@@ -12,7 +12,7 @@ from deploifai.api import DeploifaiAPIError
 @is_authenticated
 def list_profile(context: DeploifaiContextObj):
     """
-    Command to list all cloud profiles linked to the current workspace
+    List all cloud profiles in the current workspace
     """
 
     current_workspace = context.global_config["WORKSPACE"]["username"]
