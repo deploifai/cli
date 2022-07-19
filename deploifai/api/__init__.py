@@ -479,9 +479,9 @@ class DeploifaiAPI:
 
             return api_data["data"]["falconMLConfigs"]
         except TypeError:
-            raise DeploifaiAPIError("Could not get information. Please try again.")
+            raise DeploifaiAPIError("Could not get ML Configs. Please try again.")
         except KeyError:
-            raise DeploifaiAPIError("Could not get information. Please try again.")
+            raise DeploifaiAPIError("Could not get ML Configs. Please try again.")
 
     def falcon_ml_config_distinct(self, variable, distinct_option: str):
         query = (
@@ -513,13 +513,13 @@ class DeploifaiAPI:
 
             return api_data["data"]["falconMLConfigs"]
         except TypeError:
-            raise DeploifaiAPIError("Could not get information. Please try again.")
+            raise DeploifaiAPIError("Could not get ML Configs. Please try again.")
         except KeyError:
-            raise DeploifaiAPIError("Could not get information. Please try again.")
+            raise DeploifaiAPIError("Could not get ML Configs. Please try again.")
 
     def create_training_server(self, name: str, project_id: str, cloud_profile_id: str,
-                               falcon_plan: str, falcon_gpu: str,
-                               data_storage_id: str = None, falcon_id: str = None):
+                               falcon_plan: str, uses_gpu: bool,
+                               data_storage_id: str = None, falcon_ml_config_id: str = None):
         mutation = """
         mutation($whereProject: ProjectWhereUniqueInput! $data: CreateTrainingInput!){
             createTraining(whereProject: $whereProject data: $data){
@@ -529,60 +529,20 @@ class DeploifaiAPI:
         }
         """
 
-        if falcon_id:
-            if data_storage_id:
-                variables = {
-                    "whereProject": {"id": project_id},
-                    "data": {
-                        "name": name,
-                        "cloudProfileId": cloud_profile_id,
-                        "cloudProviderFalconConfig": {
-                            "plan": falcon_plan,
-                            "usesGpu": falcon_gpu,
-                        },
-                        "falconMLConfigId": falcon_id,
-                        "dataStorageIds": data_storage_id,
-                    },
-                }
-            else:
-                variables = {
-                    "whereProject": {"id": project_id},
-                    "data": {
-                        "name": name,
-                        "cloudProfileId": cloud_profile_id,
-                        "cloudProviderFalconConfig": {
-                            "plan": falcon_plan,
-                            "usesGpu": falcon_gpu,
-                        },
-                        "falconMLConfigId": falcon_id,
-                    },
-                }
-        else:
-            if data_storage_id:
-                variables = {
-                    "whereProject": {"id": project_id},
-                    "data": {
-                        "name": name,
-                        "cloudProfileId": cloud_profile_id,
-                        "cloudProviderFalconConfig": {
-                            "plan": falcon_plan,
-                            "usesGpu": falcon_gpu,
-                        },
-                        "dataStorageIds": data_storage_id,
-                    },
-                }
-            else:
-                variables = {
-                    "whereProject": {"id": project_id},
-                    "data": {
-                        "name": name,
-                        "cloudProfileId": cloud_profile_id,
-                        "cloudProviderFalconConfig": {
-                            "plan": falcon_plan,
-                            "usesGpu": falcon_gpu,
-                        },
-                    },
-                }
+        variables = {
+            "whereProject": {"id": project_id},
+            "data": {
+                "name": name,
+                "cloudProfileId": cloud_profile_id,
+                "cloudProviderFalconConfig": {
+                    "plan": falcon_plan,
+                    "usesGpu": uses_gpu,
+                },
+                "falconMLConfigId": falcon_ml_config_id,
+                "dataStorageIds": data_storage_id,
+            },
+        }
+
         try:
             r = requests.post(
                 self.uri,
@@ -598,7 +558,7 @@ class DeploifaiAPI:
         except KeyError:
             raise DeploifaiAPIError("Could not create Training Server. Please try again.")
 
-    def get_server(self, workspace: str):
+    def get_training_server(self, workspace: str):
         query = """
         query ($whereAccount: AccountWhereUniqueInput!){
           trainings(whereAccount: $whereAccount){
@@ -611,11 +571,17 @@ class DeploifaiAPI:
 
         variables = {"whereAccount": {"username": workspace}}
 
-        r = requests.post(
-            self.uri,
-            json={"query": query, "variables": variables},
-            headers=self.headers,
-        )
-        server_details = r.json()["data"]["trainings"]
-        return server_details
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+            server_details = r.json()["data"]["trainings"]
+            return server_details
+
+        except TypeError:
+            raise DeploifaiAPIError("Could not find Training Server. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not find Training Server. Please try again.")
 

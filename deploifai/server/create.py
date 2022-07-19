@@ -12,12 +12,12 @@ server_options = ["SMALL", "MEDIUM", "LARGE"]
 @click.command()
 @click.argument("name")
 @click.option("--no-dataset", is_flag=True, default=False, show_default=True,
-              help="No datasets to be connected to server")
-@click.option("--dataset", "-d", type=str, help="Name of dataset to be used")
-@click.option("--cloud-profile-name", "-c", type=str, help="Name of cloud profile to be used")
+              help="Do not mount any datasets on the server")
+@click.option("--dataset", "-d", type=str, help="Name of dataset to be mounted on the server")
+@click.option("--cloud-profile", "-c", type=str, help="Name of cloud profile to be used")
 @click.option("--gpu/--no-gpu", default=True, show_default=True, help="Create training server with or without GPU")
 @click.option("--no-framework", is_flag=True, default=False, show_default=True,
-              help="No frameworks to be installed in the server")
+              help="Do not install ML frameworks in the server")
 @click.option("--framework", '-fw', type=str,
               help='ML framework to be installed in the server: {}'.format(framework_options))
 @click.option("--framework-version", '-fwv', type=str, help="ML framework version to be installed")
@@ -26,7 +26,7 @@ server_options = ["SMALL", "MEDIUM", "LARGE"]
 @pass_deploifai_context_obj
 @is_authenticated
 @project_found
-def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profile_name, gpu,
+def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profile, gpu,
            no_framework, framework, framework_version, python_version, server_size):
     """
     Create a new Training Server
@@ -105,13 +105,9 @@ def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profil
             if choose_dataset == {}:
                 raise click.Abort()
             pick_dataset = choose_dataset["dataset"]
+        dataset_id = pick_dataset["id"]
     else:
-        use_dataset = False
-    context.debug_msg("use_dataset: {}".format(use_dataset))
-    if use_dataset:
-        # extract all the dataset information required
-        dataset = pick_dataset
-        dataset_id = dataset["id"]
+        dataset_id = None
 
     # extracting cloud profile information
     cloud_profiles = context.api.get_cloud_profiles(workspace=workspace_name)
@@ -119,13 +115,13 @@ def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profil
         click.secho("Please create a cloud profile with")
         click.secho("deploifai cloud-profile create", fg="yellow")
         raise click.Abort()
-    if cloud_profile_name:
-        cloud_profile = False
-        for profile in cloud_profiles:
-            if profile.name == cloud_profile_name:
-                cloud_profile = profile
-                context.debug_msg("cloud profile info: {}".format(cloud_profile))
-        if not cloud_profile:
+    if cloud_profile:
+        profile = False
+        for profiles in cloud_profiles:
+            if profiles.name == cloud_profile:
+                profile = profiles
+                context.debug_msg("cloud profile info: {}".format(profile))
+        if not profile:
             click.secho("Please provide a valid cloud profile name", fg="red")
             raise click.Abort()
     else:
@@ -137,23 +133,23 @@ def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profil
                 "choices": [
                     {
                         "name": "{name}({workspace}) - {provider}".format(
-                            name=cloud_profile.name,
-                            workspace=cloud_profile.workspace,
-                            provider=cloud_profile.provider,
+                            name=profile.name,
+                            workspace=profile.workspace,
+                            provider=profile.provider,
                         ),
-                        "value": cloud_profile,
+                        "value": profile,
                     }
-                    for cloud_profile in cloud_profiles
+                    for profile in cloud_profiles
                 ],
             }
         )
         if choose_cloud_profile == {}:
             raise click.Abort()
-        cloud_profile = choose_cloud_profile["cloud_profile"]
+        profile = choose_cloud_profile["cloud_profile"]
 
     # extracting the cloud profile information
-    cloud_profile_id = cloud_profile.id
-    cloud_profile_provider = cloud_profile.provider
+    cloud_profile_id = profile.id
+    cloud_profile_provider = profile.provider
 
     # Obtaining information of python and framework version if using framework
 
@@ -306,8 +302,6 @@ def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profil
         click.secho("Python Version: {}".format(python_version), fg="blue")
         click.secho("Framework Version: {}".format(framework_version), fg="blue")
 
-        falcon_config_exists = True
-
         if gpu:
             cuda_version = config_info["cudaVersion"]
             cudnn_version = config_info["cudnnVersion"]
@@ -315,9 +309,7 @@ def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profil
             click.secho("Cudnn Version: {}".format(cudnn_version), fg="blue")
 
     else:
-        falcon_config_exists = False
-
-    context.debug_msg(falcon_config_exists)
+        falcon_config_id = None
 
     # extracting and choosing server instance size
     falcon_config = context.api.get_training_infrastructure_plans(uses_gpu=gpu, cloud_provider=cloud_profile_provider)
@@ -357,28 +349,10 @@ def create(context: DeploifaiContextObj, name, no_dataset, dataset, cloud_profil
     falcon_plan = falcon_config_chosen["plan"]
 
     # creating server info and providing its information to user
-    if falcon_config_exists:
-        if use_dataset:
-            server_info = context.api.create_training_server(name=name, data_storage_id=dataset_id,
-                                                             cloud_profile_id=cloud_profile_id,
-                                                             falcon_plan=falcon_plan, falcon_gpu=gpu,
-                                                             falcon_id=falcon_config_id, project_id=project_id)
-        else:
-            server_info = context.api.create_training_server(name=name,
-                                                             cloud_profile_id=cloud_profile_id,
-                                                             falcon_plan=falcon_plan, falcon_gpu=gpu,
-                                                             falcon_id=falcon_config_id, project_id=project_id)
-    else:
-        if use_dataset:
-            server_info = context.api.create_training_server(name=name, data_storage_id=dataset_id,
-                                                             cloud_profile_id=cloud_profile_id,
-                                                             falcon_plan=falcon_plan, falcon_gpu=gpu,
-                                                             project_id=project_id)
-        else:
-            server_info = context.api.create_training_server(name=name,
-                                                             cloud_profile_id=cloud_profile_id,
-                                                             falcon_plan=falcon_plan, falcon_gpu=gpu,
-                                                             project_id=project_id)
+    server_info = context.api.create_training_server(name=name, data_storage_id=dataset_id,
+                                                     cloud_profile_id=cloud_profile_id,
+                                                     falcon_plan=falcon_plan, uses_gpu=gpu,
+                                                     falcon_ml_config_id=falcon_config_id, project_id=project_id)
     server_name = server_info["name"]
     server_status = server_info["status"]
 

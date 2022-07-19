@@ -15,7 +15,7 @@ def list_server(context: DeploifaiContextObj):
 
     click.echo("Workspace Name: {}".format(current_workspace))
 
-    server_info = context.api.get_server(current_workspace)
+    server_info = context.api.get_training_server(current_workspace)
 
     click.echo("Training Server List:")
     for info in server_info:
