@@ -54,9 +54,6 @@ def list_data(context: DeploifaiContextObj, project: str):
         fragment = """
                         fragment project on Project {
                             name
-                            account{
-                                username
-                            }
                         }
                         """
         context.debug_msg(project_id)
