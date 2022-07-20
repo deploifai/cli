@@ -91,7 +91,7 @@ class DeploifaiAPI:
         except TypeError:
             return []
 
-    def get_data_storages(self, workspace: str, variable: str = None):
+    def get_data_storages(self, workspace: str, where_data_storage: str = None):
         query = """
       query($username:String $where: DataStorageWhereInput){
         dataStorages(whereAccount:{
@@ -109,7 +109,7 @@ class DeploifaiAPI:
 
         variables = {
             "username": workspace,
-            "where": variable
+            "where": where_data_storage
         }
 
         query_json = {"query": query, "variables": variables}
@@ -560,7 +560,7 @@ class DeploifaiAPI:
         except KeyError:
             raise DeploifaiAPIError("Could not create Training Server. Please try again.")
 
-    def get_training_server(self, workspace: str, variable: str = None):
+    def get_training_server(self, workspace: str, where_training_server: str = None):
         query = """
         query ($whereAccount: AccountWhereUniqueInput! $whereTraining: TrainingWhereInput){
           trainings(whereAccount: $whereAccount whereTraining: $whereTraining){
@@ -573,7 +573,7 @@ class DeploifaiAPI:
 
         variables = {
             "whereAccount": {"username": workspace},
-            "whereTraining": variable,
+            "whereTraining": where_training_server,
         }
 
         try:

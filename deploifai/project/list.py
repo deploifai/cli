@@ -18,7 +18,7 @@ def list_project(context: DeploifaiContextObj):
 
     current_workspace = context.global_config["WORKSPACE"]["username"]
 
-    click.secho("Workspace Name: {}".format(current_workspace))
+    click.secho("Workspace Name: {}".format(current_workspace), fg="blue")
 
     fragment = """
                     fragment project on Project {
@@ -28,9 +28,13 @@ def list_project(context: DeploifaiContextObj):
                     """
     projects_data = context.api.get_projects(workspace=current_workspace, fragment=fragment)
 
+    if len(projects_data) == 0:
+        click.secho("No projects exist", fg="yellow")
+        return
+
     # If more information is needed change fragment to add it, then change the final echo to provide that info too
 
-    click.echo("Project Names:")
+    click.secho("All projects:", fg="blue")
     for projects in projects_data:
         click.echo(projects["name"])
     return

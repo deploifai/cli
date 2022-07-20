@@ -24,7 +24,7 @@ def init(context: DeploifaiContextObj):
     """
     Initialise the current directory as a dataset
     """
-    click.secho("Connecting with an existing dataset storage", fg="blue")
+    click.secho("Connecting with an existing dataset", fg="blue")
     deploifai_api = context.api
 
     # assume that the user should be in a project directory, that contains local configuration file
@@ -55,13 +55,13 @@ def init(context: DeploifaiContextObj):
                 workspace=command_workspace
             )
         if not len(data_storages):
-            click.echo("No dataset storages in the workspace")
+            click.echo("No dataset in the workspace")
             raise Abort()
         questions = [
             {
                 "type": "list",
                 "name": "storage_option",
-                "message": "Choose the dataset storage to link.",
+                "message": "Choose the dataset to link.",
                 "choices": [
                     {
                         "name": "{}({})".format(

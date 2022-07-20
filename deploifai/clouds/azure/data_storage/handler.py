@@ -15,7 +15,7 @@ class AzureDataStorageHandler:
     def push(self):
         for container in self.containers:
             self.upload_dataset(
-                Path("dataset/{}".format(container.get("name"))), container.get("value")
+                Path("data/{}".format(container.get("name"))), container.get("value")
             )
 
     @staticmethod
