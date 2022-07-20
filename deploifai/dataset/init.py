@@ -77,8 +77,8 @@ def init(context: DeploifaiContextObj):
     except dataset_config.DeploifaiDataAlreadyInitialisedError:
         click.echo(
             """
-    A different storage is already initialised in the folder.
-    Consider removing it from the config file.
+    A different storage is already initialised in the config file.
+    Consider removing it from the config file, or removing the config file itself
     """
         )
         raise Abort()
