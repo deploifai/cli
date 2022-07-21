@@ -31,3 +31,4 @@ def list_workspace(context: DeploifaiContextObj):
         is_current_workspace = " (Current Workspace)" if workspace["username"] == current_workspace else ""
 
         click.echo(f"{workspace['username']} - {workspace_type}{is_current_workspace}")
+    return

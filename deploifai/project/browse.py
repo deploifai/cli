@@ -14,8 +14,8 @@ from deploifai.utilities.frontend_routing import get_project_route
 @click.command()
 @pass_deploifai_context_obj
 @project_found
-@click.option("--workspace", help="Workspace name", type=str)
-@click.option("--project", help="Project name", type=str)
+@click.option("--workspace", '-w', help="Workspace name", type=str)
+@click.option("--project", '-p', help="Project name", type=str)
 def browse(context: DeploifaiContextObj, project: str, workspace="unassigned"):
     """
     Command to open a project in the Web Browser
@@ -30,10 +30,9 @@ def browse(context: DeploifaiContextObj, project: str, workspace="unassigned"):
                             }
                             """
             where_project = {"name": {"equals": project}}
-            workspace_dict = {"username": workspace}
             try:
-                projects_data = context.api.get_projects(workspace=workspace_dict,
-                                                     fragment=fragment, where_project=where_project)
+                projects_data = context.api.get_projects(workspace=workspace,
+                                                         fragment=fragment, where_project=where_project)
             except DeploifaiAPIError:
                 click.secho(
                     f"Project \"{project}\" cannot be found in workspace \"{workspace}\"",
@@ -74,6 +73,7 @@ def browse(context: DeploifaiContextObj, project: str, workspace="unassigned"):
             # query for workspace name from api
             fragment = """
                             fragment project on Project {
+                                name
                                 account{
                                     username
                                 }
@@ -83,10 +83,11 @@ def browse(context: DeploifaiContextObj, project: str, workspace="unassigned"):
             project_data = context.api.get_project(
                 project_id=project_id, fragment=fragment
             )
+            project = project_data["name"]
             workspace = project_data["account"]["username"]
 
     # defining the url
-    url = get_project_route(workspace, project_id)
+    url = get_project_route(workspace, project)
     context.debug_msg(f"Opening url: {url}")
     # checking if the url leads to a valid webpage
     response = requests.head(url)

@@ -9,7 +9,7 @@ from deploifai.context import (
 from .auth import auth
 from .application import application
 from .project import project
-from .data import data
+from .dataset import dataset
 from .mlflow import mlflow
 from .cloud_profile import cloud_profile
 from .workspace import workspace
@@ -18,7 +18,7 @@ from .server import server
 commands = {
     "auth": auth,
     "project": project,
-    "data": data,
+    "dataset": dataset,
     "application": application,
     "cloud-profile": cloud_profile,
     "mlflow": mlflow,

@@ -1,16 +1,20 @@
 import click
-
+from deploifai.context import (
+    pass_deploifai_context_obj,
+    DeploifaiContextObj,
+    is_authenticated,
+    project_found,
+)
 from deploifai.api import DeploifaiAPIError
-from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj, is_authenticated, project_found
 
 
 @click.command("list")
 @click.option("--project", "-p", help="Project Name")
 @pass_deploifai_context_obj
 @is_authenticated
-def list_server(context: DeploifaiContextObj, project: str):
+def list_data(context: DeploifaiContextObj, project: str):
     """
-        Command to list out all training servers in current workspace
+    Command to list all datasets in the current project
     """
 
     current_workspace = context.global_config["WORKSPACE"]["username"]
@@ -42,7 +46,7 @@ def list_server(context: DeploifaiContextObj, project: str):
             return
         click.secho("Project Name: {}".format(project), fg="blue")
         project_id = projects_data[0]["id"]
-        where_training = {"project": {"is": {"id": {"equals": project_id}}}}
+        where_data_storage = {"projects": {"some": {"id": {"equals": project_id}}}}
 
     elif "id" in context.local_config["PROJECT"]:
         project_id = context.local_config["PROJECT"]["id"]
@@ -58,18 +62,18 @@ def list_server(context: DeploifaiContextObj, project: str):
         )
         project = project_data["name"]
         click.secho("Project Name: {}".format(project), fg="blue")
-        where_training = {"project": {"is": {"id": {"equals": project_id}}}}
+        where_data_storage = {"projects": {"some": {"id": {"equals": project_id}}}}
 
     else:
-        where_training = None
+        where_data_storage = None
 
-    server_info = context.api.get_training_servers(current_workspace, where_training)
+    data_storage_info = context.api.get_data_storages(current_workspace, where_data_storage)
 
-    if len(server_info) == 0:
-        click.secho("No training servers exist", fg="yellow")
+    if len(data_storage_info) == 0:
+        click.secho("No datasets exist", fg="yellow")
         return
 
-    click.secho("All training servers:", fg="blue")
-    for info in server_info:
+    click.secho("All datasets:", fg="blue")
+    for info in data_storage_info:
         click.echo(f"{info['name']} - {info['status']}")
     return

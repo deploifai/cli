@@ -24,7 +24,7 @@ def init(context: DeploifaiContextObj):
     """
     Initialise the current directory as a dataset
     """
-    click.secho("Connecting with an existing data storage", fg="blue")
+    click.secho("Connecting with an existing dataset", fg="blue")
     deploifai_api = context.api
 
     # assume that the user should be in a project directory, that contains local configuration file
@@ -55,13 +55,13 @@ def init(context: DeploifaiContextObj):
                 workspace=command_workspace
             )
         if not len(data_storages):
-            click.echo("No data storages in the workspace")
+            click.echo("No dataset in the workspace")
             raise Abort()
         questions = [
             {
                 "type": "list",
                 "name": "storage_option",
-                "message": "Choose the dataset storage to link.",
+                "message": "Choose the dataset to link.",
                 "choices": [
                     {
                         "name": "{}({})".format(
@@ -82,13 +82,13 @@ def init(context: DeploifaiContextObj):
         raise Abort()
 
     try:
-        os.mkdir("data")
+        os.mkdir("dataset")
         click.echo(
-            "Creating the data directory. If your data is outside the data directory, move it into the the data "
+            "Creating the dataset directory. If your dataset is outside the dataset directory, move it into the the dataset "
             "directory so that it can be uploaded"
         )
     except FileExistsError as err:
-        click.echo("Using the existing data directory")
+        click.echo("Using the existing dataset directory")
 
     try:
         add_data_storage_config(storage_id)

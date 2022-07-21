@@ -91,16 +91,12 @@ class DeploifaiAPI:
         except TypeError:
             return []
 
-    def get_data_storages(self, workspace_id):
+    def get_data_storages(self, workspace: str, where_data_storage: dict = None):
         query = """
-      query($id:String){
+      query($username:String $where: DataStorageWhereInput){
         dataStorages(whereAccount:{
-          id: $id
-        }, whereDataStorage:{
-          status: {
-            equals: DEPLOY_SUCCESS
-          }
-        }) {
+          username: $username
+        }, whereDataStorage: $where) {
           id
           name
           status
@@ -110,7 +106,13 @@ class DeploifaiAPI:
         }
       }
     """
-        query_json = {"query": query, "variables": {"id": workspace_id}}
+
+        variables = {
+            "username": workspace,
+            "where": where_data_storage
+        }
+
+        query_json = {"query": query, "variables": variables}
 
         try:
             query_response = requests.post(
@@ -325,7 +327,7 @@ class DeploifaiAPI:
 
         if where_project:
             variables = {
-                "whereAccount": {"username": workspace["username"]},
+                "whereAccount": {"username": workspace},
                 "whereProject": where_project,
             }
         else:
@@ -558,10 +560,10 @@ class DeploifaiAPI:
         except KeyError:
             raise DeploifaiAPIError("Could not create Training Server. Please try again.")
 
-    def get_training_server(self, workspace: str):
+    def get_training_servers(self, workspace: str, where_training: dict = None):
         query = """
-        query ($whereAccount: AccountWhereUniqueInput!){
-          trainings(whereAccount: $whereAccount){
+        query ($whereAccount: AccountWhereUniqueInput! $whereTraining: TrainingWhereInput){
+          trainings(whereAccount: $whereAccount whereTraining: $whereTraining){
             id
             name
             status
@@ -569,7 +571,10 @@ class DeploifaiAPI:
         }
         """
 
-        variables = {"whereAccount": {"username": workspace}}
+        variables = {
+            "whereAccount": {"username": workspace},
+            "whereTraining": where_training,
+        }
 
         try:
             r = requests.post(
@@ -577,7 +582,13 @@ class DeploifaiAPI:
                 json={"query": query, "variables": variables},
                 headers=self.headers,
             )
-            server_details = r.json()["data"]["trainings"]
+            server_info = r.json()
+
+            if "errors" in server_info:
+                raise DeploifaiAPIError(server_info['errors'][0]['message'])
+
+            server_details = server_info["data"]["trainings"]
+
             return server_details
 
         except TypeError:
