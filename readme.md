@@ -75,18 +75,18 @@ deploifai auth logout   Logout to remove access
 ```
 
 ```shell
-  cloud-profile                     Manage user's cloud profiles
-  deploifai cloud-profile create    Create a new cloud profile
-  deploifai cloud-profile list      List all cloud profiles in the current workspace
+cloud-profile                     Manage user's cloud profiles
+deploifai cloud-profile create    Create a new cloud profile
+deploifai cloud-profile list      List all cloud profiles in the current workspace
 ```
 
 ```shell
-  dataset                   Manage datasets and dataset storages on Deploifai
-  deploifai dataset create  Create a new dataset
-  deploifai dataset info
-  deploifai dataset init    Initialise the current directory as a dataset
-  deploifai dataset list    Command to list all datasets in the current project
-  deploifai dataset push
+dataset                   Manage datasets and dataset storages on Deploifai
+deploifai dataset create  Create a new dataset
+deploifai dataset info
+deploifai dataset init    Initialise the current directory as a dataset
+deploifai dataset list    Command to list all datasets in the current project
+deploifai dataset push
 ```
 
 ```shell
@@ -95,10 +95,10 @@ deploifai mlflow get-setup  Get setup to integrate mlflow in training scripts
 ```
 
 ```shell
-  project                   Initialise, manage, and deploy an ML project
-  deploifai project browse  Command to open a project in the Web Browser
-  deploifai project create  Create a new project
-  deploifai project list    Command to list all projects in the current workspace
+project                   Initialise, manage, and deploy an ML project
+deploifai project browse  Command to open a project in the Web Browser
+deploifai project create  Create a new project
+deploifai project list    Command to list all projects in the current workspace
 ```
 
 ```shell
