@@ -53,3 +53,9 @@ Or, install `deploifai` cli tool in virtual environment for testing:
 ```shell
 pip install --editable . 
 ```
+
+Read the documentation of the `deploifai` cli tool in html:
+
+```shell
+mkdocs serve
+```
