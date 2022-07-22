@@ -2,25 +2,11 @@ import configparser
 import pathlib
 import click
 
+from deploifai.utilities.config.find_config_filepath import find_config_absolute_path
 
-def _find_local_config_dir():
-    """
-    Traverse up the file system and checks for a .deploifai directory.
-    If does not exist, raise error not found.
-    :return: if local config file exists, return pathlib.Path object that points to the config file
-    """
-    path = pathlib.Path.cwd()
-    while not path.joinpath(".deploifai").exists() and path != path.parent:
-        path = path.parent
+relative_config_filepath = pathlib.Path(".deploifai/local.cfg")
 
-    if path == path.parent:
-        return None
-        # raise DeploifaiNotInitialisedError("Deploifai project not found.")
-
-    return path.joinpath(".deploifai", "local.cfg")
-
-
-config_file_path = _find_local_config_dir()
+config_file_path = find_config_absolute_path(relative_config_filepath)
 
 """
 Manages a .deploifai/local.cfg file to store configuration info about a project.
@@ -80,7 +66,6 @@ def create_config_files(new_project_dir: str):
 
     config_file_path.touch(exist_ok=True)
 
-    # initialise sections if they don't exist already
     config = configparser.ConfigParser()
 
     with config_file_path.open("w") as config_file:

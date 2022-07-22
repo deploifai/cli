@@ -1,4 +1,3 @@
-import os
 import click
 import click_spinner
 from PyInquirer import prompt
@@ -10,11 +9,7 @@ from deploifai.context import (
     DeploifaiContextObj,
     is_authenticated,
 )
-from deploifai.utilities.local_config import (
-    add_data_storage_config,
-    DeploifaiDataAlreadyInitialisedError,
-)
-from time import sleep
+from deploifai.utilities.config import dataset_config
 
 
 @click.command()
@@ -27,36 +22,17 @@ def init(context: DeploifaiContextObj):
     click.secho("Connecting with an existing dataset", fg="blue")
     deploifai_api = context.api
 
-    # assume that the user should be in a project directory, that contains local configuration file
-    if "id" in context.local_config["PROJECT"]:
-        project_id = context.local_config["PROJECT"]["id"]
-
-        # query for workspace name from api
-        fragment = """
-                        fragment project on Project {
-                            account{
-                                username
-                            }
-                        }
-                        """
-        context.debug_msg(project_id)
-        project_data = context.api.get_project(
-            project_id=project_id, fragment=fragment
-        )
-        command_workspace = project_data["account"]["username"]
-    else:
-        click.secho("Could not find a project in the current directory", fg='yellow')
-        return
+    command_workspace = context.global_config["WORKSPACE"]["username"]
 
     try:
         with click_spinner.spinner():
-            click.echo("Getting workspace information")
+            click.echo("Getting dataset information")
             data_storages = deploifai_api.get_data_storages(
                 workspace=command_workspace
             )
         if not len(data_storages):
             click.echo("No dataset in the workspace")
-            raise Abort()
+            raise click.Abort()
         questions = [
             {
                 "type": "list",
@@ -64,8 +40,8 @@ def init(context: DeploifaiContextObj):
                 "message": "Choose the dataset to link.",
                 "choices": [
                     {
-                        "name": "{}({})".format(
-                            x["name"], x["account"]["username"]
+                        "name": "{} <{}>".format(
+                            x["name"], x["cloudProfile"]["provider"]
                         ),
                         "value": x["id"],
                     }
@@ -76,27 +52,31 @@ def init(context: DeploifaiContextObj):
         answers = prompt(questions=questions)
         if answers == {}:
             raise Abort()
-        storage_id = answers.get("storage_option", "")
+        storage_id = answers["storage_option"]
+
+        context.debug_msg(storage_id)
     except DeploifaiAPIError as err:
         click.echo(err)
         raise Abort()
 
     try:
-        os.mkdir("dataset")
+        dataset_config.create_config_files()
+        context.dataset_config = dataset_config.read_config_file()
+        context.debug_msg(context.dataset_config)
         click.echo(
-            "Creating the dataset directory. If your dataset is outside the dataset directory, move it into the the dataset "
-            "directory so that it can be uploaded"
+            "Creating the dataset config file. If your dataset is outside the current working directory, "
+            "move it into the the current working directory so that it can be uploaded."
         )
     except FileExistsError as err:
         click.echo("Using the existing dataset directory")
 
     try:
-        add_data_storage_config(storage_id)
-    except DeploifaiDataAlreadyInitialisedError:
+        dataset_config.add_data_storage_config(storage_id, context.dataset_config)
+    except dataset_config.DeploifaiDataAlreadyInitialisedError:
         click.echo(
             """
-    A different storage is already initialised in the folder.
-    Consider removing it from the config file.
+    A different dataset is already initialised in the config file.
+    Consider removing it from the config file, or removing the config file itself.
     """
         )
         raise Abort()

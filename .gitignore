@@ -15,3 +15,5 @@ dist/
 .deploifai/
 
 .DS_STORE
+
+**/dataset.cfg

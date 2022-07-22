@@ -5,7 +5,7 @@ from deploifai.context import (
     DeploifaiContextObj,
     is_authenticated,
 )
-from deploifai.utilities import local_config
+from deploifai.utilities.config import local_config
 from deploifai.api import DeploifaiAPIError
 from PyInquirer import prompt
 import os
