@@ -42,7 +42,7 @@ def list_server(context: DeploifaiContextObj, project: str):
             return
         click.secho("Project Name: {}".format(project), fg="blue")
         project_id = projects_data[0]["id"]
-        variables = {"project": {"is": {"id": {"equals": project_id}}}}
+        where_training = {"project": {"is": {"id": {"equals": project_id}}}}
 
     elif "id" in context.local_config["PROJECT"]:
         project_id = context.local_config["PROJECT"]["id"]
@@ -61,12 +61,12 @@ def list_server(context: DeploifaiContextObj, project: str):
         )
         project = project_data["name"]
         click.secho("Project Name: {}".format(project), fg="blue")
-        variables = {"project": {"is": {"id": {"equals": project_id}}}}
+        where_training = {"project": {"is": {"id": {"equals": project_id}}}}
 
     else:
-        variables = None
+        where_training = None
 
-    server_info = context.api.get_training_server(current_workspace, variables)
+    server_info = context.api.get_training_servers(current_workspace, where_training)
 
     if len(server_info) == 0:
         click.secho("No training servers exist", fg="yellow")
