@@ -6,7 +6,8 @@ import requests
 from click import pass_context
 
 from .api import DeploifaiAPI
-from .utilities import environment, local_config, dataset_config
+from .utilities import environment
+from .utilities.config import dataset_config, local_config, find_config_filepath
 
 from deploifai.utilities.credentials import get_auth_token
 

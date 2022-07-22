@@ -1,4 +1,3 @@
-import os
 import click
 import click_spinner
 from PyInquirer import prompt
@@ -10,8 +9,7 @@ from deploifai.context import (
     DeploifaiContextObj,
     is_authenticated,
 )
-from deploifai.utilities import dataset_config
-from time import sleep
+from deploifai.utilities.config import dataset_config
 
 
 @click.command()

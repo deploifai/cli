@@ -1,8 +1,6 @@
-import os
 import click
 import click_spinner
 from PyInquirer import prompt
-from click import Abort
 
 from deploifai.api import DeploifaiAPIError
 from deploifai.context import (
@@ -10,10 +8,6 @@ from deploifai.context import (
     DeploifaiContextObj,
     is_authenticated,
     project_found,
-)
-from deploifai.utilities.local_config import (
-    add_data_storage_config,
-    DeploifaiDataAlreadyInitialisedError,
 )
 from time import sleep
 

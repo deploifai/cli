@@ -2,6 +2,8 @@ import configparser
 import pathlib
 import click
 
+from deploifai.utilities.config.find_config_filepath import find_config_absolute_path
+
 """
 Manages a .dataset.cfg file to store configuration info about a project.
 
@@ -11,7 +13,9 @@ config dictionary structure:
 }
 """
 
-config_file_path = pathlib.Path().joinpath("dataset.cfg")
+relative_config_filepath = pathlib.Path("dataset.cfg")
+
+config_file_path = find_config_absolute_path(relative_config_filepath)
 
 config_sections = ["DATASET"]
 
@@ -38,7 +42,6 @@ def create_config_files():
 
     config_file_path.touch(exist_ok=False)
 
-    # initialise sections if they don't exist already
     config = configparser.ConfigParser()
 
     with config_file_path.open("w") as config_file:
@@ -101,9 +104,5 @@ def add_data_storage_config(data_storage_id: str, config: configparser.ConfigPar
     ):
 
         config["DATASET"] = {"id": data_storage_id}
-
-    else:
-        print("DATA_STORAGE missing from deploifai.cfg")
-        return
 
     save_config_file(config)
