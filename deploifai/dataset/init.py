@@ -42,8 +42,8 @@ def init(context: DeploifaiContextObj):
                 "message": "Choose the dataset to link.",
                 "choices": [
                     {
-                        "name": "{} ({})".format(
-                            x["name"], x["account"]["username"]
+                        "name": "{} <{}>".format(
+                            x["name"], x["cloudProfile"]["provider"]
                         ),
                         "value": x["id"],
                     }
@@ -67,7 +67,7 @@ def init(context: DeploifaiContextObj):
         context.debug_msg(context.dataset_config)
         click.echo(
             "Creating the dataset config file. If your dataset is outside the current working directory, "
-            "move it into the the current working directory so that it can be uploaded"
+            "move it into the the current working directory so that it can be uploaded."
         )
     except FileExistsError as err:
         click.echo("Using the existing dataset directory")
@@ -77,8 +77,8 @@ def init(context: DeploifaiContextObj):
     except dataset_config.DeploifaiDataAlreadyInitialisedError:
         click.echo(
             """
-    A different storage is already initialised in the config file.
-    Consider removing it from the config file, or removing the config file itself
+    A different dataset is already initialised in the config file.
+    Consider removing it from the config file, or removing the config file itself.
     """
         )
         raise Abort()

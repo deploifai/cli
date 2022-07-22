@@ -7,13 +7,13 @@ Manages a .dataset.cfg file to store configuration info about a project.
 
 config dictionary structure:
 {
-    "DATA_STORAGE": {"id": string}
+    "DATASET": {"id": string}
 }
 """
 
 config_file_path = pathlib.Path().joinpath("dataset.cfg")
 
-config_sections = ["DATA_STORAGE"]
+config_sections = ["DATASET"]
 
 
 class DeploifaiDataAlreadyInitialisedError(Exception):
@@ -27,7 +27,7 @@ class DeploifaiDataAlreadyInitialisedError(Exception):
 
 def create_config_files():
     """
-    Creates the folder .deploifai that stores all the config files.
+    Creates the .dataset config files.
     :return: None
     """
     global config_file_path
@@ -47,7 +47,7 @@ def create_config_files():
 
 def read_config_file() -> configparser.ConfigParser:
     """
-    Read the config file in the existing .deploifai/local.cfg file
+    Read the config file in the existing .dataset.cfg file
     :return: A ConfigParser that contains all the configs in the config file
     """
     if config_file_path is None:
@@ -64,13 +64,13 @@ def read_config_file() -> configparser.ConfigParser:
 
         return config
     except FileNotFoundError as err:
-        click.secho("Missing .deploifai/local.cfg file", fg="red")
+        click.secho("Missing .dataset.cfg file", fg="red")
         raise err
 
 
 def save_config_file(config: configparser.ConfigParser):
     """
-    Save the local config from the context in the local.cfg file.
+    Save the dataset config from the context in the dataset.cfg file.
     :param config: A ConfigParser object representing config data
     """
     with config_file_path.open("w") as config_file:
@@ -87,19 +87,20 @@ def add_data_storage_config(data_storage_id: str, config: configparser.ConfigPar
     """
     if (
             config is not None
-            and "DATA_STORAGE" in config
-            and "id" in config["DATA_STORAGE"]
+            and "DATASET" in config
+            and "id" in config["DATASET"]
+            and len(config["DATASET"]["id"]) != 0
     ):
         raise DeploifaiDataAlreadyInitialisedError(
-            "This project already has a data storage attached to it."
+            "This project already has a dataset attached to it."
         )
 
     elif (
             config is not None
-            and "DATA_STORAGE" in config
+            and "DATASET" in config
     ):
 
-        config["DATA_STORAGE"] = {"id": data_storage_id}
+        config["DATASET"] = {"id": data_storage_id}
 
     else:
         print("DATA_STORAGE missing from deploifai.cfg")
