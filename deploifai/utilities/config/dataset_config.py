@@ -49,7 +49,7 @@ def create_config_files():
 
 def read_config_file() -> configparser.ConfigParser:
     """
-    Read the config file in the existing .dataset.cfg file
+    Read the dataset.cfg file
     :return: A ConfigParser that contains all the configs in the config file
     """
     if config_file_path is None:
