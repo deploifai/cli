@@ -1,7 +1,7 @@
 import click
 
 from deploifai.context import DeploifaiContextObj, pass_deploifai_context_obj
-from deploifai.utilities.local_config import read_config_file
+from deploifai.utilities.config.local_config import read_config_file
 from deploifai.core.data_storage import DataStorage
 
 

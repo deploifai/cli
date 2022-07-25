@@ -6,7 +6,8 @@ import requests
 from click import pass_context
 
 from .api import DeploifaiAPI
-from .utilities import environment, local_config
+from .utilities import environment
+from .utilities.config import dataset_config, local_config, find_config_filepath
 
 from deploifai.utilities.credentials import get_auth_token
 
@@ -27,6 +28,7 @@ debug_levels = ["info", "warning", "error"]
 class DeploifaiContextObj:
     global_config = configparser.ConfigParser()
     local_config = configparser.ConfigParser()
+    dataset_config = configparser.ConfigParser()
     debug = False
     debug_level = "info"
     api: DeploifaiAPI = None
@@ -48,6 +50,9 @@ class DeploifaiContextObj:
         # read local config file
         self.local_config = local_config.read_config_file()
 
+        # read the dataset config file
+        self.dataset_config = dataset_config.read_config_file()
+
     def save_config(self):
         # create global config directory if it doesn't exist already
         if not os.path.isdir(global_config_directory):
@@ -67,6 +72,9 @@ class DeploifaiContextObj:
 
         # save local config file
         local_config.save_config_file(self.local_config)
+
+        # save dataset config file
+        dataset_config.save_config_file(self.dataset_config)
 
     def initialise_api(self):
         if "username" in self.global_config["AUTH"]:

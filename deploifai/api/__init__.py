@@ -103,6 +103,9 @@ class DeploifaiAPI:
           account {
             username
           }
+          cloudProfile{
+            provider
+          }
         }
       }
     """
