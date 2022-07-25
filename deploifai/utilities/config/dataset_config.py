@@ -36,7 +36,6 @@ def create_config_files():
     """
     global config_file_path
     dataset_config_dir = pathlib.Path()
-    dataset_config_dir.mkdir(exist_ok=True)
 
     config_file_path = dataset_config_dir.joinpath("dataset.cfg")
 
