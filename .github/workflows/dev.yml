@@ -1,0 +1,42 @@
+name: Dev
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+
+      - name: Install requirements
+        run: pip3 install -q -r requirements.txt
+
+      - name: Run tests
+        run: echo "No tests yet"
+
+  build:
+    needs: test
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+
+      - name: Install requirements
+        run: pip3 install -q -r requirements.txt
+
+      - name: Build distribution packages
+        run: python3 -m build
