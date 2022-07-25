@@ -6,7 +6,7 @@ from .get_setup import get_setup
 @click.group()
 def mlflow():
     """
-    Initialise, manage, and deploy an ML project
+    Set-up and manage the ML FLow Integration
     """
 
 
