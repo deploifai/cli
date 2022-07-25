@@ -54,7 +54,9 @@ Or, install `deploifai` cli tool in virtual environment for testing:
 pip install --editable . 
 ```
 
-Read the documentation of the `deploifai` cli tool in html:
+Read the documentation of the `deploifai` cli tool in html:\
+This documentation only functions on `Python>=3.7`.\
+Installation of `mkdocs==1.3.1` and `mkdocs-click==0.8.0` required
 
 ```shell
 mkdocs serve
