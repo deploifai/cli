@@ -1,11 +1,10 @@
 import setuptools
 
-with open("readme.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
+with open("readme.md", "r", encoding="utf-8") as f:
+    long_description = f.read()
 
 setuptools.setup(
     name="deploifai",
-    version="0.1.5",
     author="Deploifai Limited",
     description="Deploifai CLI",
     long_description=long_description,
