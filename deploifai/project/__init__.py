@@ -3,6 +3,7 @@ import click
 from .create import create
 from .browse import browse
 from .list import list_project
+from .init import init
 
 
 @click.group()
@@ -15,3 +16,4 @@ def project():
 project.add_command(create)
 project.add_command(browse)
 project.add_command(list_project)
+project.add_command(init)
