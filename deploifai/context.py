@@ -137,10 +137,10 @@ def is_authenticated(f):
                 return click_context.invoke(f, *args, **kwargs)
 
         click.echo(
-            click.style("Auth Missing: you need to login using ", fg="red")
+            click.style("You are not logged in, to log in: ", fg="red")
             + click.style("deploifai auth login", fg="blue")
         )
-        raise click.Abort()
+        return
 
     return functools.update_wrapper(wrapper, f)
 
