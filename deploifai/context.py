@@ -70,12 +70,6 @@ class DeploifaiContextObj:
             self.global_config.write(configfile)
             self.debug_msg(f"Saved global config file as {global_config_filepath}")
 
-        # save local config file
-        local_config.save_config_file(self.local_config)
-
-        # save dataset config file
-        dataset_config.save_config_file(self.dataset_config)
-
     def initialise_api(self):
         if "username" in self.global_config["AUTH"]:
             token = get_auth_token(self.global_config["AUTH"]["username"])
@@ -143,10 +137,10 @@ def is_authenticated(f):
                 return click_context.invoke(f, *args, **kwargs)
 
         click.echo(
-            click.style("Auth Missing: you need to login using ", fg="red")
+            click.style("You are not logged in, to log in: ", fg="red")
             + click.style("deploifai auth login", fg="blue")
         )
-        raise click.Abort()
+        return
 
     return functools.update_wrapper(wrapper, f)
 
