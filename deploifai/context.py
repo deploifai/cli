@@ -70,12 +70,6 @@ class DeploifaiContextObj:
             self.global_config.write(configfile)
             self.debug_msg(f"Saved global config file as {global_config_filepath}")
 
-        # save local config file
-        local_config.save_config_file(self.local_config)
-
-        # save dataset config file
-        dataset_config.save_config_file(self.dataset_config)
-
     def initialise_api(self):
         if "username" in self.global_config["AUTH"]:
             token = get_auth_token(self.global_config["AUTH"]["username"])

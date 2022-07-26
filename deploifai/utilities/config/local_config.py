@@ -20,7 +20,7 @@ config dictionary structure:
 }
 """
 
-config_sections = ["PROJECT", "DATA_STORAGE"]
+config_sections = ["PROJECT", "DATASET"]
 
 
 class DeploifaiAlreadyInitialisedError(Exception):
@@ -130,11 +130,11 @@ def add_data_storage_config(data_storage_id: str, config: configparser.ConfigPar
     :param config: The current config
     :return:
     """
-    if "id" in config["DATA_STORAGE"] and len(config["DATA_STORAGE"]["id"]) > 0:
+    if "id" in config["DATASET"] and len(config["DATASET"]["id"]) > 0:
         raise DeploifaiDataAlreadyInitialisedError(
             "This project already has a data storage attached to it."
         )
 
-    config["DATA_STORAGE"] = {"id": data_storage_id}
+    config["DATASET"] = {"id": data_storage_id}
 
     save_config_file(config)
