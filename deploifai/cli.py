@@ -28,7 +28,7 @@ commands = {
 
 
 @click.group(commands=commands)
-@click.version_option(package_name="deploifai-cli", message="%(prog)s %(version)s")
+@click.version_option(package_name="deploifai", message="%(prog)s %(version)s")
 @pass_deploifai_context_obj
 @click.option("--debug", is_flag=True, help="Show debug logs")
 @click.option(
