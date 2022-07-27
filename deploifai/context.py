@@ -160,3 +160,19 @@ def project_found(f):
         click.secho("deploifai project create <project name>", fg="blue")
 
     return functools.update_wrapper(wrapper, f)
+
+
+def dataset_found(f):
+    @pass_context
+    def wrapper(click_context, *args, **kwargs):
+        deploifai_context = click_context.find_object(DeploifaiContextObj)
+        if (
+            deploifai_context.dataset_config is not None
+            and "DATASET" in deploifai_context.dataset_config
+            and "id" in deploifai_context.dataset_config["DATASET"]
+        ):
+            return click_context.invoke(f, *args, **kwargs)
+
+        raise local_config.DeploifaiNotInitialisedError("dataset.cfg not found")
+
+    return functools.update_wrapper(wrapper, f)

@@ -7,15 +7,15 @@ from deploifai.api import DeploifaiAPI
 
 
 class AzureDataStorageHandler:
-    def __init__(self, api: DeploifaiAPI, id: str):
+    def __init__(self, api: DeploifaiAPI, dataset_id: str):
         self.api = api
-
-        data = api.get_data_storage(fragment)
+        self.id = dataset_id
+        data = api.get_data_storage_info(self.id)
 
         # todo: get all such information from graphql api
-        self.storage_account_name = data["storageAccount"]
-        self.storage_access_key = data['storageAccessKey']
-        self.container_cloud_name = data['cloudName']
+        self.storage_account_name = data["cloudProviderYodaConfig"]["azureConfig"]["storageAccount"]
+        self.storage_access_key = data["cloudProviderYodaConfig"]["azureConfig"]['storageAccessKey']
+        self.container_cloud_name = data["containers"][0]['cloudName']
 
     def push(self):
         # assume the current working directory is the root directory of the dataset

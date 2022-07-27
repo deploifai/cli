@@ -158,6 +158,7 @@ class DeploifaiAPI:
           azureConfig{
             azureRegion
             storageAccount
+            storageAccessKey
           }
         }
       }
