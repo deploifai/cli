@@ -99,6 +99,8 @@ def create(context: DeploifaiContextObj, name: str):
         click.secho(err, fg="red")
         raise click.Abort()
 
+    click.secho(f"Successfully created new project named {name}.", fg="green")
+
     # create a project directory locally, along with .deploifai directory within this project
     try:
         os.mkdir(name)
@@ -110,8 +112,6 @@ def create(context: DeploifaiContextObj, name: str):
 
     project_path = os.path.join(os.getcwd(), name)
     local_config.create_config_files(project_path)
-
-    click.secho(f"Successfully created new project named {name}.", fg="green")
 
     # storing the project information in the local.cfg file
     context.local_config = local_config.read_config_file()
