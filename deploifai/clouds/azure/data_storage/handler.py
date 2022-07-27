@@ -3,20 +3,25 @@ from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from azure.storage.blob import ContainerClient, BlobServiceClient
 
+from deploifai.api import DeploifaiAPI
+
 
 class AzureDataStorageHandler:
-    def __init__(self, config, context, api):
+    def __init__(self, api: DeploifaiAPI, id: str):
         self.api = api
-        self.context = context
-        self.storage_account_id = config.get("id")
-        self.storage_account_name = config.get("storage")
-        self.containers = config.get("containers")
+
+        data = api.get_data_storage(fragment)
+
+        # todo: get all such information from graphql api
+        self.storage_account_name = data["storageAccount"]
+        self.storage_access_key = data['storageAccessKey']
+        self.container_cloud_name = data['cloudName']
 
     def push(self):
-        for container in self.containers:
-            self.upload_dataset(
-                Path("data/{}".format(container.get("name"))), container.get("value")
-            )
+        # assume the current working directory is the root directory of the dataset
+        # pushes all files recursively to the container
+        root_directory = Path.cwd()
+        self.upload_dataset(root_directory, self.container_cloud_name)
 
     @staticmethod
     def upload_blob(
@@ -30,8 +35,10 @@ class AzureDataStorageHandler:
         :param pbar: tqdm progress bar.
         :return: None
         """
+        blob = str(file_path.relative_to(directory))
+
         blob_client = container_client.get_blob_client(
-            str(file_path.relative_to(directory))
+            blob
         )
         blob_bytes = file_path.read_bytes()
         blob_client.upload_blob(
@@ -39,11 +46,12 @@ class AzureDataStorageHandler:
         )
         pbar.update(1)
 
-    def upload_dataset(self, directory: Path, container_name):
+    def upload_dataset(self, directory: Path, container_name: str):
         """
         This function helps upload a directory to a container in a storage account.
         Uses a ThreadPoolExecutor to make uploads faster.
-        :param directory: Directory of the dataset.
+        :param directory: Root directory of the dataset.
+        :param container_name: Name of the container in the storage account.
         :return: None
         """
         account_url = "{account_name}.blob.core.windows.net".format(
@@ -51,7 +59,7 @@ class AzureDataStorageHandler:
         )
         blob_service_client = BlobServiceClient(
             account_url=account_url,
-            credential=self.api.get_storage_account_access_key(self.storage_account_id),
+            credential=self.storage_access_key,
         )
         container_client = blob_service_client.get_container_client(container_name)
         directory_generator = Path(directory).glob("**/*")
