@@ -18,7 +18,7 @@ from deploifai.utilities.config import local_config
 @is_authenticated
 def init(context: DeploifaiContextObj):
     """
-    Store project information on your local device
+    Initialize current working directory as a Deploifai project
     """
     click.secho("Connecting with an existing project", fg="blue")
     deploifai_api = context.api
@@ -72,8 +72,7 @@ def init(context: DeploifaiContextObj):
         raise Abort()
 
     try:
-        os.mkdir(project_name)
-        local_config.create_config_files(project_name)
+        local_config.create_config_files()
         context.local_config = local_config.read_config_file()
         context.debug_msg(context.local_config)
         click.echo(
@@ -81,10 +80,10 @@ def init(context: DeploifaiContextObj):
         )
     except FileExistsError as err:
         click.echo("Project directory already exists")
-        return
+        raise click.Abort()
 
     try:
         local_config.set_project_config(project_id, context.local_config)
-    except local_config.DeploifaiDataAlreadyInitialisedError:
+    except local_config.DeploifaiAlreadyInitialisedError:
         click.echo("The project is already initialised in the config file.")
         raise Abort()

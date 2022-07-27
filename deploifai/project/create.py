@@ -1,4 +1,5 @@
 import click
+import os
 
 from deploifai.context import (
     pass_deploifai_context_obj,
@@ -56,6 +57,13 @@ def create(context: DeploifaiContextObj, name: str):
         click.secho(err_msg, fg="red")
         raise click.Abort()
 
+    # check to see if the .deploifai directory already exists
+
+    if os.path.isdir(".deploifai"):
+        click.echo("Project directory already exists, create project in a different directory")
+        raise click.Abort()
+
+    # extract and use the cloud profile information
     try:
         cloud_profiles = deploifai_api.get_cloud_profiles(workspace=command_workspace)
     except DeploifaiAPIError:
@@ -65,7 +73,6 @@ def create(context: DeploifaiContextObj, name: str):
     if not cloud_profiles:
         click.secho("No cloud profiles found. To create a cloud profile: deploifai cloud-profile create", fg="yellow")
         raise click.Abort()
-
     choose_cloud_profile = prompt(
         {
             "type": "list",
@@ -101,18 +108,8 @@ def create(context: DeploifaiContextObj, name: str):
 
     click.secho(f"Successfully created new project named {name}.", fg="green")
 
-    # create a project directory locally, along with .deploifai directory within this project
-    try:
-        os.mkdir(name)
-    except OSError:
-        click.secho("An error occured when creating the project locally", fg="red")
-        raise click.Abort()
-
-    click.secho(f"A new directory named {name} has been created locally.", fg="green")
-
-    project_path = os.path.join(os.getcwd(), name)
-    local_config.create_config_files(project_path)
-
+    # storing the project information in the local.cfg file
+    local_config.create_config_files()
     context.local_config = local_config.read_config_file()
     # set id in local config file
     local_config.set_project_config(project_id, context.local_config)
