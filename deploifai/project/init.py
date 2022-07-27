@@ -25,11 +25,7 @@ def init(context: DeploifaiContextObj):
 
     command_workspace = context.global_config["WORKSPACE"]["username"]
 
-    try:
-        local_config.create_config_files()
-        context.local_config = local_config.read_config_file()
-        context.debug_msg(context.local_config)
-    except FileExistsError as err:
+    if context.local_config is not None:
         click.echo("Project already initialized")
         raise click.Abort()
 
@@ -79,6 +75,9 @@ def init(context: DeploifaiContextObj):
         click.echo(err)
         raise Abort()
 
+    local_config.create_config_files()
+    context.local_config = local_config.read_config_file()
+    context.debug_msg(context.local_config)
+
     # storing the project information on the local.cfg file
     local_config.set_project_config(project_id, context.local_config)
-    click.secho("Project {} has been initialized".format(project_name), fg="blue")
