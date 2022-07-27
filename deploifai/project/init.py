@@ -25,6 +25,14 @@ def init(context: DeploifaiContextObj):
 
     command_workspace = context.global_config["WORKSPACE"]["username"]
 
+    try:
+        local_config.create_config_files()
+        context.local_config = local_config.read_config_file()
+        context.debug_msg(context.local_config)
+    except FileExistsError as err:
+        click.echo("Project already initialized")
+        raise click.Abort()
+
     fragment = """
                     fragment project on Project {
                         id
@@ -71,19 +79,6 @@ def init(context: DeploifaiContextObj):
         click.echo(err)
         raise Abort()
 
-    try:
-        local_config.create_config_files()
-        context.local_config = local_config.read_config_file()
-        context.debug_msg(context.local_config)
-        click.echo(
-            "Creating a project directory, which stores the local config file inside the .deploifai directory. "
-        )
-    except FileExistsError as err:
-        click.echo("Project directory already exists")
-        raise click.Abort()
-
-    try:
-        local_config.set_project_config(project_id, context.local_config)
-    except local_config.DeploifaiAlreadyInitialisedError:
-        click.echo("The project is already initialised in the config file.")
-        raise Abort()
+    # storing the project information on the local.cfg file
+    local_config.set_project_config(project_id, context.local_config)
+    click.secho("Project {} has been initialized".format(project_name), fg="blue")
