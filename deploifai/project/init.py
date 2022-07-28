@@ -52,7 +52,7 @@ def init(context: DeploifaiContextObj):
             {
                 "type": "list",
                 "name": "project_option",
-                "message": "Choose the project to store on local device.",
+                "message": "Choose a project to initialize.",
                 "choices": [
                     {
                         "name": "{} <{}>".format(
