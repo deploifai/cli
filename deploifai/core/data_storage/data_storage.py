@@ -1,10 +1,11 @@
 from deploifai.api import DeploifaiAPI
 from deploifai.clouds.azure.data_storage.handler import AzureDataStorageHandler
 from deploifai.clouds.aws.data_storage.handler import AWSDataStorageHandler
+from deploifai.clouds.gcp.data_storage.handler import GCPDataStorageHandler
 
 
 class DataStorage:
-    def __init__(self,  api: DeploifaiAPI, dataset_id: str, handler=None):
+    def __init__(self, api: DeploifaiAPI, dataset_id: str, handler=None):
         self.api = api
         self.id = dataset_id
         self.handler = handler
@@ -14,8 +15,10 @@ class DataStorage:
         data = self.api.get_data_storage_info(self.id)
         if data["cloudProviderYodaConfig"]["provider"] == "AZURE":
             self.handler = AzureDataStorageHandler(self.api, self.id)
-        # if data.get("provider") == "AWS":
-        #   self.handler = AWSDataStorageHandler(config, self.context, api)
+        if data["cloudProviderYodaConfig"]["provider"] == "AWS":
+            self.handler = AWSDataStorageHandler(self.api, self.id)
+        if data["cloudProviderYodaConfig"]["provider"] == "GCP":
+            self.handler = GCPDataStorageHandler(self.api, self.id)
 
     def push(self):
         self.handler.push()

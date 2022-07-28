@@ -1,15 +1,22 @@
+import pathlib
 from pathlib import Path
 
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import boto3
+from gcloud import storage
+import os
+from deploifai.utilities.config.find_config_filepath import find_config_absolute_path
 
 from deploifai.api import DeploifaiAPI
 
 
-class AWSDataStorageHandler:
+class GCPDataStorageHandler:
     def __init__(self, api: DeploifaiAPI, dataset_id: str):
-        self.client = boto3.client("s3")
+        relative_path = pathlib.Path("service-account-key.json")
+        path = find_config_absolute_path(relative_path)
+        self.path_str = str(path)
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.path_str
+        self.client = storage.Client()
         self.id = dataset_id
         data = api.get_data_storage_info(self.id)
         self.container_cloud_name = data["containers"][0]['cloudName']
@@ -21,8 +28,9 @@ class AWSDataStorageHandler:
         self.upload_dataset(root_directory, self.container_cloud_name)
 
     def upload_file(self, file: Path, directory, container_name, pbar):
-        self.client.upload_file(
-            str(file), container_name, str(file.relative_to(directory))
+        name = os.path.basename(file)
+        self.client.bucket(container_name).blob(name).upload_from_filename(
+            str(file.relative_to(directory))
         )
         pbar.update(1)
 
@@ -43,17 +51,3 @@ class AWSDataStorageHandler:
                 ]
                 for future in as_completed(futures):
                     future.result()
-
-    def get_client_credentials(self):
-        query = """
-      query($id:String){
-        dataStorage(where:{id:$id}){
-          cloudProviderYodaConfig{
-            awsConfig {
-              storageAccount
-              storageAccessKey
-            }
-          }
-        }
-      }
-    """

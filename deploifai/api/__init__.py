@@ -154,7 +154,7 @@ class DeploifaiAPI:
           provider
           awsConfig{
             awsRegion
-          } 
+          }
           azureConfig{
             azureRegion
             storageAccount
