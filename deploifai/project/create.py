@@ -56,6 +56,7 @@ def create(context: DeploifaiContextObj, name: str):
         click.secho(err_msg, fg="red")
         raise click.Abort()
 
+    # extract and use the cloud profile information
     try:
         cloud_profiles = deploifai_api.get_cloud_profiles(workspace=command_workspace)
     except DeploifaiAPIError:
@@ -65,7 +66,6 @@ def create(context: DeploifaiContextObj, name: str):
     if not cloud_profiles:
         click.secho("No cloud profiles found. To create a cloud profile: deploifai cloud-profile create", fg="yellow")
         raise click.Abort()
-
     choose_cloud_profile = prompt(
         {
             "type": "list",
@@ -113,6 +113,7 @@ def create(context: DeploifaiContextObj, name: str):
     project_path = os.path.join(os.getcwd(), name)
     local_config.create_config_files(project_path)
 
+    # storing the project information in the local.cfg file
     context.local_config = local_config.read_config_file()
     # set id in local config file
     local_config.set_project_config(project_id, context.local_config)

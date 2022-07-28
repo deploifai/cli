@@ -53,14 +53,17 @@ class DeploifaiNotInitialisedError(Exception):
         super(DeploifaiNotInitialisedError, self).__init__(message)
 
 
-def create_config_files(new_project_dir: str):
+def create_config_files(new_project_dir: str = None):
     global config_file_path
     """
     Creates the folder .deploifai that stores all the config files.
     :return: None
     """
-    local_config_dir = pathlib.Path(new_project_dir).joinpath(".deploifai")
-    local_config_dir.mkdir(exist_ok=True)
+    if new_project_dir is None:
+        local_config_dir = pathlib.Path().joinpath(".deploifai")
+    else:
+        local_config_dir = pathlib.Path(new_project_dir).joinpath(".deploifai")
+    local_config_dir.mkdir(exist_ok=False)
 
     config_file_path = local_config_dir.joinpath("local.cfg")
 
