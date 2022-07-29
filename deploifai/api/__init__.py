@@ -318,7 +318,7 @@ class DeploifaiAPI:
 
     def get_projects(self, workspace: str, fragment: str, where_project=None):
         query = (
-                """    
+                """
             query($whereAccount: AccountWhereUniqueInput!, $whereProject: ProjectWhereInput) {
               projects(whereAccount: $whereAccount, whereProject: $whereProject) {
                 ...project
@@ -570,6 +570,7 @@ class DeploifaiAPI:
             id
             name
             status
+            state
           }
         }
         """
