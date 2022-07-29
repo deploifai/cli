@@ -600,3 +600,54 @@ class DeploifaiAPI:
         except KeyError:
             raise DeploifaiAPIError("Could not find Training Server. Please try again.")
 
+    def start_training_server(self, server_id: str):
+        mutation = """
+        mutation($where : String){
+            startTraining(where: {id: $where}){
+                status state
+            }
+        }
+        """
+
+        variables = {"where": server_id}
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": mutation, "variables": variables},
+                headers=self.headers,
+            )
+
+            create_mutation_data = r.json()
+
+            return create_mutation_data["data"]["startTraining"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not start Training Server. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not start Training Server. Please try again.")
+
+    def stop_training_server(self, server_id: str):
+        mutation = """
+        mutation($where : String){
+            stopTraining(where: {id: $where}){
+                status state
+            }
+        }
+        """
+
+        variables = {"where": server_id}
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": mutation, "variables": variables},
+                headers=self.headers,
+            )
+
+            create_mutation_data = r.json()
+
+            return create_mutation_data["data"]["stopTraining"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not stop Training Server. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not stop Training Server. Please try again.")
