@@ -15,7 +15,8 @@ colorama==0.4.5
 cryptography==36.0.1
 dataclasses==0.8
 docutils==0.18.1
-gcloud==0.18.3
+google-auth==2.9.1
+google-cloud-storage==2.0.0
 idna==3.3
 importlib-metadata==4.8.3
 importlib-resources==5.4.0

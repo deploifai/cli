@@ -3,7 +3,7 @@ from pathlib import Path
 
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from gcloud import storage
+from google.cloud import storage
 import os
 from deploifai.utilities.config.find_config_filepath import find_config_absolute_path
 
@@ -28,10 +28,10 @@ class GCPDataStorageHandler:
         self.upload_dataset(root_directory, self.container_cloud_name)
 
     def upload_file(self, file: Path, directory, container_name, pbar):
-        name = os.path.basename(file)
-        self.client.bucket(container_name).blob(name).upload_from_filename(
-            str(file.relative_to(directory))
-        )
+        name = str(file.relative_to(directory))
+        bucket_client = self.client.get_bucket(container_name)
+        blob_client = storage.Blob(name, bucket_client)
+        blob_client.upload_from_filename(name)
         pbar.update(1)
 
     def upload_dataset(self, directory: Path, container_name):
