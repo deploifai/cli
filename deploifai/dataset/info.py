@@ -11,15 +11,11 @@ from deploifai.context import (
 @pass_deploifai_context_obj
 @project_found
 def info(context: DeploifaiContextObj):
-    data_storage_config = context.local_config["DATA_STORAGE"]
-
-    if "id" not in data_storage_config:
-        click.secho("No dataset configured for this project", fg="red")
-        return
-
+    """
+    Get information about a dataset
+    """
     deploifai_api = context.api
 
-    data_storage_id = data_storage_config["id"]
     storage_details = deploifai_api.get_data_storage_info(data_storage_id)
 
     project_id = storage_details["project"]["id"]
