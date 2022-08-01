@@ -10,7 +10,7 @@ from deploifai.utilities.server_state import change_state
 @project_found
 def stop(context: DeploifaiContextObj):
     """
-        Command to stop a training server
+        Stop a training server
     """
 
     change_state("stop")

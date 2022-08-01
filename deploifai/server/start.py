@@ -12,7 +12,7 @@ from deploifai.utilities.server_state import change_state
 @project_found
 def start(context: DeploifaiContextObj):
     """
-        Command to start a training server
+        Start a training server
     """
 
     change_state("start")

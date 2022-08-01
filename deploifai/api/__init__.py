@@ -602,14 +602,14 @@ class DeploifaiAPI:
 
     def start_training_server(self, server_id: str):
         mutation = """
-        mutation($where : String){
-            startTraining(where: {id: $where}){
+        mutation($where : TrainingWhereUniqueInput!){
+            startTraining(where: $where){
                 status state
             }
         }
         """
 
-        variables = {"where": server_id}
+        variables = {"where": {"id": server_id}}
 
         try:
             r = requests.post(
@@ -628,14 +628,14 @@ class DeploifaiAPI:
 
     def stop_training_server(self, server_id: str):
         mutation = """
-        mutation($where : String){
-            stopTraining(where: {id: $where}){
+        mutation($where : TrainingWhereUniqueInput!){
+            stopTraining(where: $where){
                 status state
             }
         }
         """
 
-        variables = {"where": server_id}
+        variables = {"where": {"id": server_id}}
 
         try:
             r = requests.post(

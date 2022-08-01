@@ -8,23 +8,23 @@ from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj
 @pass_deploifai_context_obj
 def change_state(context: DeploifaiContextObj, command: str, ):
 
-    current_workspace = context.global_config["WORKSPACE"]["username"]
-
-    click.secho("Workspace Name: {}".format(current_workspace), fg="blue")
-
     project_id = context.local_config["PROJECT"]["id"]
-    where_project = {"id": {"equals": project_id}}
 
     fragment = """
                 fragment project on Project {
-                trainings{
+                    account{
+                        username
+                    }
+                    trainings{
                         id name status state
                     }
                 }
                 """
-    projects_data = context.api.get_projects(workspace=current_workspace, where_project=where_project, fragment=fragment)
+    project_data = context.api.get_project(project_id=project_id, fragment=fragment)
 
-    server_info = projects_data[0]["trainings"]
+    click.secho("Workspace Name: {}".format(project_data["account"]["username"]), fg="blue")
+
+    server_info = project_data["trainings"]
 
     context.debug_msg(server_info)
 
@@ -47,7 +47,7 @@ def change_state(context: DeploifaiContextObj, command: str, ):
     server = choose_server["training server"]
 
     server_id = server["id"]
-    print(server_id)
+    context.debug_msg(server_id)
     server_name = server["name"]
     server_status = server["status"]
     server_state = server["state"]

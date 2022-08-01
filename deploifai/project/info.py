@@ -14,20 +14,17 @@ from deploifai.context import (
 @project_found
 def info(context: DeploifaiContextObj):
     """
-    Command to get the information of a project
+    Get information about a project
     """
 
-    current_workspace = context.global_config["WORKSPACE"]["username"]
-
-    click.secho("Workspace Name: {}".format(current_workspace), fg="blue")
-
     project_id = context.local_config["PROJECT"]["id"]
-
-    where_project = {"id": {"equals": project_id}}
 
     fragment = """
                 fragment project on Project {
                     name status
+                    account{
+                        username
+                    }
                     cloudProfile{
                         provider
                     }
@@ -45,9 +42,9 @@ def info(context: DeploifaiContextObj):
                     }
                 }
                 """
-    projects_data = context.api.get_projects(workspace=current_workspace, where_project=where_project, fragment=fragment)
+    project_data = context.api.get_project(project_id=project_id, fragment=fragment)
 
-    project_data = projects_data[0]
+    click.secho("Workspace Name: {}".format(project_data["account"]["username"]), fg="blue")
 
     click.secho("Project Name: {}".format(project_data["name"]), fg="blue")
 
