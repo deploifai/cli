@@ -318,7 +318,7 @@ class DeploifaiAPI:
 
     def get_projects(self, workspace: str, fragment: str, where_project=None):
         query = (
-                """    
+                """
             query($whereAccount: AccountWhereUniqueInput!, $whereProject: ProjectWhereInput) {
               projects(whereAccount: $whereAccount, whereProject: $whereProject) {
                 ...project
@@ -570,6 +570,7 @@ class DeploifaiAPI:
             id
             name
             status
+            state
           }
         }
         """
@@ -599,3 +600,54 @@ class DeploifaiAPI:
         except KeyError:
             raise DeploifaiAPIError("Could not find Training Server. Please try again.")
 
+    def start_training_server(self, server_id: str):
+        mutation = """
+        mutation($where : TrainingWhereUniqueInput!){
+            startTraining(where: $where){
+                status state
+            }
+        }
+        """
+
+        variables = {"where": {"id": server_id}}
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": mutation, "variables": variables},
+                headers=self.headers,
+            )
+
+            create_mutation_data = r.json()
+
+            return create_mutation_data["data"]["startTraining"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not start Training Server. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not start Training Server. Please try again.")
+
+    def stop_training_server(self, server_id: str):
+        mutation = """
+        mutation($where : TrainingWhereUniqueInput!){
+            stopTraining(where: $where){
+                status state
+            }
+        }
+        """
+
+        variables = {"where": {"id": server_id}}
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": mutation, "variables": variables},
+                headers=self.headers,
+            )
+
+            create_mutation_data = r.json()
+
+            return create_mutation_data["data"]["stopTraining"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not stop Training Server. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not stop Training Server. Please try again.")

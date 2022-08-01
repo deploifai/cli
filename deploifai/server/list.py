@@ -71,5 +71,5 @@ def list_server(context: DeploifaiContextObj, project: str):
 
     click.secho("All training servers:", fg="blue")
     for info in server_info:
-        click.echo(f"{info['name']} - {info['status']}")
+        click.echo(f"{info['name']} <{info['status']}> - {info['state']}")
     return
