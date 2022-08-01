@@ -15,7 +15,7 @@ def dataset():
 
 
 dataset.add_command(init)
-dataset.add_command(push)
-dataset.add_command(info)
+# dataset.add_command(push)
+# dataset.add_command(info)
 dataset.add_command(create)
 dataset.add_command(list_data)

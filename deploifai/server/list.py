@@ -10,7 +10,7 @@ from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj, i
 @is_authenticated
 def list_server(context: DeploifaiContextObj, project: str):
     """
-        Command to list out all training servers in current workspace
+    List all training servers in current workspace
     """
 
     current_workspace = context.global_config["WORKSPACE"]["username"]
@@ -44,7 +44,7 @@ def list_server(context: DeploifaiContextObj, project: str):
         project_id = projects_data[0]["id"]
         where_training = {"project": {"is": {"id": {"equals": project_id}}}}
 
-    elif "id" in context.local_config["PROJECT"]:
+    elif context.local_config and "id" in context.local_config["PROJECT"]:
         project_id = context.local_config["PROJECT"]["id"]
         # query for workspace name from api
         fragment = """

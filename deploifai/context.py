@@ -156,6 +156,7 @@ def project_found(f):
         ):
             return click_context.invoke(f, *args, **kwargs)
 
-        raise local_config.DeploifaiNotInitialisedError("Deploifai project not found")
+        click.echo("Deploifai project not found, to create a new project:")
+        click.secho("deploifai project create <project name>", fg="blue")
 
     return functools.update_wrapper(wrapper, f)
