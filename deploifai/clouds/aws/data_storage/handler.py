@@ -5,14 +5,18 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
 from deploifai.api import DeploifaiAPI
+from deploifai.clouds.utilities.data_storage.handler import DataStorageHandler
 
 
-class AWSDataStorageHandler:
+class AWSDataStorageHandler(DataStorageHandler):
     def __init__(self, api: DeploifaiAPI, dataset_id: str):
-        self.client = boto3.client("s3")
-        self.id = dataset_id
         data = api.get_data_storage_info(self.id)
-        self.container_cloud_name = data["containers"][0]['cloudName']
+        
+        container_cloud_name = data["containers"][0]['cloudName']
+        
+        client = boto3.client("s3")
+        
+        super().__init__(dataset_id, container_cloud_name, client)
 
     def push(self):
         # assume the current working directory is the root directory of the dataset
@@ -20,11 +24,11 @@ class AWSDataStorageHandler:
         root_directory = Path.cwd()
         self.upload_dataset(root_directory, self.container_cloud_name)
 
-    def upload_file(self, file: Path, directory, container_name, pbar):
-        self.client.upload_file(
-            str(file), container_name, str(file.relative_to(directory))
+    @staticmethod
+    def upload_file(client, file: Path, directory:Path, container_cloud_name: str):
+        client.upload_file(
+            str(file), container_cloud_name, str(file.relative_to(directory))
         )
-        pbar.update(1)
 
     def upload_dataset(self, directory: Path, container_name):
         directory_generator = Path(directory).glob("**/*")

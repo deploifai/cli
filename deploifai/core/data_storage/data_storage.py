@@ -13,12 +13,16 @@ class DataStorage:
 
     def register_handler(self):
         data = self.api.get_data_storage_info(self.id)
-        if data["cloudProviderYodaConfig"]["provider"] == "AZURE":
+        provider = data["cloudProviderYodaConfig"]["provider"]
+        if provider == "AZURE":
             self.handler = AzureDataStorageHandler(self.api, self.id)
-        if data["cloudProviderYodaConfig"]["provider"] == "AWS":
+        elif provider == "AWS":
             self.handler = AWSDataStorageHandler(self.api, self.id)
-        if data["cloudProviderYodaConfig"]["provider"] == "GCP":
+        elif provider == "GCP":
             self.handler = GCPDataStorageHandler(self.api, self.id)
 
     def push(self):
         self.handler.push()
+
+    def pull(self):
+        self.handler.pull()
