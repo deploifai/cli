@@ -38,7 +38,7 @@ class AzureDataStorageHandler(DataStorageHandler):
         :param container_cloud_name: The cloud name of the dataset container.
         :return: None
         """
-        blob = str(file_path.relative_to(directory))
+        blob = str(file_path.relative_to(directory).as_posix())
 
         blob_client = client.get_blob_client(
             blob

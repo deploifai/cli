@@ -1,5 +1,7 @@
 import json
+import os
 import pathlib
+import typing
 from pathlib import Path
 
 from tqdm import tqdm
@@ -32,7 +34,22 @@ class GCPDataStorageHandler(DataStorageHandler):
 
     @staticmethod
     def upload_file(client, file: Path, directory: Path, container_cloud_name: str):
-        name = str(file.relative_to(directory))
+        name = str(file.relative_to(directory).as_posix())
         bucket_client = client.get_bucket(container_cloud_name)
         blob_client = storage.Blob(name, bucket_client)
         blob_client.upload_from_filename(name)
+
+    def list_files(self) -> typing.Generator:
+        return self.client.list_blobs(self.container_cloud_name)
+
+    @staticmethod
+    def download_file(
+            client, file, directory: Path, container_cloud_name: str
+    ):
+        name = file.name
+        bucket_client = client.get_bucket(container_cloud_name)
+        blob_client = bucket_client.blob(name)
+        if "/" in name:
+            folder_name = name.rsplit("/", 1)[0]
+            os.makedirs(folder_name, exist_ok=True)
+        blob_client.download_to_filename(name)

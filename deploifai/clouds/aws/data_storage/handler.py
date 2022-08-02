@@ -1,4 +1,6 @@
+import typing
 from pathlib import Path
+import os
 
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -16,16 +18,32 @@ class AWSDataStorageHandler(DataStorageHandler):
 
         aws_config_info = data["cloudProviderYodaConfig"]["awsConfig"]
 
-        client = boto3.client("s3",
-                              region_name=aws_config_info["awsRegion"],
-                              aws_access_key_id=aws_config_info["awsAccessKey"],
-                              aws_secret_access_key=aws_config_info["awsSecretAccessKey"]
-                              )
+        client = boto3.resource("s3",
+                                region_name=aws_config_info["awsRegion"],
+                                aws_access_key_id=aws_config_info["awsAccessKey"],
+                                aws_secret_access_key=aws_config_info["awsSecretAccessKey"]
+                                )
 
         super().__init__(dataset_id, container_cloud_name, client)
 
     @staticmethod
     def upload_file(client, file: Path, directory: Path, container_cloud_name: str):
-        client.upload_file(
-            str(file), container_cloud_name, str(file.relative_to(directory))
+        file_path = str(file.relative_to(directory).as_posix())
+        client.meta.client.upload_file(
+            str(file), container_cloud_name, file_path
+        )
+
+    def list_files(self) -> typing.Generator:
+        return self.client.Bucket(self.container_cloud_name).objects.all()
+
+    @staticmethod
+    def download_file(
+            client, file, directory: Path, container_cloud_name: str
+    ):
+        key = file.key
+        if "/" in key:
+            folder_name = key.rsplit("/", 1)[0]
+            os.makedirs(folder_name, exist_ok=True)
+        client.meta.client.download_file(
+            container_cloud_name, key, key
         )
