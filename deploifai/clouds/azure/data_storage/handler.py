@@ -9,7 +9,7 @@ from deploifai.clouds.utilities.data_storage.handler import DataStorageHandler
 
 class AzureDataStorageHandler(DataStorageHandler):
     def __init__(self, api: DeploifaiAPI, dataset_id: str):
-        data = api.get_data_storage_info(self.id)
+        data = api.get_data_storage_info(dataset_id)
 
         self.storage_account_name = data["cloudProviderYodaConfig"]["azureConfig"]["storageAccount"]
         self.storage_access_key = data["cloudProviderYodaConfig"]["azureConfig"]['storageAccessKey']
@@ -23,7 +23,7 @@ class AzureDataStorageHandler(DataStorageHandler):
             credential=self.storage_access_key,
         )
         client = blob_service_client.get_container_client(container_cloud_name)
-        
+
         super().__init__(dataset_id, container_cloud_name, client)
 
     @staticmethod
@@ -47,7 +47,7 @@ class AzureDataStorageHandler(DataStorageHandler):
         blob_client.upload_blob(
             data=blob_bytes, length=file_path.stat().st_size, overwrite=True
         )
-        
+
     def list_files(self) -> typing.Generator:
         return self.client.list_blobs()
 
