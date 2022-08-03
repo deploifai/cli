@@ -1,7 +1,6 @@
 import click
 
 from deploifai.context import DeploifaiContextObj, pass_deploifai_context_obj, is_authenticated, dataset_found
-from deploifai.utilities.config.dataset_config import read_config_file
 from deploifai.core.data_storage import DataStorage
 
 

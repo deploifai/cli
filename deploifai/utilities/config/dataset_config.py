@@ -1,4 +1,5 @@
 import configparser
+import os.path
 import pathlib
 import click
 
@@ -77,6 +78,15 @@ def save_config_file(config: configparser.ConfigParser):
     """
     with config_file_path.open("w") as config_file:
         config.write(config_file)
+
+
+def find_config_path():
+    """
+    Find the relative path from the cwd to the dataset.cfg file
+    """
+    path = config_file_path
+    path = os.path.dirname(path)
+    return path
 
 
 def add_data_storage_config(data_storage_id: str, config: configparser.ConfigParser):

@@ -1,7 +1,10 @@
+import os
 import typing
 from pathlib import Path
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+from deploifai.utilities.config.dataset_config import find_config_path
 
 
 class DataStorageHandler:
@@ -48,11 +51,14 @@ class DataStorageHandler:
         directory_generator = Path(directory).glob("**/*")
         files = [f for f in directory_generator if f.is_file()]
 
+        dataset_directory = find_config_path()
+        os.chdir(dataset_directory)
+
         with tqdm(total=len(files)) as pbar:
             with ThreadPoolExecutor(max_workers=5) as ex:
                 futures = [
                     ex.submit(
-                        self.upload_file, self.client, file_path, directory, self.container_cloud_name
+                        self.upload_file, self.client, file_path, dataset_directory, self.container_cloud_name
                     )
                     for file_path in files
                 ]
