@@ -33,11 +33,10 @@ class GCPDataStorageHandler(DataStorageHandler):
         super().__init__(dataset_id, container_cloud_name, client)
 
     @staticmethod
-    def upload_file(client, file: Path, directory: Path, container_cloud_name: str):
-        name = str(file.relative_to(directory).as_posix())
+    def upload_file(client, file_path: Path, object_key: str, container_cloud_name: str):
         bucket_client = client.get_bucket(container_cloud_name)
-        blob_client = storage.Blob(name, bucket_client)
-        blob_client.upload_from_filename(name)
+        blob_client = storage.Blob(object_key, bucket_client)
+        blob_client.upload_from_filename(str(file_path))
 
     def list_files(self) -> typing.Generator:
         return self.client.list_blobs(self.container_cloud_name)

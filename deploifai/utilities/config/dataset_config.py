@@ -1,5 +1,4 @@
 import configparser
-import os.path
 import pathlib
 import click
 
@@ -80,13 +79,11 @@ def save_config_file(config: configparser.ConfigParser):
         config.write(config_file)
 
 
-def find_config_path():
+def find_config_directory() -> pathlib.Path:
     """
-    Find the relative path from the cwd to the dataset.cfg file
+    Find the absolute path to the directory that contains the dataset.cfg file
     """
-    path = config_file_path
-    path = os.path.dirname(path)
-    return path
+    return config_file_path.parent
 
 
 def add_data_storage_config(data_storage_id: str, config: configparser.ConfigParser):

@@ -28,21 +28,9 @@ class AzureDataStorageHandler(DataStorageHandler):
 
     @staticmethod
     def upload_file(
-        client: ContainerClient, file_path: Path, directory: Path, container_cloud_name: str
+        client: ContainerClient, file_path: Path, object_key: str, container_cloud_name: str
     ):
-        """
-        Upload a given blob to Azure Blob storage.
-        :param client: ContainerClient from Azure SDK that has credentials already.
-        :param file_path: The file path to upload from pathlib
-        :param directory: The parent directory of the dataset
-        :param container_cloud_name: The cloud name of the dataset container.
-        :return: None
-        """
-        blob = str(file_path.relative_to(directory).as_posix())
-
-        blob_client = client.get_blob_client(
-            blob
-        )
+        blob_client = client.get_blob_client(object_key)
         blob_bytes = file_path.read_bytes()
         blob_client.upload_blob(
             data=blob_bytes, length=file_path.stat().st_size, overwrite=True

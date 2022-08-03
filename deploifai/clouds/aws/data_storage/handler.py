@@ -27,11 +27,12 @@ class AWSDataStorageHandler(DataStorageHandler):
         super().__init__(dataset_id, container_cloud_name, client)
 
     @staticmethod
-    def upload_file(client, file: Path, directory: Path, container_cloud_name: str):
-        file_path = str(file.relative_to(directory).as_posix())
-        client.meta.client.upload_file(
-            str(file), container_cloud_name, file_path
-        )
+    def upload_file(client, file_path: Path, object_key: str, container_cloud_name: str):
+        bucket = client.Bucket(container_cloud_name)
+        obj = bucket.Object(object_key)
+
+        with open(str(file_path), 'rb') as data:
+            obj.upload_fileobj(data)
 
     def list_files(self) -> typing.Generator:
         return self.client.Bucket(self.container_cloud_name).objects.all()
