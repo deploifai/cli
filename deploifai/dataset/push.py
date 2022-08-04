@@ -30,4 +30,7 @@ def push(context: DeploifaiContextObj, target: str = None):
     try:
         datastorage_handler.push(target_abs)
     except DataStorageHandlerEmptyFilesException:
-        click.secho("No files to pull", fg='yellow')
+        click.secho("No files to push", fg='yellow')
+    except DataStorageHandlerTargetNotFoundException:
+        click.secho("Target not found", fg='yellow')
+        
