@@ -1,3 +1,4 @@
+import abc
 import os
 import typing
 from pathlib import Path
@@ -5,10 +6,18 @@ from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from deploifai.utilities.config.dataset_config import find_config_directory
-from colorama import Fore
 
 
-class DataStorageHandler:
+class DataStorageHandlerException(Exception):
+    pass
+
+
+class DataStorageHandlerEmptyFilesException(DataStorageHandlerException):
+    def __str__(self):
+        return "DataStorageHandlerEmptyFilesException: No files found in the dataset"
+
+
+class DataStorageHandler(abc.ABC):
     def __init__(self, dataset_id: str, container_cloud_name: str, client):
         self.id = dataset_id
         self.container_cloud_name = container_cloud_name
@@ -58,8 +67,7 @@ class DataStorageHandler:
             files = [f for f in files if check in f.parents or check == f]
 
         if len(files) == 0:
-            print(Fore.YELLOW + "No files to upload in the cwd, please check the file pathing")
-            return
+            raise DataStorageHandlerEmptyFilesException()
 
         with tqdm(total=len(files)) as pbar:
             with ThreadPoolExecutor(max_workers=5) as ex:
@@ -113,9 +121,10 @@ class DataStorageHandler:
                 )
                 for file in files
             ]
+
             if len(futures) == 0:
-                print(Fore.YELLOW + "No files to download, please check the file pathing")
-                return
+                raise DataStorageHandlerEmptyFilesException()
+
             with tqdm(total=len(futures)) as pbar:
                 for future in as_completed(futures):
                     future.result()

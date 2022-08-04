@@ -1,5 +1,6 @@
 import click
 
+from deploifai.clouds.utilities.data_storage.handler import DataStorageHandlerEmptyFilesException
 from deploifai.context import DeploifaiContextObj, pass_deploifai_context_obj, is_authenticated, dataset_found
 from deploifai.core.data_storage import DataStorage
 
@@ -18,4 +19,7 @@ def pull(context: DeploifaiContextObj, target: str = None):
     dataset_id = context.dataset_config["DATASET"]["id"]
 
     datastorage_handler = DataStorage(api, dataset_id)
-    datastorage_handler.pull(target)
+    try:
+        datastorage_handler.pull(target)
+    except DataStorageHandlerEmptyFilesException as e:
+        click.secho(e, fg='yellow')
