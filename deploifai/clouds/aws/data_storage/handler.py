@@ -2,8 +2,6 @@ import typing
 from pathlib import Path
 import os
 
-from tqdm import tqdm
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
 from deploifai.api import DeploifaiAPI
@@ -34,17 +32,39 @@ class AWSDataStorageHandler(DataStorageHandler):
         with open(str(file_path), 'rb') as data:
             obj.upload_fileobj(data)
 
-    def list_files(self) -> typing.Generator:
-        return self.client.Bucket(self.container_cloud_name).objects.all()
+    def list_files(self, directory, target) -> typing.Generator:
+        prefix = str(directory.relative_to(self.dataset_directory).as_posix())
+        if prefix == ".":
+            if target is None:
+                return self.client.Bucket(self.container_cloud_name).objects.all()
+            else:
+                return self.client.Bucket(self.container_cloud_name).objects.filter(Prefix=target)
+        else:
+            if target is None:
+                return self.client.Bucket(self.container_cloud_name).objects.filter(Prefix=prefix)
+            else:
+                prefix = prefix + "/" + target
+                return self.client.Bucket(self.container_cloud_name).objects.filter(Prefix=prefix)
 
     @staticmethod
     def download_file(
-            client, file, directory: Path, container_cloud_name: str
+            client, file, dataset_directory: Path, container_cloud_name: str
     ):
+        # getting the name(key) for each file and creating the folders as required
         key = file.key
         if "/" in key:
             folder_name = key.rsplit("/", 1)[0]
+            folder_name = str(dataset_directory) + "/" + folder_name
             os.makedirs(folder_name, exist_ok=True)
+
+        # defining a prefix for file import, and editing file path accordingly
+        directory = Path.cwd()
+        prefix = str(directory.relative_to(dataset_directory).as_posix())
+        if prefix == ".":
+            path = key
+        else:
+            prefix = prefix + "/"
+            path = key.replace(prefix, "")
         client.meta.client.download_file(
-            container_cloud_name, key, key
+            container_cloud_name, key, path
         )

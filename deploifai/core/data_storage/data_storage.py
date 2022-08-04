@@ -21,8 +21,8 @@ class DataStorage:
         elif provider == "GCP":
             self.handler = GCPDataStorageHandler(self.api, self.id)
 
-    def push(self):
-        self.handler.push()
+    def push(self, target: str):
+        self.handler.push(target)
 
-    def pull(self):
-        self.handler.pull()
+    def pull(self, target: str):
+        self.handler.pull(target)

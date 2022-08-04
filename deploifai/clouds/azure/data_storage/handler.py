@@ -36,18 +36,31 @@ class AzureDataStorageHandler(DataStorageHandler):
             data=blob_bytes, length=file_path.stat().st_size, overwrite=True
         )
 
-    def list_files(self) -> typing.Generator:
-        return self.client.list_blobs()
+    def list_files(self, directory: Path, target) -> typing.Generator:
+        prefix = str(directory.relative_to(self.dataset_directory).as_posix())
+        if prefix == ".":
+            if target is None:
+                return self.client.list_blobs()
+            else:
+                return self.client.list_blobs(name_starts_with=target)
+        else:
+            if target is None:
+                return self.client.list_blobs(name_starts_with=prefix)
+            else:
+                prefix = prefix + "/" + target
+                return self.client.list_blobs(name_starts_with=prefix)
 
     @staticmethod
     def download_file(
-            client: ContainerClient, file: BlobProperties, directory: Path, container_cloud_name: str
+            client: ContainerClient, file: BlobProperties, dataset_directory: Path, container_cloud_name: str
     ):
         file_name = file.name
         blob_client = client.get_blob_client(file_name)
         if "/" in file_name:
             names = file_name.rsplit("/", 1)[0]
+            names = str(dataset_directory) + "/" + names
             os.makedirs(names, exist_ok=True)
-        download_file_path = os.path.join(directory, file_name)
+
+        download_file_path = os.path.join(dataset_directory, file_name)
         with open(download_file_path, "wb") as download_file:
             download_file.write(blob_client.download_blob().readall())
