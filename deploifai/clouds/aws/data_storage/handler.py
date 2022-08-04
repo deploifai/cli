@@ -44,10 +44,9 @@ class AWSDataStorageHandler(DataStorageHandler):
     ):
         # getting the name(key) for each file and creating the folders as required
         key = file.key
-        if "/" in key:
-            folder_name = key.rsplit("/", 1)[0]
-            folder_name = str(dataset_directory) + "/" + folder_name
-            os.makedirs(folder_name, exist_ok=True)
+
+        if '/' in key:
+            DataStorageHandler.make_dirs(key, dataset_directory)
 
         # defining a prefix for file import, and editing file path accordingly
         directory = Path.cwd()

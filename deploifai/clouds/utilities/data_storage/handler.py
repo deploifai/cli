@@ -1,3 +1,4 @@
+import os
 import typing
 from pathlib import Path
 from tqdm import tqdm
@@ -83,6 +84,12 @@ class DataStorageHandler:
             client, file, dataset_directory: Path, container_cloud_name: str
     ):
         pass
+
+    @staticmethod
+    def make_dirs(object_key: str, dataset_directory: Path):
+        relative_path = object_key.rsplit("/", 1)[0]
+        abs_path = str(dataset_directory.joinpath(relative_path))
+        os.makedirs(abs_path, exist_ok=True)
 
     def download_dataset(self, directory: Path, target: str):
         relative_path = directory.relative_to(self.dataset_directory)
