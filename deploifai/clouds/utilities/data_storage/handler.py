@@ -53,7 +53,7 @@ class DataStorageHandler:
         directory_generator = Path(directory).glob("**/*")
         files = [f for f in directory_generator if f.is_file()]
         if target is not None:
-            check = directory / target
+            check = directory.joinpath(target)
             files = [f for f in files if check in f.parents or check == f]
 
         if len(files) == 0:
@@ -72,7 +72,7 @@ class DataStorageHandler:
                     future.result()
                     pbar.update(1)
 
-    def list_files(self, directory, target) -> typing.Generator:
+    def list_files(self, prefix: str) -> typing.Generator:
         """
         Returns a generator that lists all files in a cloud dataset.
         """
@@ -85,7 +85,19 @@ class DataStorageHandler:
         pass
 
     def download_dataset(self, directory: Path, target: str):
-        files = self.list_files(directory, target)
+        relative_path = directory.relative_to(self.dataset_directory)
+        if relative_path.as_posix() == ".":
+            if target is None:
+                prefix = None
+            else:
+                prefix = target
+        else:
+            if target is None:
+                prefix = relative_path.as_posix()
+            else:
+                prefix = relative_path.joinpath(target).as_posix()
+
+        files = self.list_files(prefix)
 
         with ThreadPoolExecutor(max_workers=5) as ex:
             futures = [

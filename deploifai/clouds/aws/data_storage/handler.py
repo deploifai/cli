@@ -32,19 +32,11 @@ class AWSDataStorageHandler(DataStorageHandler):
         with open(str(file_path), 'rb') as data:
             obj.upload_fileobj(data)
 
-    def list_files(self, directory, target) -> typing.Generator:
-        prefix = str(directory.relative_to(self.dataset_directory).as_posix())
-        if prefix == ".":
-            if target is None:
-                return self.client.Bucket(self.container_cloud_name).objects.all()
-            else:
-                return self.client.Bucket(self.container_cloud_name).objects.filter(Prefix=target)
-        else:
-            if target is None:
-                return self.client.Bucket(self.container_cloud_name).objects.filter(Prefix=prefix)
-            else:
-                prefix = prefix + "/" + target
-                return self.client.Bucket(self.container_cloud_name).objects.filter(Prefix=prefix)
+    def list_files(self, prefix: str = None) -> typing.Generator:
+        if prefix is None:
+            return self.client.Bucket(self.container_cloud_name).objects.all()
+
+        return self.client.Bucket(self.container_cloud_name).objects.filter(Prefix=prefix)
 
     @staticmethod
     def download_file(
