@@ -1,6 +1,6 @@
-import os
 import typing
 from pathlib import Path
+
 from azure.storage.blob import ContainerClient, BlobServiceClient, BlobProperties
 
 from deploifai.api import DeploifaiAPI
@@ -28,7 +28,7 @@ class AzureDataStorageHandler(DataStorageHandler):
 
     @staticmethod
     def upload_file(
-        client: ContainerClient, file_path: Path, object_key: str, container_cloud_name: str
+            client: ContainerClient, file_path: Path, object_key: str, container_cloud_name: str
     ):
         blob_client = client.get_blob_client(object_key)
         blob_bytes = file_path.read_bytes()
@@ -36,7 +36,7 @@ class AzureDataStorageHandler(DataStorageHandler):
             data=blob_bytes, length=file_path.stat().st_size, overwrite=True
         )
 
-    def list_files(self, prefix: str) -> typing.Generator:
+    def list_files(self, prefix: str = None) -> typing.Generator:
         if prefix is None:
             return self.client.list_blobs()
         return self.client.list_blobs(name_starts_with=prefix)
@@ -52,4 +52,4 @@ class AzureDataStorageHandler(DataStorageHandler):
 
         download_file_path = dataset_directory.joinpath(file_name)
         with open(download_file_path, "wb") as download_file:
-            download_file.write(blob_client.download_blob().readall())
+            blob_client.download_blob().readinto(download_file)

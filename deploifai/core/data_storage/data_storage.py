@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from deploifai.api import DeploifaiAPI
 from deploifai.clouds.azure.data_storage.handler import AzureDataStorageHandler
 from deploifai.clouds.aws.data_storage.handler import AWSDataStorageHandler
@@ -21,8 +23,8 @@ class DataStorage:
         elif provider == "GCP":
             self.handler = GCPDataStorageHandler(self.api, self.id)
 
-    def push(self, target: str):
+    def push(self, target: Path):
         self.handler.push(target)
 
-    def pull(self, target: str):
+    def pull(self, target: Path):
         self.handler.pull(target)

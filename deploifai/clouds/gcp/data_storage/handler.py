@@ -1,14 +1,12 @@
 import json
-import os
 import typing
 from pathlib import Path
 
 from google.cloud import storage
 from google.oauth2.service_account import Credentials
 
-from deploifai.clouds.utilities.data_storage.handler import DataStorageHandler
-
 from deploifai.api import DeploifaiAPI
+from deploifai.clouds.utilities.data_storage.handler import DataStorageHandler
 
 
 class GCPDataStorageHandler(DataStorageHandler):
@@ -30,10 +28,10 @@ class GCPDataStorageHandler(DataStorageHandler):
     @staticmethod
     def upload_file(client, file_path: Path, object_key: str, container_cloud_name: str):
         bucket_client = client.get_bucket(container_cloud_name)
-        blob_client = storage.Blob(object_key, bucket_client)
+        blob_client = bucket_client.blob(object_key)
         blob_client.upload_from_filename(str(file_path))
 
-    def list_files(self, prefix: str) -> typing.Generator:
+    def list_files(self, prefix: str = None) -> typing.Generator:
         if prefix is None:
             return self.client.list_blobs(self.container_cloud_name)
         return self.client.list_blobs(self.container_cloud_name, prefix=prefix)
@@ -44,12 +42,12 @@ class GCPDataStorageHandler(DataStorageHandler):
     ):
         # getting the name for each file and creating the folders as required
         name = file.name
-        bucket_client = client.get_bucket(container_cloud_name)
-        blob_client = bucket_client.blob(name)
         if '/' in name:
             DataStorageHandler.make_dirs(name, dataset_directory)
 
-        # defining a prefix for file import, and editing file path accordingly
+        bucket_client = client.get_bucket(container_cloud_name)
+        blob_client = bucket_client.blob(name)
+
         file_path = str(dataset_directory.joinpath(name))
 
         blob_client.download_to_filename(file_path)

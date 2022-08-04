@@ -1,6 +1,5 @@
 import typing
 from pathlib import Path
-import os
 
 import boto3
 
@@ -47,8 +46,9 @@ class AWSDataStorageHandler(DataStorageHandler):
         if '/' in key:
             DataStorageHandler.make_dirs(key, dataset_directory)
 
-        # defining a prefix for file import, and editing file path accordingly
         file_path = str(dataset_directory.joinpath(key))
-        client.meta.client.download_file(
-            container_cloud_name, key, file_path
-        )
+        bucket = client.Bucket(container_cloud_name)
+        obj = bucket.Object(key)
+
+        with open(file_path, 'wb') as file:
+            obj.download_fileobj(file)

@@ -1,18 +1,21 @@
+from pathlib import Path
+
 import click
 
-from deploifai.clouds.utilities.data_storage.handler import DataStorageHandlerEmptyFilesException
+from deploifai.clouds.utilities.data_storage.handler import DataStorageHandlerEmptyFilesException, \
+    DataStorageHandlerTargetNotFoundException
 from deploifai.context import DeploifaiContextObj, pass_deploifai_context_obj, is_authenticated, dataset_found
 from deploifai.core.data_storage import DataStorage
 
 
 @click.command()
-@click.option("--target", "-t", help="specify which file, or folder you would like to upload", type=str)
+@click.option("--target", "-t", help="Target file or directory relative to dataset root", type=str)
 @pass_deploifai_context_obj
 @is_authenticated
 @dataset_found
 def push(context: DeploifaiContextObj, target: str = None):
     """
-    Push the dataset to the cloud.
+    Uploads files from local to the cloud.
     """
 
     api = context.api
@@ -20,7 +23,11 @@ def push(context: DeploifaiContextObj, target: str = None):
 
     datastorage_handler = DataStorage(api, dataset_id)
 
+    # find the absolute path to the target directory
+    cwd = Path.cwd()
+    target_abs = cwd if target is None else cwd.joinpath(target)
+
     try:
-        datastorage_handler.push(target)
-    except DataStorageHandlerEmptyFilesException as e:
-        click.secho(e, fg='yellow')
+        datastorage_handler.push(target_abs)
+    except DataStorageHandlerEmptyFilesException:
+        click.secho("No files to pull", fg='yellow')
