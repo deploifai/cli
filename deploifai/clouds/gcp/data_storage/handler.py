@@ -33,19 +33,10 @@ class GCPDataStorageHandler(DataStorageHandler):
         blob_client = storage.Blob(object_key, bucket_client)
         blob_client.upload_from_filename(str(file_path))
 
-    def list_files(self, directory: Path, target) -> typing.Generator:
-        prefix = str(directory.relative_to(self.dataset_directory).as_posix())
-        if prefix == ".":
-            if target is None:
-                return self.client.list_blobs(self.container_cloud_name)
-            else:
-                return self.client.list_blobs(self.container_cloud_name, prefix=target)
-        else:
-            if target is None:
-                return self.client.list_blobs(self.container_cloud_name, prefix=prefix)
-            else:
-                prefix = prefix + "/" + target
-                return self.client.list_blobs(self.container_cloud_name, prefix=prefix)
+    def list_files(self, prefix: str) -> typing.Generator:
+        if prefix is None:
+            return self.client.list_blobs(self.container_cloud_name)
+        return self.client.list_blobs(self.container_cloud_name, prefix=prefix)
 
     @staticmethod
     def download_file(
@@ -55,18 +46,10 @@ class GCPDataStorageHandler(DataStorageHandler):
         name = file.name
         bucket_client = client.get_bucket(container_cloud_name)
         blob_client = bucket_client.blob(name)
-        if "/" in name:
-            folder_name = name.rsplit("/", 1)[0]
-            folder_name = str(dataset_directory) + "/" + folder_name
-            os.makedirs(folder_name, exist_ok=True)
+        if '/' in name:
+            DataStorageHandler.make_dirs(name, dataset_directory)
 
         # defining a prefix for file import, and editing file path accordingly
-        directory = Path.cwd()
-        prefix = str(directory.relative_to(dataset_directory).as_posix())
-        if prefix == ".":
-            path = name
-        else:
-            prefix = prefix + "/"
-            path = name.replace(prefix, "")
+        file_path = str(dataset_directory.joinpath(name))
 
-        blob_client.download_to_filename(path)
+        blob_client.download_to_filename(file_path)

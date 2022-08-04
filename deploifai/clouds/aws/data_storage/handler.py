@@ -35,7 +35,6 @@ class AWSDataStorageHandler(DataStorageHandler):
     def list_files(self, prefix: str = None) -> typing.Generator:
         if prefix is None:
             return self.client.Bucket(self.container_cloud_name).objects.all()
-
         return self.client.Bucket(self.container_cloud_name).objects.filter(Prefix=prefix)
 
     @staticmethod
@@ -49,13 +48,7 @@ class AWSDataStorageHandler(DataStorageHandler):
             DataStorageHandler.make_dirs(key, dataset_directory)
 
         # defining a prefix for file import, and editing file path accordingly
-        directory = Path.cwd()
-        prefix = str(directory.relative_to(dataset_directory).as_posix())
-        if prefix == ".":
-            path = key
-        else:
-            prefix = prefix + "/"
-            path = key.replace(prefix, "")
+        file_path = str(dataset_directory.joinpath(key))
         client.meta.client.download_file(
-            container_cloud_name, key, path
+            container_cloud_name, key, file_path
         )
