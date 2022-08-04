@@ -52,15 +52,14 @@ class DataStorageHandler:
         """
         directory_generator = Path(directory).glob("**/*")
         files = [f for f in directory_generator if f.is_file()]
-
         if target is not None:
             check = directory / target
-            files = [f for f in files if check in f.parents]
+            files = [f for f in files if check in f.parents or check == f]
 
         if len(files) == 0:
             print(Fore.YELLOW + "No files to upload in the cwd, please check the file pathing")
             return
-        
+
         with tqdm(total=len(files)) as pbar:
             with ThreadPoolExecutor(max_workers=5) as ex:
                 futures = [
