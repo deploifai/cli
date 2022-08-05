@@ -173,6 +173,6 @@ def dataset_found(f):
         ):
             return click_context.invoke(f, *args, **kwargs)
 
-        raise local_config.DeploifaiNotInitialisedError("dataset.cfg not found")
+        raise local_config.DeploifaiNotInitialisedError("dataset.cfg not found, use deploifai dataset init to initialize a dataset")
 
     return functools.update_wrapper(wrapper, f)
