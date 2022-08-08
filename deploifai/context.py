@@ -177,14 +177,11 @@ def dataset_found(f):
                 if data["status"] == "DEPLOY_SUCCESS":
                     return click_context.invoke(f, *args, **kwargs)
                 else:
-                    raise dataset_config.DatasetNotInitialisedError(
-                        "Cannot use this dataset, its status is {}".format(data["status"])
-                    )
+                    click.secho("Cannot use this dataset, its status is {}".format(data["status"]), fg="red")
             else:
-                raise dataset_config.DatasetNotInitialisedError(
-                    "dataset.cfg found but deprecated, please delete the current dataset.cfg, and run deploifai dataset init again"
-                )
-        raise dataset_config.DatasetNotInitialisedError(
-            "dataset.cfg not found, use deploifai dataset init to initialize a dataset")
+                click.secho("dataset.cfg found but deprecated", fg="red")
+                click.secho("Please delete the current dataset.cfg, and run deploifai dataset init again", fg="blue")
+        else:
+            click.secho("dataset.cfg not found, use deploifai dataset init to initialize a dataset", fg="red")
 
     return functools.update_wrapper(wrapper, f)
