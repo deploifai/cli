@@ -1,55 +1,54 @@
+import typing
 from pathlib import Path
 
-from tqdm import tqdm
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
+from deploifai.api import DeploifaiAPI
+from deploifai.clouds.utilities.data_storage.handler import DataStorageHandler
 
-class AWSDataStorageHandler:
-    def __init__(self, config, context, api):
-        self.client = boto3.client("s3")
-        self.containers = config.get("containers")
 
-    def push(self):
-        for container in self.containers:
-            self.upload_dataset(
-                Path("data/{}".format(container.get("name"))), container.get("value")
-            )
+class AWSDataStorageHandler(DataStorageHandler):
+    def __init__(self, api: DeploifaiAPI, dataset_id: str):
+        data = api.get_data_storage_info(dataset_id)
 
-    def upload_file(self, file: Path, directory, container_name, pbar):
-        self.client.upload_file(
-            str(file), container_name, str(file.relative_to(directory))
-        )
-        pbar.update(1)
+        container_cloud_name = data["containers"][0]['cloudName']
 
-    def upload_dataset(self, directory: Path, container_name):
-        directory_generator = Path(directory).glob("**/*")
-        files = [f for f in directory_generator if f.is_file()]
-        with tqdm(total=len(files)) as pbar:
-            with ThreadPoolExecutor(max_workers=5) as ex:
-                futures = [
-                    ex.submit(
-                        self.upload_file,
-                        file_path,
-                        directory,
-                        container_name,
-                        pbar=pbar,
-                    )
-                    for file_path in files
-                ]
-                for future in as_completed(futures):
-                    future.result()
+        aws_config_info = data["cloudProviderYodaConfig"]["awsConfig"]
 
-    def get_client_credentials(self):
-        query = """
-      query($id:String){
-        dataStorage(where:{id:$id}){
-          cloudProviderYodaConfig{
-            awsConfig {
-              storageAccount
-              storageAccessKey
-            }
-          }
-        }
-      }
-    """
+        client = boto3.resource("s3",
+                                region_name=aws_config_info["awsRegion"],
+                                aws_access_key_id=aws_config_info["awsAccessKey"],
+                                aws_secret_access_key=aws_config_info["awsSecretAccessKey"]
+                                )
+
+        super().__init__(dataset_id, container_cloud_name, client)
+
+    @staticmethod
+    def upload_file(client, file_path: Path, object_key: str, container_cloud_name: str):
+        bucket = client.Bucket(container_cloud_name)
+        obj = bucket.Object(object_key)
+
+        with open(str(file_path), 'rb') as data:
+            obj.upload_fileobj(data)
+
+    def list_files(self, prefix: str = None) -> typing.Generator:
+        if prefix is None:
+            return self.client.Bucket(self.container_cloud_name).objects.all()
+        return self.client.Bucket(self.container_cloud_name).objects.filter(Prefix=prefix)
+
+    @staticmethod
+    def download_file(
+            client, file, dataset_directory: Path, container_cloud_name: str
+    ):
+        # getting the name(key) for each file and creating the folders as required
+        key = file.key
+
+        if '/' in key:
+            DataStorageHandler.make_dirs(key, dataset_directory)
+
+        file_path = str(dataset_directory.joinpath(key))
+        bucket = client.Bucket(container_cloud_name)
+        obj = bucket.Object(key)
+
+        with open(file_path, 'wb') as file:
+            obj.download_fileobj(file)

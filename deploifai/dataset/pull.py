@@ -13,9 +13,9 @@ from deploifai.core.data_storage import DataStorage
 @pass_deploifai_context_obj
 @is_authenticated
 @dataset_found
-def push(context: DeploifaiContextObj, target: str = None):
+def pull(context: DeploifaiContextObj, target: str = None):
     """
-    Uploads files from local to the cloud.
+    Download files from the cloud to local.
     """
 
     api = context.api
@@ -33,8 +33,6 @@ def push(context: DeploifaiContextObj, target: str = None):
     target_abs = cwd if target is None else cwd.joinpath(target)
 
     try:
-        datastorage_handler.push(target_abs)
+        datastorage_handler.pull(target_abs)
     except DataStorageHandlerEmptyFilesException:
-        click.secho("No files to push", fg='yellow')
-    except DataStorageHandlerTargetNotFoundException:
-        click.secho("Target not found", fg='yellow')
+        click.secho("No files to pull", fg='yellow')

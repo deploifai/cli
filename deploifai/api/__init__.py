@@ -154,10 +154,16 @@ class DeploifaiAPI:
           provider
           awsConfig{
             awsRegion
-          } 
+            awsAccessKey
+            awsSecretAccessKey
+          }
           azureConfig{
             azureRegion
             storageAccount
+            storageAccessKey
+          }
+          gcpConfig{
+            gcpServiceAccountKey
           }
         }
       }

@@ -29,6 +29,15 @@ class DeploifaiDataAlreadyInitialisedError(Exception):
         super(DeploifaiDataAlreadyInitialisedError, self).__init__(message)
 
 
+class DatasetNotInitialisedError(Exception):
+    """
+    Exception when dataset config is not found.
+    """
+
+    def __init__(self, message):
+        super(DatasetNotInitialisedError, self).__init__(message)
+
+
 def create_config_files():
     """
     Creates the .dataset config files.
@@ -77,6 +86,13 @@ def save_config_file(config: configparser.ConfigParser):
     """
     with config_file_path.open("w") as config_file:
         config.write(config_file)
+
+
+def find_config_directory() -> pathlib.Path:
+    """
+    Find the absolute path to the directory that contains the dataset.cfg file
+    """
+    return config_file_path.parent
 
 
 def add_data_storage_config(data_storage_id: str, config: configparser.ConfigParser):

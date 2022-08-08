@@ -19,4 +19,5 @@ site/
 .DS_STORE
 
 **/dataset.cfg
-**/dataset
+dataset_test
+**/dataset_test

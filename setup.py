@@ -23,6 +23,8 @@ setuptools.setup(
         "azure-identity",
         "azure-storage-blob==12.9.0",
         "boto3",
+        "google-auth",
+        "google-cloud-storage",
         "PyInquirer",
         "pyperclip",
         "semver",

@@ -150,13 +150,38 @@ def project_found(f):
     def wrapper(click_context, *args, **kwargs):
         deploifai_context = click_context.find_object(DeploifaiContextObj)
         if (
-            deploifai_context.local_config is not None
-            and "PROJECT" in deploifai_context.local_config
-            and "id" in deploifai_context.local_config["PROJECT"]
+                deploifai_context.local_config is not None
+                and "PROJECT" in deploifai_context.local_config
+                and "id" in deploifai_context.local_config["PROJECT"]
         ):
             return click_context.invoke(f, *args, **kwargs)
 
         click.echo("Deploifai project not found, to create a new project:")
         click.secho("deploifai project create <project name>", fg="blue")
+
+    return functools.update_wrapper(wrapper, f)
+
+
+def dataset_found(f):
+    @pass_context
+    def wrapper(click_context, *args, **kwargs):
+        deploifai_context = click_context.find_object(DeploifaiContextObj)
+        if (
+                deploifai_context.dataset_config is not None
+                and "DATASET" in deploifai_context.dataset_config
+                and "id" in deploifai_context.dataset_config["DATASET"]
+        ):
+            dataset_id = deploifai_context.dataset_config["DATASET"]["id"]
+            data = deploifai_context.api.get_data_storage_info(dataset_id)
+            if data is not None:
+                if data["status"] == "DEPLOY_SUCCESS":
+                    return click_context.invoke(f, *args, **kwargs)
+                else:
+                    click.secho("Cannot use this dataset, its status is {}".format(data["status"]), fg="red")
+            else:
+                click.secho("dataset.cfg found but id is invalid", fg="red")
+                click.secho("Please delete the current dataset.cfg, and run deploifai dataset init again", fg="blue")
+        else:
+            click.secho("dataset.cfg not found, use deploifai dataset init to initialize a dataset", fg="red")
 
     return functools.update_wrapper(wrapper, f)
