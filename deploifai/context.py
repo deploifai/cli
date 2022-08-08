@@ -179,7 +179,7 @@ def dataset_found(f):
                 else:
                     click.secho("Cannot use this dataset, its status is {}".format(data["status"]), fg="red")
             else:
-                click.secho("dataset.cfg found but deprecated", fg="red")
+                click.secho("dataset.cfg found but id is invalid", fg="red")
                 click.secho("Please delete the current dataset.cfg, and run deploifai dataset init again", fg="blue")
         else:
             click.secho("dataset.cfg not found, use deploifai dataset init to initialize a dataset", fg="red")
