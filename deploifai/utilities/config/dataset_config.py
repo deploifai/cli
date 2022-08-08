@@ -29,6 +29,15 @@ class DeploifaiDataAlreadyInitialisedError(Exception):
         super(DeploifaiDataAlreadyInitialisedError, self).__init__(message)
 
 
+class DatasetNotInitialisedError(Exception):
+    """
+    Exception when dataset config is not found.
+    """
+
+    def __init__(self, message):
+        super(DatasetNotInitialisedError, self).__init__(message)
+
+
 def create_config_files():
     """
     Creates the .dataset config files.

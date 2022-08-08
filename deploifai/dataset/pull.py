@@ -22,10 +22,6 @@ def pull(context: DeploifaiContextObj, target: str = None):
     dataset_id = context.dataset_config["DATASET"]["id"]
 
     data = context.api.get_data_storage_info(dataset_id)
-    if len(data) == 0:
-        click.secho("No dataset information extracted", fg="yellow")
-        click.secho("Please run deploifai dataset init again")
-        raise click.Abort()
 
     click.secho("Dataset Name: {}".format(data["name"]), fg="blue")
     click.secho("Cloud Provider: {}".format(data["cloudProviderYodaConfig"]["provider"]), fg="blue")

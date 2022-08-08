@@ -150,9 +150,9 @@ def project_found(f):
     def wrapper(click_context, *args, **kwargs):
         deploifai_context = click_context.find_object(DeploifaiContextObj)
         if (
-            deploifai_context.local_config is not None
-            and "PROJECT" in deploifai_context.local_config
-            and "id" in deploifai_context.local_config["PROJECT"]
+                deploifai_context.local_config is not None
+                and "PROJECT" in deploifai_context.local_config
+                and "id" in deploifai_context.local_config["PROJECT"]
         ):
             return click_context.invoke(f, *args, **kwargs)
 
@@ -167,12 +167,24 @@ def dataset_found(f):
     def wrapper(click_context, *args, **kwargs):
         deploifai_context = click_context.find_object(DeploifaiContextObj)
         if (
-            deploifai_context.dataset_config is not None
-            and "DATASET" in deploifai_context.dataset_config
-            and "id" in deploifai_context.dataset_config["DATASET"]
+                deploifai_context.dataset_config is not None
+                and "DATASET" in deploifai_context.dataset_config
+                and "id" in deploifai_context.dataset_config["DATASET"]
         ):
-            return click_context.invoke(f, *args, **kwargs)
-
-        raise local_config.DeploifaiNotInitialisedError("dataset.cfg not found, use deploifai dataset init to initialize a dataset")
+            dataset_id = deploifai_context.dataset_config["DATASET"]["id"]
+            data = deploifai_context.api.get_data_storage_info(dataset_id)
+            if data is not None:
+                if data["status"] == "DEPLOY_SUCCESS":
+                    return click_context.invoke(f, *args, **kwargs)
+                else:
+                    raise dataset_config.DatasetNotInitialisedError(
+                        "Cannot use this dataset, its status is {}".format(data["status"])
+                    )
+            else:
+                raise dataset_config.DatasetNotInitialisedError(
+                    "dataset.cfg found but deprecated, please delete the current dataset.cfg, and run deploifai dataset init again"
+                )
+        raise dataset_config.DatasetNotInitialisedError(
+            "dataset.cfg not found, use deploifai dataset init to initialize a dataset")
 
     return functools.update_wrapper(wrapper, f)
