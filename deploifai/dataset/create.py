@@ -1,6 +1,8 @@
 import click
 import click_spinner
 from PyInquirer import prompt
+import os
+from time import sleep
 
 from deploifai.api import DeploifaiAPIError
 from deploifai.context import (
@@ -9,7 +11,7 @@ from deploifai.context import (
     is_authenticated,
     project_found,
 )
-from time import sleep
+from deploifai.utilities.config import dataset_config
 
 
 @click.command()
@@ -134,3 +136,21 @@ def create(context: DeploifaiContextObj):
         azure_account = cloud_data["cloudProviderYodaConfig"]["azureConfig"]["storageAccount"]
         click.secho("account-name: {}".format(azure_account))
         click.secho("container-name: {}".format(cloud_name))
+
+    # create a dataset directory locally, along with dataset.cfg file within
+    try:
+        os.mkdir(storage_name)
+    except OSError:
+        click.secho("An error occurred when creating the dataset locally", fg="red")
+        click.echo("But the dataset has been created on Deploifai")
+        raise click.Abort()
+
+    click.secho(f"A new directory named {storage_name} has been created locally.", fg="green")
+
+    dataset_path = os.path.join(os.getcwd(), storage_name)
+    dataset_config.create_config_files(dataset_path)
+
+    # storing the dataset information in the dataset.cfg file
+    context.dataset_config = dataset_config.read_config_file()
+    # set dataset id in dataset config file
+    dataset_config.add_data_storage_config(create_storage_response["id"], context.dataset_config)
