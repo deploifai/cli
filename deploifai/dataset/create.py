@@ -141,7 +141,8 @@ def create(context: DeploifaiContextObj):
     try:
         os.mkdir(storage_name)
     except OSError:
-        click.secho("An error occured when creating the dataset locally", fg="red")
+        click.secho("An error occurred when creating the dataset locally", fg="red")
+        click.echo("But the dataset has been created on Deploifai")
         raise click.Abort()
 
     click.secho(f"A new directory named {storage_name} has been created locally.", fg="green")

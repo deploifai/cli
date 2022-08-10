@@ -38,7 +38,7 @@ class DatasetNotInitialisedError(Exception):
         super(DatasetNotInitialisedError, self).__init__(message)
 
 
-def create_config_files(new_dataset_dir= None):
+def create_config_files(new_dataset_dir: str = None):
     """
     Creates the .dataset config files.
     :return: None
