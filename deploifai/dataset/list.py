@@ -75,5 +75,5 @@ def list_data(context: DeploifaiContextObj, project: str):
 
     click.secho("All datasets:", fg="blue")
     for info in data_storage_info:
-        click.echo(f"{info['name']} - {info['status']}")
+        click.echo(f"{info['name']} <{info['cloudProfile']['provider']}> - {info['status']}")
     return
