@@ -16,7 +16,7 @@ from deploifai.utilities.frontend_routing import get_dataset_route
 @dataset_found
 def info(context: DeploifaiContextObj):
     """
-    Get information about a dataset
+    Get information about the initialized dataset
     """
     deploifai_api = context.api
 
