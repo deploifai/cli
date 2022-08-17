@@ -32,18 +32,15 @@ def info(context: DeploifaiContextObj):
 
     click.secho("Workspace Name: {}".format(workspace_name), fg="blue")
     click.secho("Project Name: {}".format(project_name), fg="blue")
-    click.secho("Deploifai Dataset Name: {}".format(storage_details["name"]), fg="blue")
-    click.secho("Dataset Status: {}".format(storage_details["status"]))
+    click.secho("Dataset Name: {}".format(storage_details["name"]), fg="blue")
+    click.secho("Dataset Status: {}".format(storage_details["status"]), fg="blue")
 
     url = get_dataset_route(workspace_name, project_name, dataset_id)
-    click.secho(
-        "\nAccess the dataset on deploifai through: \n{}\n".format(url),
-        underline=True,
-        fg="green",
-    )
+    click.secho("\nBrowse the dataset on Deploifai: \n{}\n".format(url))
 
-    click.secho("Container name to find the dataset on the cloud datastorage: {}".format(container_name), fg="green")
+    click.secho("To find this dataset on {} cloud service portal:".format(cloud_provider))
 
     if cloud_provider == "AZURE":
         storage_account_name = storage_details["cloudProviderYodaConfig"]["azureConfig"]["storageAccount"]
-        click.secho("Storage account name for Azure access: {}".format(storage_account_name), fg="green")
+        click.secho("Storage Account Name: {}".format(storage_account_name))
+    click.secho("Container Name: {}".format(container_name))
