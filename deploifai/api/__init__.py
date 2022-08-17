@@ -142,8 +142,12 @@ class DeploifaiAPI:
       dataStorage(where:{id:$id}){
         name
         status
+        account{
+          username
+        }
         projects {
           id
+          name
         }
         containers{
           id
