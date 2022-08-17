@@ -1,10 +1,10 @@
-import click
-import pyperclip
 from enum import Enum
 
-from deploifai.api import DeploifaiAPIError
-from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj, is_authenticated, project_found
+import click
+import pyperclip
 from PyInquirer import prompt
+
+from deploifai.context import pass_deploifai_context_obj, DeploifaiContextObj, is_authenticated, project_found
 
 
 class Environment(Enum):
@@ -33,9 +33,11 @@ def get_setup(context: DeploifaiContextObj, external):
                         username
                     }
                     experiments{
-                      name
-                      environment
-                      resourceAccessTokenString
+                        name
+                        environment
+                        resourceAccessToken {
+                            token
+                        }
                     } 
                 }
                 """
@@ -73,7 +75,7 @@ def get_setup(context: DeploifaiContextObj, external):
 
     experiment_name = experiment["name"]
     experiment_environment = experiment["environment"]
-    experiment_token = experiment["resourceAccessTokenString"]
+    experiment_token = experiment["resourceAccessToken"]['token']
 
     click.secho("Experiment: {}".format(experiment_name), fg='blue')
 
