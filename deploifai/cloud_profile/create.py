@@ -1,4 +1,6 @@
 import click
+import boto3
+from botocore.exceptions import ClientError
 from PyInquirer import prompt
 from deploifai.utilities.cloud_profile import Provider
 from deploifai.context import (
@@ -11,9 +13,15 @@ from deploifai.api import DeploifaiAPIError
 
 @click.command()
 @click.argument("name")
+@click.option(
+    "-p",
+    "--provider",
+    type=click.Choice([p.value for p in Provider]),
+    help="Provider for the new cloud profile"
+)
 @pass_deploifai_context_obj
 @is_authenticated
-def create(context: DeploifaiContextObj, name: str):
+def create(context: DeploifaiContextObj, name: str, provider: str):
     """
     Create a new cloud profile
     """
@@ -33,31 +41,64 @@ def create(context: DeploifaiContextObj, name: str):
         click.echo(click.style("Cloud profile name taken. Existing names: ", fg="red") + ' '.join(existing_names))
         raise click.Abort()
 
-    provider = prompt(
-        {
-            "type": "list",
-            "name": "provider",
-            "message": "Choose a provider for the new cloud profile",
-            "choices": [{"name": provider.value, "value": provider} for provider in Provider]
-        }
-    )["provider"]
+    if not provider:
+        provider = prompt(
+            {
+                "type": "list",
+                "name": "provider",
+                "message": "Choose a provider for the new cloud profile",
+                "choices": [{"name": p.value, "value": p} for p in Provider]
+            }
+        )["provider"]
+    else:
+        provider = Provider(provider)   # Cast to Provider enum
 
     cloud_credentials = {}
     if provider == Provider.AWS:
-        cloud_credentials["awsAccessKey"] = prompt(
-            {
-                "type": "input",
-                "name": "awsAccessKey",
-                "message": "AWS Access Key ID (We'll keep these secured and encrypted)",
-            }
-        )["awsAccessKey"]
-        cloud_credentials["awsSecretAccessKey"] = prompt(
-            {
-                "type": "input",
-                "name": "awsSecretAccessKey",
-                "message": "AWS Secret Access Key (We'll keep these secured and encrypted)",
-            }
-        )["awsSecretAccessKey"]
+        # Attempt to log in using .aws credentials
+        iam = None
+        try:
+            iam = boto3.client('iam')
+        except ClientError as err:
+            click.echo(err)
+            # TODO: Prompt user for credentials if .aws not found
+            raise click.Abort()
+
+        # Attempt to create user
+        try:
+            # Create user
+            click.echo(f"Creating IAM user '{name}'...")
+            iam.create_user(Path="/", UserName=name)
+
+            # Attach policy
+            click.echo("Created successfully. Attaching policies...")
+            user = boto3.resource('iam').User(name)
+            user.attach_policy(PolicyArn="arn:aws:iam::aws:policy/AdministratorAccess")
+
+            # Create access key
+            click.echo("Policies attached. Creating access keys...")
+            access_key = iam.create_access_key(UserName=name)['AccessKey']
+            cloud_credentials["awsAccessKey"] = access_key['AccessKeyId']
+            cloud_credentials["awsSecretAccessKey"] = access_key['SecretAccessKey']
+        except Exception as err:
+            click.echo(err)
+            # Delete user if error?
+            raise click.Abort()
+
+        # cloud_credentials["awsAccessKey"] = prompt(
+        #     {
+        #         "type": "input",
+        #         "name": "awsAccessKey",
+        #         "message": "AWS Access Key ID (We'll keep these secured and encrypted)",
+        #     }
+        # )["awsAccessKey"]
+        # cloud_credentials["awsSecretAccessKey"] = prompt(
+        #     {
+        #         "type": "input",
+        #         "name": "awsSecretAccessKey",
+        #         "message": "AWS Secret Access Key (We'll keep these secured and encrypted)",
+        #     }
+        # )["awsSecretAccessKey"]
     elif provider == Provider.AZURE:
         cloud_credentials["azureSubscriptionId"] = prompt(
             {
