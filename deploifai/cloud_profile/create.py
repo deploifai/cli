@@ -55,50 +55,70 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
 
     cloud_credentials = {}
     if provider == Provider.AWS:
-        # Attempt to log in using .aws credentials
-        iam = None
+        iam = boto3.client('iam')
+
+        # Log in attempt - use an arbitrary service
         try:
-            iam = boto3.client('iam')
+            iam.list_users()
         except ClientError as err:
+            if err.response['Error']['Code'] == 'InvalidClientTokenId':
+                # Prompt user to enter credentials manually if AWS config not found
+                click.echo("AWS config credentials not found. Please enter manually")
+                aws_access_key = prompt(
+                    {
+                        "type": "input",
+                        "name": "aws_access_key",
+                        "message": "AWS Access Key ID (We'll keep these secured and encrypted)",
+                    }
+                )["aws_access_key"]
+                aws_secret_access_key = prompt(
+                    {
+                        "type": "input",
+                        "name": "aws_secret_access_key",
+                        "message": "AWS Secret Access Key (We'll keep these secured and encrypted)",
+                    }
+                )["aws_secret_access_key"]
+                iam = boto3.client('iam', aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_access_key)
+            else:
+                click.echo(err)
+                raise click.Abort()
+        except Exception as err:
             click.echo(err)
-            # TODO: Prompt user for credentials if .aws not found
             raise click.Abort()
 
         # Attempt to create user
         try:
-            # Create user
-            click.echo(f"Creating IAM user '{name}'...")
             iam.create_user(Path="/", UserName=name)
+        except ClientError as err:
+            if err.response['Error']['Code'] == 'InvalidClientTokenId':
+                click.echo("Invalid credentials")
+            else:
+                click.echo(err)
+            raise click.Abort()
+        except Exception as err:
+            click.echo(err)
+            raise click.Abort()
 
-            # Attach policy
-            click.echo("Created successfully. Attaching policies...")
-            user = boto3.resource('iam').User(name)
-            user.attach_policy(PolicyArn="arn:aws:iam::aws:policy/AdministratorAccess")
+        try:
+            # Attach policies
+            iam.attach_user_policy(UserName=name, PolicyArn="arn:aws:iam::aws:policy/AdministratorAccess")
+            iam.attach_user_policy(UserName=name, PolicyArn="arn:aws:iam::aws:policy/PowerUserAccess")
+            iam.attach_user_policy(UserName=name, PolicyArn="arn:aws:iam::aws:policy/IAMFullAccess")
 
             # Create access key
             click.echo("Policies attached. Creating access keys...")
             access_key = iam.create_access_key(UserName=name)['AccessKey']
             cloud_credentials["awsAccessKey"] = access_key['AccessKeyId']
             cloud_credentials["awsSecretAccessKey"] = access_key['SecretAccessKey']
+        except ClientError as err:
+            if err.response['Error']['Code'] == 'EntityAlreadyExists':
+                click.echo(f"User '{name}' already exists")
+            else:
+                click.echo(err)
+            raise click.Abort()
         except Exception as err:
             click.echo(err)
-            # Delete user if error?
             raise click.Abort()
-
-        # cloud_credentials["awsAccessKey"] = prompt(
-        #     {
-        #         "type": "input",
-        #         "name": "awsAccessKey",
-        #         "message": "AWS Access Key ID (We'll keep these secured and encrypted)",
-        #     }
-        # )["awsAccessKey"]
-        # cloud_credentials["awsSecretAccessKey"] = prompt(
-        #     {
-        #         "type": "input",
-        #         "name": "awsSecretAccessKey",
-        #         "message": "AWS Secret Access Key (We'll keep these secured and encrypted)",
-        #     }
-        # )["awsSecretAccessKey"]
     elif provider == Provider.AZURE:
         cloud_credentials["azureSubscriptionId"] = prompt(
             {
