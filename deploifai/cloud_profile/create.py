@@ -42,82 +42,84 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
         raise click.Abort()
 
     if not provider:
-        provider = prompt(
-            {
-                "type": "list",
-                "name": "provider",
-                "message": "Choose a provider for the new cloud profile",
-                "choices": [{"name": p.value, "value": p} for p in Provider]
-            }
-        )["provider"]
+        try:
+            provider = prompt(
+                {
+                    "type": "list",
+                    "name": "provider",
+                    "message": "Choose a provider for the new cloud profile",
+                    "choices": [{"name": p.value, "value": p} for p in Provider]
+                }
+            )["provider"]
+        except KeyError as err:
+            click.echo('Mouse click??? Committing seppuku')
+            raise click.Abort()
     else:
         provider = Provider(provider)   # Cast to Provider enum
 
     cloud_credentials = {}
     if provider == Provider.AWS:
-        iam = boto3.client('iam')
+        s = boto3.session.Session()
+        profiles = s.available_profiles
+        profile = 'default'
+        if not profiles:
+            click.secho('No AWS credentials found. Please set this up', fg="red")
+            raise click.Abort()
+        if len(profiles) > 1:
+            profile = prompt(
+                {
+                    "type": "list",
+                    "name": "profile",
+                    "message": "Choose an AWS profile to use",
+                    "choices": [{"name": p, "value": p} for p in profiles]
+                }
+            )["profile"]
+            s = boto3.session.Session(profile_name=profile)
+
+        local_creds = s.get_credentials()
+        iam = boto3.client('iam', aws_access_key_id=local_creds.access_key, aws_secret_access_key=local_creds.secret_key)
 
         # Log in attempt - use an arbitrary service
         try:
             iam.list_users()
         except ClientError as err:
             if err.response['Error']['Code'] == 'InvalidClientTokenId':
-                # Prompt user to enter credentials manually if AWS config not found
-                click.echo("AWS config credentials not found. Please enter manually")
-                aws_access_key = prompt(
-                    {
-                        "type": "input",
-                        "name": "aws_access_key",
-                        "message": "AWS Access Key ID (We'll keep these secured and encrypted)",
-                    }
-                )["aws_access_key"]
-                aws_secret_access_key = prompt(
-                    {
-                        "type": "input",
-                        "name": "aws_secret_access_key",
-                        "message": "AWS Secret Access Key (We'll keep these secured and encrypted)",
-                    }
-                )["aws_secret_access_key"]
-                iam = boto3.client('iam', aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_access_key)
+                click.secho(f"Invalid credentials for profile '{profile}'", fg="red")
             else:
-                click.echo(err)
-                raise click.Abort()
+                click.secho(err, fg="red")
+            raise click.Abort()
         except Exception as err:
-            click.echo(err)
+            click.secho(err, fg="red")
             raise click.Abort()
 
         # Attempt to create user
         try:
             iam.create_user(Path="/", UserName=name)
+            click.echo(f"Created IAM user '{name}'")
         except ClientError as err:
-            if err.response['Error']['Code'] == 'InvalidClientTokenId':
-                click.echo("Invalid credentials")
+            if err.response['Error']['Code'] == 'EntityAlreadyExists':
+                click.secho(f"IAM user '{name}' already exists", fg="red")
             else:
-                click.echo(err)
+                click.secho(err, fg="red")
             raise click.Abort()
         except Exception as err:
-            click.echo(err)
+            click.secho(err, fg="red")
             raise click.Abort()
 
         try:
             # Attach policies
-            iam.attach_user_policy(UserName=name, PolicyArn="arn:aws:iam::aws:policy/AdministratorAccess")
+            # iam.attach_user_policy(UserName=name, PolicyArn="arn:aws:iam::aws:policy/AdministratorAccess")
             iam.attach_user_policy(UserName=name, PolicyArn="arn:aws:iam::aws:policy/PowerUserAccess")
             iam.attach_user_policy(UserName=name, PolicyArn="arn:aws:iam::aws:policy/IAMFullAccess")
+            click.echo("Attached policies")
 
             # Create access key
-            click.echo("Policies attached. Creating access keys...")
             access_key = iam.create_access_key(UserName=name)['AccessKey']
+            click.echo("Created access keys")
             cloud_credentials["awsAccessKey"] = access_key['AccessKeyId']
             cloud_credentials["awsSecretAccessKey"] = access_key['SecretAccessKey']
-        except ClientError as err:
-            if err.response['Error']['Code'] == 'EntityAlreadyExists':
-                click.echo(f"User '{name}' already exists")
-            else:
-                click.echo(err)
-            raise click.Abort()
         except Exception as err:
-            click.echo(err)
+            click.secho(err, fg="red")
             raise click.Abort()
     elif provider == Provider.AZURE:
         cloud_credentials["azureSubscriptionId"] = prompt(
