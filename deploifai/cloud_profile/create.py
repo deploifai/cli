@@ -63,7 +63,9 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
         profiles = s.available_profiles
         profile = 'default'
         if not profiles:
-            click.secho('No AWS credentials found. Please set this up', fg="red")
+            click.secho('AWS credentials not found. Please set it up with "aws configure", or go to '
+                        'https://docs.deploif.ai/cloud-services/connect-your-account/aws to learn how to create AWS '
+                        'credentials for Deploifai on the dashboard.', fg="red")
             raise click.Abort()
         if len(profiles) > 1:
             try:
