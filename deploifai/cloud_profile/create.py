@@ -51,8 +51,8 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
                     "choices": [{"name": p.value, "value": p} for p in Provider]
                 }
             )["provider"]
-        except KeyError as err:
-            click.echo('Mouse click??? Committing seppuku')
+        except KeyError:
+            click.secho('Mouse click detected', fg="red")
             raise click.Abort()
     else:
         provider = Provider(provider)   # Cast to Provider enum
@@ -66,15 +66,19 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
             click.secho('No AWS credentials found. Please set this up', fg="red")
             raise click.Abort()
         if len(profiles) > 1:
-            profile = prompt(
-                {
-                    "type": "list",
-                    "name": "profile",
-                    "message": "Choose an AWS profile to use",
-                    "choices": [{"name": p, "value": p} for p in profiles]
-                }
-            )["profile"]
-            s = boto3.session.Session(profile_name=profile)
+            try:
+                profile = prompt(
+                    {
+                        "type": "list",
+                        "name": "profile",
+                        "message": "Choose an AWS profile to use",
+                        "choices": [{"name": p, "value": p} for p in profiles]
+                    }
+                )["profile"]
+                s = boto3.session.Session(profile_name=profile)
+            except KeyError:
+                click.secho('Mouse click detected', fg="red")
+                raise click.Abort()
 
         local_creds = s.get_credentials()
         iam = boto3.client('iam', aws_access_key_id=local_creds.access_key, aws_secret_access_key=local_creds.secret_key)
@@ -108,7 +112,6 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
 
         try:
             # Attach policies
-            # iam.attach_user_policy(UserName=name, PolicyArn="arn:aws:iam::aws:policy/AdministratorAccess")
             iam.attach_user_policy(UserName=name, PolicyArn="arn:aws:iam::aws:policy/PowerUserAccess")
             iam.attach_user_policy(UserName=name, PolicyArn="arn:aws:iam::aws:policy/IAMFullAccess")
             click.echo("Attached policies")
