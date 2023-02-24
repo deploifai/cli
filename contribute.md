@@ -12,7 +12,7 @@ source .venv/bin/activate
 Install dev dependencies:
 
 ```shell
-pip install -U pip
+pip install -U pip wheel setuptools
 pip install -r requirements/deploifai.txt requirements/cli.txt requirements/dev.txt
 ```
 
