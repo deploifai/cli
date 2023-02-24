@@ -11,18 +11,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.7
+          python-version: '3.7'
 
       - name: Install requirements
-        run: pip3 install -q -r requirements/deploifai.txt -r requirements/cli.txt -r requirements/dev.txt
+        run: |
+          pip install -U pip wheel setuptools
+          pip install -q -r requirements/deploifai.txt -r requirements/cli.txt -r requirements/dev.txt
 
       - name: Build distribution packages
-        run: python3 -m build
+        run: python -m build
 
       - name: Release to PyPi
         env:
