@@ -37,8 +37,9 @@ These are the dependencies required for development and testing.
 
 ```text
 black
-twine
 setuptools-scm
+twine
+build
 mkdocs
 mkdocs-click
 ```
