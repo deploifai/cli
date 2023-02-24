@@ -1,63 +1,39 @@
 # Deploifai CLI
 
-### Installation
+## Installation
 
 ```shell
 pip install deploifai
 ```
 
-### Usage
+Or, install from homebrew:
 
 ```shell
-# ensure the cli is accessible
-which deploifai
+brew tap deploifai/deploifai
+brew install deploifai
+```
+
+## Usage
+
+Ensure that you have installed correctly.
+
+```shell
 # show help message
 deploifai --help
 # show version
 deploifai --version
 ```
 
-## Contribute
+### Authentication
 
-### Setup Development Environment
+First, generate a personal access token on your Deploifai [dashboard](https://deploif.ai/dashboard) settings.
 
-Create python virtual environment:
-
-```shell
-python -m venv .venv
-source .venv/bin/activate
-````
-
-Install dev dependencies:
+Then, login to the cli tool:
 
 ```shell
-pip install -U pip
-pip install -r requirements.txt
+deploifai auth login -u [username] -t [token]
 ```
 
-Copy `sample.env` to `.env`:
+## Documentation
 
-```text
-DEPLOIFAI_CLI_ENVIRONMENT=development
-DEPLOIFAI_BACKEND_URL=http://localhost:4000
-```
-
-Run the deploifai cli script directly for testing:
-
-```shell
-python dev.py
-```
-
-Or, install `deploifai` cli tool in virtual environment for testing:
-
-```shell
-pip install --editable . 
-```
-
-Read the documentation of the `deploifai` cli tool in html:\
-This documentation only functions on `Python>=3.7`.\
-Installation of `mkdocs==1.3.1` and `mkdocs-click==0.8.0` required
-
-```shell
-mkdocs serve
-```
+See the [documentation](https://docs.deploif.ai/cli/commands/quick-start) for more information about the CLI.

@@ -1,4 +1,4 @@
-site_name: Deploifai CLI
+site_name: Deploifai
 theme: readthedocs
 
 markdown_extensions:

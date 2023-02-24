@@ -1,4 +1,4 @@
 
 ::: mkdocs-click
-    :module: deploifai.auth
+    :module: deploifai.cli.auth
     :command: auth

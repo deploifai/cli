@@ -1,4 +1,4 @@
 
 ::: mkdocs-click
-    :module: deploifai.workspace
+    :module: deploifai.cli.workspace
     :command: workspace

@@ -1,4 +1,4 @@
 
 ::: mkdocs-click
-    :module: deploifai.mlflow
+    :module: deploifai.cli.mlflow
     :command: mlflow
