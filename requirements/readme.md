@@ -24,7 +24,7 @@ cryptography
 ```text
 click
 click-spinner
-PyInquirer # todo: replace with InquirerPy
+InquirerPy
 keyring
 tqdm
 pyperclip

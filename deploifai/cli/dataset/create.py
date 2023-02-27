@@ -1,6 +1,6 @@
 import click
 import click_spinner
-from PyInquirer import prompt
+from InquirerPy import prompt
 import os
 from time import sleep
 

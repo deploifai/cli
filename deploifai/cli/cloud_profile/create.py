@@ -1,7 +1,7 @@
 import click
 import boto3
 from botocore.exceptions import ClientError
-from PyInquirer import prompt
+from InquirerPy import prompt
 from deploifai.cli.utilities.cloud_profile import Provider
 from deploifai.cli.context import (
     pass_deploifai_context_obj,
