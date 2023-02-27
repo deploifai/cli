@@ -1,4 +1,4 @@
 
 ::: mkdocs-click
-    :module: deploifai.project
+    :module: deploifai.cli.project
     :command: project

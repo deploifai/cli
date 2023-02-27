@@ -1,4 +1,4 @@
 
 ::: mkdocs-click
-    :module: deploifai.cloud_profile
+    :module: deploifai.cli.cloud_profile
     :command: cloud_profile

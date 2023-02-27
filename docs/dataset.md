@@ -1,4 +1,4 @@
 
 ::: mkdocs-click
-    :module: deploifai.dataset
+    :module: deploifai.cli.dataset
     :command: dataset

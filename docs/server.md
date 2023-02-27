@@ -1,4 +1,4 @@
 
 ::: mkdocs-click
-    :module: deploifai.server
+    :module: deploifai.cli.server
     :command: server
