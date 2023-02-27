@@ -25,8 +25,7 @@ setuptools.setup(
         "boto3",
         "google-auth",
         "google-cloud-storage",
-        "PyInquirer",
-        # "InquirerPy", # todo: use this instead of PyInquirer
+        "InquirerPy",
         "pyperclip",
         "semver",
         "cryptography",

@@ -1,5 +1,5 @@
 import click
-from PyInquirer import prompt
+from InquirerPy import prompt
 
 from deploifai.cli.context import pass_deploifai_context_obj, DeploifaiContextObj
 

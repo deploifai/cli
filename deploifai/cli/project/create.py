@@ -7,7 +7,7 @@ from deploifai.cli.context import (
 )
 from deploifai.cli.utilities.config import local_config
 from deploifai.cli.api import DeploifaiAPIError
-from PyInquirer import prompt
+from InquirerPy import prompt
 import os
 
 

@@ -2,7 +2,7 @@ from enum import Enum
 
 import click
 import pyperclip
-from PyInquirer import prompt
+from InquirerPy import prompt
 
 from deploifai.cli.context import pass_deploifai_context_obj, DeploifaiContextObj, is_authenticated, project_found
 
