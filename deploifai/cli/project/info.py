@@ -37,7 +37,7 @@ def info(context: DeploifaiContextObj):
                         name status state
                     }
                     applications{
-                        applicationName
+                        name status
                     }
                 }
                 """
