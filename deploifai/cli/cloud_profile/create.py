@@ -1,6 +1,11 @@
+import base64
+import json
+
 import click
 import boto3
 from botocore.exceptions import ClientError
+from google.oauth2 import service_account
+from googleapiclient import discovery, errors
 from InquirerPy import prompt
 from deploifai.cli.utilities.cloud_profile import Provider
 from deploifai.cli.context import (
@@ -156,14 +161,6 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
             }
         )["azureClientSecret"]
     else:
-        cloud_credentials["gcpProjectId"] = prompt(
-            {
-                "type": "input",
-                "name": "gcpProjectId",
-                "message": "GCP Project ID (We'll keep these secured and encrypted)",
-            }
-        )["gcpProjectId"]
-
         gcp_service_account_key_file = prompt(
             {
                 "type": "input",
@@ -172,12 +169,41 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
             }
         )["gcp_service_account_key_file"]
 
+        with open(gcp_service_account_key_file) as f:
+            project_id = json.load(f)['project_id']
+
+        credentials = service_account.Credentials.from_service_account_file(
+            gcp_service_account_key_file,
+            scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        )
+
+        service = discovery.build("iam", "v1", credentials=credentials)
+
+        # Create service account
         try:
-            with open(gcp_service_account_key_file) as gcp_service_account_key_json:
-                cloud_credentials["gcpServiceAccountKey"] = gcp_service_account_key_json.read()
-        except FileNotFoundError:
-            click.secho("File not found. Please input the correct file path.", fg="red")
+            gcp_service_account = service.projects().serviceAccounts().create(
+                name='projects/' + project_id,
+                body={
+                    "accountId": name,
+                    "serviceAccount": {
+                        "displayName": name
+                    }
+                }
+            ).execute()
+        except errors.HttpError as err:
+            if err.status_code == 409:
+                click.secho(f"Service account '{name}' already exists", fg="red")
+            else:
+                click.secho(err, fg="red")
             raise click.Abort()
+
+        # Create key
+        service_account_email = name + '@' + project_id + '.iam.gserviceaccount.com'
+        key = service.projects().serviceAccounts().keys().create(name=f'projects/{project_id}/serviceAccounts/{service_account_email}', body={}).execute()
+        json_key_file = base64.b64decode(key['privateKeyData']).decode('utf-8')
+
+        cloud_credentials["gcpProjectId"] = project_id
+        cloud_credentials["gcpServiceAccountKey"] = json_key_file
 
     context.debug_msg(cloud_credentials)
     try:
