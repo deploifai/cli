@@ -661,9 +661,33 @@ class DeploifaiAPI:
         except KeyError:
             raise DeploifaiAPIError("Could not stop Training Server. Please try again.")
 
-    def get_container_registries(self):
-        # TODO
-        pass
+    def get_container_registries(self, workspace: str, ):
+        query = """
+        query ($whereAccount: AccountWhereUniqueInput!){
+            containerRegistries(whereAccount: $whereAccount){
+                id
+                name
+            }
+        }
+        """
+
+        variables = {
+            "whereAccount": {"username": workspace}
+        }
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+
+            container_registries = r.json()
+            return container_registries["data"]["containerRegistries"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not get Container Registries. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not get Container Registries. Please try again.")
 
     def create_container_registry(self, project_id: str, name: str, cloud_profile_id: str, cloud_provider_container_registry_config: dict = None):
         mutation = """
@@ -705,7 +729,9 @@ class DeploifaiAPI:
             create_mutation_data = r.json()
 
             return create_mutation_data["data"]["createContainerRegistry"]
-        except Exception:
+        except TypeError:
+            raise DeploifaiAPIError("Could not create Container Registry. Please try again.")
+        except KeyError:
             raise DeploifaiAPIError("Could not create Container Registry. Please try again.")
 
     def get_application_infrastructure_plans(self, cloud_provider: str):

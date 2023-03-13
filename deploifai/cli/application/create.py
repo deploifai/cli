@@ -124,17 +124,34 @@ def create(context: DeploifaiContextObj, name: str, image: str, tag: str, port: 
         click.secho("Please provide a valid port number", fg="red")
         raise click.Abort()
 
-    # Check if container registry exists
-    # TODO
-    # existing_container_registries = context.api.get_container_registries(workspace=workspace)
-    # for existing_container_registry in existing_container_registries:
-    #     if existing_container_registry.image == f'{image}:{tag}':
-    #         click.secho("Container registry already exists", fg="red")
-    #         raise click.Abort()
+    # If image is a local image, find existing registry or create a new one
+    # TODO handle dockerhub images that aren't in url format
+    if not image.startswith("https://"):
+        # Check if image exists in container registry
+        try:
+            existing_container_registries = context.api.get_container_registries(workspace=workspace)
+        except DeploifaiAPIError as e:
+            click.secho(e, fg="red")
+            raise click.Abort()
 
-    # Create container registry
-    image_uri = f'{image}:{tag}'
-    create_container_data = context.api.create_container_registry(project_id, image_uri, cloud_profile_id)
+        # click.echo(existing_container_registries)  # for debugging
+
+        container_registry = None
+        for existing_container_registry in existing_container_registries:
+            if existing_container_registry['name'] == f'{image}':
+                container_registry = existing_container_registry['name']
+                click.secho("Container registry already exists", fg="red")
+                raise click.Abort()
+
+        # If not found, create a new one
+        if not container_registry:
+            try:
+                create_container_data = context.api.create_container_registry(project_id, image, cloud_profile_id)
+            except DeploifaiAPIError:
+                click.secho(f"Could not create container registry for {image}", fg="red")
+                raise click.Abort()
+
+            click.echo(f"Created container registry for {image}")
 
     # Create plan
     try:
@@ -164,11 +181,31 @@ def create(context: DeploifaiContextObj, name: str, image: str, tag: str, port: 
     )['config']
 
     # Get environment variables
-    # TODO
     environment_variables = []
+    count = 1
+    click.echo("Enter environment variables in key-value pairs separated by spaces (leave blank to finish)")
+    while True:
+        env_variable = prompt(
+            {
+                "type": "input",
+                "name": "env_variable",
+                "message": f"Environment variable {count}"
+            }
+        )['env_variable']
+        if env_variable == "":
+            break
+
+        env_variable = env_variable.split(" ")
+        if len(env_variable) != 2:
+            click.secho("Please provide a valid environment variable", fg="red")
+            continue
+        environment_variables.append({"name": env_variable[0], "value": env_variable[1]})
+        count += 1
+
+    click.echo(environment_variables)
 
     # Create application
-    context.api.create_application(project_id, name, cloud_profile_id, chosen_config, image_uri, port, environment_variables)
+    # context.api.create_application(project_id, name, cloud_profile_id, chosen_config, image, port, environment_variables)
 
     # Save local config
     # TODO
