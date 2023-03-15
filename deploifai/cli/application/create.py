@@ -80,10 +80,10 @@ def create(context: DeploifaiContextObj, name: str, port: int):
     )[0]
 
     if is_local_image:
-        # Choose local image
+        # Choose local image, filter out dangling images
         docker_api = docker.APIClient(base_url='unix://var/run/docker.sock')
         try:
-            local_images = docker_api.images()
+            local_images = docker_api.images(filters={"dangling": False})
         except docker.errors.APIError:
             click.secho("Error while querying local images", fg="red")
             raise click.Abort()
@@ -91,6 +91,7 @@ def create(context: DeploifaiContextObj, name: str, port: int):
         if len(local_images) == 0:
             click.secho("No local images found", fg="red")
             raise click.Abort()
+
         image = prompt(
             {
                 "type": "list",
@@ -99,6 +100,7 @@ def create(context: DeploifaiContextObj, name: str, port: int):
                 "choices": [{"name": image['RepoTags'], "value": image} for image in local_images]
             }
         )['image']
+        image_uri = image['RepoTags'][0]
 
         # Prompt for tag
         tag = prompt(
@@ -126,6 +128,7 @@ def create(context: DeploifaiContextObj, name: str, port: int):
         if is_new_repository:
             # Create new image repository
             repository = context.api.create_container_registry(project_id, name, cloud_profile.id)
+            click.echo("Created new image repository")
         else:
             # Check if deploifai managed container registries exist
             managed_repositories = context.api.get_container_registries(workspace, cloud_profile.id)
@@ -146,6 +149,7 @@ def create(context: DeploifaiContextObj, name: str, port: int):
         # Tag image
         repository_uri = repository['info']['imageUri']
         docker_api.tag(image=image, repository=repository_uri, tag=tag)
+        click.echo("Tagged image")
 
         # Authenticate docker to repository
         username, password = repository['info']['username'], repository['info']['password']
@@ -157,14 +161,14 @@ def create(context: DeploifaiContextObj, name: str, port: int):
         click.echo(f"Pushed image {repository_uri}:{tag}")
     else:
         # Use publicly accessible image (assume it is valid)
-        image = prompt(
+        image_uri = prompt(
             {
                 "type": "input",
-                "name": "image",
+                "name": "image_uri",
                 "message": "Enter public image name (e.g. nginx)",
             }
-        )['image']
-        if not image:
+        )['image_uri']
+        if not image_uri:
             click.secho("Please provide a valid image name", fg="red")
             raise click.Abort()
 
@@ -215,6 +219,7 @@ def create(context: DeploifaiContextObj, name: str, port: int):
             ],
         }
     )['config']
+    config = {'plan': chosen_config['plan']}
 
     # Get environment variables
     environment_variables = []
@@ -238,10 +243,8 @@ def create(context: DeploifaiContextObj, name: str, port: int):
         environment_variables.append({"name": env_variable[0], "value": env_variable[1]})
         count += 1
 
-    click.echo(environment_variables)
-
     # Create application
-    # context.api.create_application(project_id, name, cloud_profile_id, chosen_config, image, port, environment_variables)
+    context.api.create_application(project_id, name, cloud_profile.id, config, image_uri, port, environment_variables)
 
     # Save local config
     # TODO

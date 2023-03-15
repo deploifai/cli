@@ -841,7 +841,7 @@ class DeploifaiAPI:
 
         return app_details
 
-    def create_application(self, project_id: str, name: str, cloud_profile_id: str, app_config: dict, image_uri: str, port: int, environment_variables: list):
+    def create_application(self, project_id: str, name: str, cloud_profile_id: str, config: dict, image_uri: str, port: int, environment_variables: list):
         mutation = """
         mutation($whereProject: ProjectWhereUniqueInput! $data: CreateApplicationInput!){
             createApplication(whereProject: $whereProject data: $data){
@@ -855,7 +855,7 @@ class DeploifaiAPI:
             "data": {
                 "name": name,
                 "cloudProfileId": cloud_profile_id,
-                "cloudProviderAppConfig": app_config,
+                "cloudProviderAppConfig": config,
                 "container": {
                     "image": image_uri,
                     "port": port,
