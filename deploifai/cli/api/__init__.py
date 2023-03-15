@@ -661,10 +661,10 @@ class DeploifaiAPI:
         except KeyError:
             raise DeploifaiAPIError("Could not stop Training Server. Please try again.")
 
-    def get_container_registries(self, workspace: str, ):
+    def get_container_registries(self, username: str, cloud_profile_id: str):
         query = """
-        query ($whereAccount: AccountWhereUniqueInput!){
-            containerRegistries(whereAccount: $whereAccount){
+        query ($whereAccount: AccountWhereUniqueInput! $whereContainerRegistry: ContainerRegistryWhereInput){
+            containerRegistries(whereAccount: $whereAccount whereContainerRegistry: $whereContainerRegistry){
                 id
                 name
             }
@@ -672,7 +672,8 @@ class DeploifaiAPI:
         """
 
         variables = {
-            "whereAccount": {"username": workspace}
+            "whereAccount": {"username": username},
+            "whereContainerRegistry": {"cloudProfileId": {"equals": cloud_profile_id}},
         }
 
         try:
@@ -689,9 +690,41 @@ class DeploifaiAPI:
         except KeyError:
             raise DeploifaiAPIError("Could not get Container Registries. Please try again.")
 
-    def create_container_registry(self, project_id: str, name: str, cloud_profile_id: str, cloud_provider_container_registry_config: dict = None):
+    def get_container_registry(self, registry_id: str):
+        query = """
+        query ($where: ContainerRegistryWhereUniqueInput!){
+            containerRegistry(where: $where){
+                id
+                name
+                info {
+                    loginServer
+                    username
+                    password
+                    imageUri
+                }
+            }
+        }
+        """
+
+        variables = {"where": {"id": registry_id}}
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+
+            container_registry = r.json()
+            return container_registry["data"]["containerRegistry"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not get Container Registry. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not get Container Registry. Please try again.")
+
+    def create_container_registry(self, project_id: str, name: str, cloud_profile_id: str):
         mutation = """
-        createContainerRegistry($whereProject: ProjectWhereUniqueInput! $data: CreateContainerRegistryInput!){
+        mutation($whereProject: ProjectWhereUniqueInput! $data: CreateContainerRegistryInput!){
             createContainerRegistry(whereProject: $whereProject data: $data){
                 id
                 name
@@ -702,10 +735,6 @@ class DeploifaiAPI:
                     password
                     imageUri
                 }
-                cloudProfile {
-                    id
-                    provider
-                }
             }
         }
         """
@@ -715,7 +744,7 @@ class DeploifaiAPI:
             "data": {
                 "name": name,
                 "cloudProfileId": cloud_profile_id,
-                "cloudProviderContainerRegistryConfig": cloud_provider_container_registry_config,
+                "cloudProviderContainerRegistryConfig": {},
             }
         }
 

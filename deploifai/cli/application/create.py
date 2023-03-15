@@ -1,5 +1,6 @@
 import click
 import re
+import docker
 from InquirerPy import prompt
 
 from deploifai.cli.api import DeploifaiAPIError
@@ -8,13 +9,11 @@ from deploifai.cli.context import pass_deploifai_context_obj, DeploifaiContextOb
 
 @click.command()
 @click.argument("name")
-@click.option("--image", "-i", help="Name of container image")
-@click.option("--tag", "-t", help="Tag of container image")
 @click.option("--port", "-p", help="Port of container")
 @pass_deploifai_context_obj
 @is_authenticated
 @project_found
-def create(context: DeploifaiContextObj, name: str, image: str, tag: str, port: int):
+def create(context: DeploifaiContextObj, name: str, port: int):
     """
     Create or update a new deployment
     """
@@ -69,39 +68,105 @@ def create(context: DeploifaiContextObj, name: str, image: str, tag: str, port: 
         }
     )['cloud_profile']
 
-    cloud_profile_id = None
-    for existing_cloud_profile in existing_cloud_profiles:
-        if existing_cloud_profile.name == cloud_profile.name:
-            cloud_profile_id = existing_cloud_profile.id
-            context.debug_msg("cloud profile id: {}".format(cloud_profile_id))
-            break
-    if not cloud_profile_id:
-        click.secho("Please provide a valid cloud profile name", fg="red")
-        raise click.Abort()
+    image = None
 
-    # Check image
-    if not image:
+    # Option for local or remote image
+    is_local_image = prompt(
+        {
+            "type": "confirm",
+            "message": "Use local docker image?",
+            "default": True,
+        }
+    )[0]
+
+    if is_local_image:
+        # Choose local image
+        docker_api = docker.APIClient(base_url='unix://var/run/docker.sock')
+        try:
+            local_images = docker_api.images()
+        except docker.errors.APIError:
+            click.secho("Error while querying local images", fg="red")
+            raise click.Abort()
+
+        if len(local_images) == 0:
+            click.secho("No local images found", fg="red")
+            raise click.Abort()
         image = prompt(
             {
-                "type": "input",
+                "type": "list",
                 "name": "image",
-                "message": "Name of the container image"
+                "message": "Choose a local image",
+                "choices": [{"name": image['RepoTags'], "value": image} for image in local_images]
             }
         )['image']
-    if not image:
-        click.secho("Please provide a valid container image name", fg="red")
-        raise click.Abort()
 
-    # Extract name and tag
-    if not tag:
+        # Prompt for tag
         tag = prompt(
             {
                 "type": "input",
                 "name": "tag",
-                "message": "Tag of the container image (default is 'latest')"
+                "message": "Image tag (default is 'latest')",
+                "default": "latest",
             }
         )['tag']
-        tag = tag if tag else 'latest'
+        tag = tag if tag else "latest"
+
+        # Option for existing or new image repository
+        is_new_repository = prompt(
+            {
+                "type": "list",
+                "message": "Use new or existing image repository?",
+                "choices": [
+                    {"name": "Create new image repository (on your cloud account)", "value": True},
+                    {"name": "Use existing image repository (on your cloud account or Docker Hub)", "value": False},
+                ]
+            }
+        )[0]
+
+        if is_new_repository:
+            # Create new image repository
+            repository = context.api.create_container_registry(project_id, name, cloud_profile.id)
+        else:
+            # Check if deploifai managed container registries exist
+            managed_repositories = context.api.get_container_registries(workspace, cloud_profile.id)
+            if len(managed_repositories) == 0:
+                click.secho("No existing Deploifai-managed repositories found. External repositories are currently not supported.", fg="red")
+                raise click.Abort()
+            managed_repository = prompt(
+                {
+                    "type": "list",
+                    "name": "repository",
+                    "message": "Choose an existing Deploifai-managed repository",
+                    "choices": [{"name": repository['name'], "value": repository} for repository in
+                                managed_repositories]
+                }
+            )['repository']
+            repository = context.api.get_container_registry(managed_repository['id'])
+
+        # Tag image
+        repository_uri = repository['info']['imageUri']
+        docker_api.tag(image=image, repository=repository_uri, tag=tag)
+
+        # Authenticate docker to repository
+        username, password = repository['info']['username'], repository['info']['password']
+        docker_api.login(username=username, password=password, registry=repository_uri)
+
+        # Push image
+        click.echo(f"Pushing image...")
+        docker_api.push(repository_uri, tag=tag)
+        click.echo(f"Pushed image {repository_uri}:{tag}")
+    else:
+        # Use publicly accessible image (assume it is valid)
+        image = prompt(
+            {
+                "type": "input",
+                "name": "image",
+                "message": "Enter public image name (e.g. nginx)",
+            }
+        )['image']
+        if not image:
+            click.secho("Please provide a valid image name", fg="red")
+            raise click.Abort()
 
     # Get port
     if not port:
@@ -112,7 +177,7 @@ def create(context: DeploifaiContextObj, name: str, image: str, tag: str, port: 
                 "max_allowed": 65535,
                 "default": 80,
                 "name": "port",
-                "message": "Port of the container image (default is 80)"
+                "message": "Port of the container image"
             }
         )['port']
 
@@ -123,35 +188,6 @@ def create(context: DeploifaiContextObj, name: str, image: str, tag: str, port: 
     except ValueError:
         click.secho("Please provide a valid port number", fg="red")
         raise click.Abort()
-
-    # If image is a local image, find existing registry or create a new one
-    # TODO handle dockerhub images that aren't in url format
-    if not image.startswith("https://"):
-        # Check if image exists in container registry
-        try:
-            existing_container_registries = context.api.get_container_registries(workspace=workspace)
-        except DeploifaiAPIError as e:
-            click.secho(e, fg="red")
-            raise click.Abort()
-
-        # click.echo(existing_container_registries)  # for debugging
-
-        container_registry = None
-        for existing_container_registry in existing_container_registries:
-            if existing_container_registry['name'] == f'{image}':
-                container_registry = existing_container_registry['name']
-                click.secho("Container registry already exists", fg="red")
-                raise click.Abort()
-
-        # If not found, create a new one
-        if not container_registry:
-            try:
-                create_container_data = context.api.create_container_registry(project_id, image, cloud_profile_id)
-            except DeploifaiAPIError:
-                click.secho(f"Could not create container registry for {image}", fg="red")
-                raise click.Abort()
-
-            click.echo(f"Created container registry for {image}")
 
     # Create plan
     try:
