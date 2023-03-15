@@ -63,4 +63,4 @@ def info(context: DeploifaiContextObj):
 
     click.echo("Deployments:")
     for application in project_data["applications"]:
-        click.echo("{}".format(application["applicationName"]))
+        click.echo("{}".format(application["name"]))
