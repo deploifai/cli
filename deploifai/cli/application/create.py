@@ -37,16 +37,15 @@ def create(context: DeploifaiContextObj, name: str, port: int):
         raise click.Abort()
 
     # Check if name is valid
-    if len(name) < 4 or len(name) > 30 or not re.match('^[\w-]+$', name):
-        click.secho("Application name must contain only alphanumeric characters, and -, not contain spaces, "
+    if len(name) < 4 or len(name) > 30 or not re.match(r"^[a-z0-9-]+$", name):
+        click.secho("Application name must contain only lowercase alphanumeric characters, and -, not contain spaces, "
                     "and must be between 4 and 30 characters long", fg="red")
         raise click.Abort()
 
     # Check cloud profile
     existing_cloud_profiles = context.api.get_cloud_profiles(workspace=workspace)
     if len(existing_cloud_profiles) == 0:
-        click.secho("Please create a cloud profile with")
-        click.secho("deploifai cloud-profile create", fg="yellow")
+        click.secho("Please create a cloud profile with deploifai cloud-profile create", fg="red")
         raise click.Abort()
 
     cloud_profile = prompt(
@@ -68,8 +67,6 @@ def create(context: DeploifaiContextObj, name: str, port: int):
         }
     )['cloud_profile']
 
-    image = None
-
     # Option for local or remote image
     is_local_image = prompt(
         {
@@ -80,8 +77,14 @@ def create(context: DeploifaiContextObj, name: str, port: int):
     )[0]
 
     if is_local_image:
+        # Initialize docker client
+        try:
+            docker_api = docker.APIClient(base_url='unix://var/run/docker.sock')
+        except docker.errors.DockerException:
+            click.secho("Docker does not seem to be running on your machine", fg="red")
+            raise click.Abort()
+
         # Choose local image, filter out dangling images
-        docker_api = docker.APIClient(base_url='unix://var/run/docker.sock')
         try:
             local_images = docker_api.images(filters={"dangling": False})
         except docker.errors.APIError:
@@ -100,7 +103,6 @@ def create(context: DeploifaiContextObj, name: str, port: int):
                 "choices": [{"name": image['RepoTags'], "value": image} for image in local_images]
             }
         )['image']
-        image_uri = image['RepoTags'][0]
 
         # Prompt for tag
         tag = prompt(
@@ -127,8 +129,13 @@ def create(context: DeploifaiContextObj, name: str, port: int):
 
         if is_new_repository:
             # Create new image repository
-            repository = context.api.create_container_registry(project_id, name, cloud_profile.id)
-            click.echo("Created new image repository")
+            click.echo("Creating new image repository... ", nl=False)
+            try:
+                repository = context.api.create_container_registry(project_id, name, cloud_profile.id)
+            except DeploifaiAPIError:
+                click.secho("Error while creating new image repository", fg="red")
+                raise click.Abort()
+            click.echo("Done")
         else:
             # Check if deploifai managed container registries exist
             managed_repositories = context.api.get_container_registries(workspace, cloud_profile.id)
@@ -149,16 +156,29 @@ def create(context: DeploifaiContextObj, name: str, port: int):
         # Tag image
         repository_uri = repository['info']['imageUri']
         docker_api.tag(image=image, repository=repository_uri, tag=tag)
-        click.echo("Tagged image")
+        click.echo(f"Tagged image with tag {tag}")
 
         # Authenticate docker to repository
         username, password = repository['info']['username'], repository['info']['password']
-        docker_api.login(username=username, password=password, registry=repository_uri)
+        click.echo("Authenticating to repository... ", nl=False)
+        try:
+            docker_api.login(username=username, password=password, registry=repository['info']['loginServer'])
+        except docker.errors.APIError:
+            click.secho("Error while authenticating to repository", fg="red")
+            raise click.Abort()
+        click.echo("Done")
 
         # Push image
-        click.echo(f"Pushing image...")
-        docker_api.push(repository_uri, tag=tag)
-        click.echo(f"Pushed image {repository_uri}:{tag}")
+        click.echo(f"Pushing image {repository_uri}:{tag}... ", nl=False)
+        try:
+            docker_api.push(repository_uri, tag=tag)
+        except docker.errors.APIError:
+            click.secho("Error while pushing image", fg="red")
+            raise click.Abort()
+        click.echo("Done")
+
+        # Use repository uri + tag as image uri
+        image_uri = repository_uri + ':' + tag
     else:
         # Use publicly accessible image (assume it is valid)
         image_uri = prompt(
@@ -244,7 +264,14 @@ def create(context: DeploifaiContextObj, name: str, port: int):
         count += 1
 
     # Create application
-    context.api.create_application(project_id, name, cloud_profile.id, config, image_uri, port, environment_variables)
+    click.echo(f"Creating application with image {image_uri}...",)
+    try:
+        application = context.api.create_application(project_id, name, cloud_profile.id, config, image_uri, port, environment_variables)
+    except DeploifaiAPIError:
+        click.secho("Error while creating application", fg="red")
+        raise click.Abort()
+    print(application)
+    click.secho(f"Application {application['name']} created successfully", fg="green")
 
     # Save local config
     # TODO

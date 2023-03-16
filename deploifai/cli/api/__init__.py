@@ -845,7 +845,9 @@ class DeploifaiAPI:
         mutation = """
         mutation($whereProject: ProjectWhereUniqueInput! $data: CreateApplicationInput!){
             createApplication(whereProject: $whereProject data: $data){
-            id
+                id
+                name
+                hostname
             }
         }
         """
