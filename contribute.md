@@ -74,8 +74,10 @@ Finally, run `poet` to generate the dependency file.
 poet --formula deploifai > deploifai.rb
 ```
 
-Copy the generated dependency stanza to `Formula/deploifai.rb` file in [homebrew-deploifai](https://github.com/deploifai/homebrew-deploifai) repository.
+The generated `resource` stanzas are the python dependencies. Copy them to the `Formula/deploifai.rb` file in [homebrew-deploifai](https://github.com/deploifai/homebrew-deploifai) repository.
 **Do not copy the entire file.**
+
+Bump the `version` and git `tag` in the `Formula/deploifai.rb` file.
 
 ## Developer Documentation
 
@@ -88,3 +90,9 @@ mkdocs serve
 ```
 
 See `docs` directory for setup of different pages.
+
+## CI/CD
+
+Github actions are used to automatically release this package to pypi, and generate a formula for homebrew.
+
+To release on homebrew, simply copy the generated [release/homebrew/deploifai.rb] file to the `Formula/deploifai.rb` file in [homebrew-deploifai](https://github.com/deploifai/homebrew-deploifai) repository.
