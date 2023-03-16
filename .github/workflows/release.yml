@@ -1,37 +1,36 @@
 name: Release
 
 on:
-#  release:
-#    types:
-#      - published
-  push:
+  release:
+    types:
+      - published
 
 jobs:
-#  pypi:
-#    name: pypi
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v3
-#
-#      - name: Setup python
-#        uses: actions/setup-python@v4
-#        with:
-#          python-version: '3.7'
-#
-#      - name: Install requirements
-#        run: |
-#          pip install -U pip wheel setuptools
-#          pip install -q -r requirements/deploifai.txt -r requirements/cli.txt -r requirements/dev.txt
-#
-#      - name: Build distribution packages
-#        run: python -m build
-#
-#      - name: Release to PyPi
-#        env:
-#          TWINE_USERNAME: __token__
-#          TWINE_PASSWORD: ${{ secrets.TWINE_API_TOKEN }}
-#        run: twine upload -r pypi --skip-existing dist/*
+  pypi:
+    name: pypi
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.7'
+
+      - name: Install requirements
+        run: |
+          pip install -U pip wheel setuptools
+          pip install -q -r requirements/deploifai.txt -r requirements/cli.txt -r requirements/dev.txt
+
+      - name: Build distribution packages
+        run: python -m build
+
+      - name: Release to PyPi
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TWINE_API_TOKEN }}
+        run: twine upload -r pypi --skip-existing dist/*
 
   homebrew:
     name: homebrew
