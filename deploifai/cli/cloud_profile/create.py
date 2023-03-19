@@ -158,6 +158,11 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
             }
         )["azureClientSecret"]
     else:
+        # Enable services
+        res = subprocess.run('gcloud services enable artifactregistry.googleapis.com compute.googleapis.com iam.googleapis.com iamcredentials.googleapis.com storage-api.googleapis.com', shell=True)
+        if res.returncode != 0:
+            raise click.Abort()
+
         # Create service account
         res = subprocess.run(f'gcloud iam service-accounts create {name} --display-name {name} --description "Service account for Deploifai"', shell=True)
         if res.returncode != 0:
