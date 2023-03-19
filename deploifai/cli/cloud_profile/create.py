@@ -1,11 +1,8 @@
-import base64
-import json
+import subprocess
 
 import click
 import boto3
 from botocore.exceptions import ClientError
-from google.oauth2 import service_account
-from googleapiclient import discovery, errors
 from InquirerPy import prompt
 from deploifai.cli.utilities.cloud_profile import Provider
 from deploifai.cli.context import (
@@ -161,49 +158,40 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
             }
         )["azureClientSecret"]
     else:
-        gcp_service_account_key_file = prompt(
-            {
-                "type": "input",
-                "name": "gcp_service_account_key_file",
-                "message": "File path for the GCP Service Account Key File (We'll keep these secured and encrypted)",
-            }
-        )["gcp_service_account_key_file"]
-
-        with open(gcp_service_account_key_file) as f:
-            project_id = json.load(f)['project_id']
-
-        credentials = service_account.Credentials.from_service_account_file(
-            gcp_service_account_key_file,
-            scopes=["https://www.googleapis.com/auth/cloud-platform"],
-        )
-
-        service = discovery.build("iam", "v1", credentials=credentials)
-
         # Create service account
-        try:
-            gcp_service_account = service.projects().serviceAccounts().create(
-                name='projects/' + project_id,
-                body={
-                    "accountId": name,
-                    "serviceAccount": {
-                        "displayName": name
-                    }
-                }
-            ).execute()
-        except errors.HttpError as err:
-            if err.status_code == 409:
-                click.secho(f"Service account '{name}' already exists", fg="red")
-            else:
-                click.secho(err, fg="red")
+        res = subprocess.run(f'gcloud iam service-accounts create {name} --display-name {name} --description "Service account for Deploifai"', shell=True)
+        if res.returncode != 0:
             raise click.Abort()
 
-        # Create key
-        service_account_email = name + '@' + project_id + '.iam.gserviceaccount.com'
-        key = service.projects().serviceAccounts().keys().create(name=f'projects/{project_id}/serviceAccounts/{service_account_email}', body={}).execute()
-        json_key_file = base64.b64decode(key['privateKeyData']).decode('utf-8')
+        # Get service account email
+        res = subprocess.run(f'gcloud iam service-accounts list --filter="displayName:{name}" --format="value(email)"', shell=True, capture_output=True)
+        if res.returncode != 0:
+            raise click.Abort()
+        service_account_email = res.stdout.decode('utf-8').strip()
 
+        # Get project ID from service account email
+        project_id = service_account_email.split('@')[1].split('.')[0]
         cloud_credentials["gcpProjectId"] = project_id
-        cloud_credentials["gcpServiceAccountKey"] = json_key_file
+
+        # Attach policies
+        roles = ['roles/editor', 'roles/resourcemanager.projectIamAdmin', 'roles/storage.admin', 'roles/run.admin']
+        for role in roles:
+            res = subprocess.run(f"gcloud projects add-iam-policy-binding {project_id} --member=serviceAccount:{service_account_email} --role={role}", shell=True, stdout=subprocess.DEVNULL)
+            if res.returncode != 0:
+                raise click.Abort()
+            click.echo(f"Attached role {role}")
+
+        # Generate key file in current directory
+        res = subprocess.run(f'gcloud iam service-accounts keys create service-account-key.json --iam-account={service_account_email} --key-file-type=json', shell=True)
+        if res.returncode != 0:
+            raise click.Abort()
+
+        try:
+            with open("service-account-key.json") as gcp_service_account_key_json:
+                cloud_credentials["gcpServiceAccountKey"] = gcp_service_account_key_json.read()
+        except FileNotFoundError:
+            click.secho("File not found. Please input the correct file path.", fg="red")
+            raise click.Abort()
 
     context.debug_msg(cloud_credentials)
     try:
