@@ -1,4 +1,5 @@
 import subprocess
+import os
 
 import click
 import boto3
@@ -194,6 +195,7 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
         try:
             with open("service-account-key.json") as gcp_service_account_key_json:
                 cloud_credentials["gcpServiceAccountKey"] = gcp_service_account_key_json.read()
+            os.remove("service-account-key.json")
         except FileNotFoundError:
             click.secho("File not found. Please input the correct file path.", fg="red")
             raise click.Abort()
