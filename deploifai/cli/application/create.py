@@ -1,7 +1,10 @@
+import os
 import click
 import re
 import docker
+from time import sleep
 from InquirerPy import prompt
+from click_spinner import spinner
 
 from deploifai.cli.api import DeploifaiAPIError
 from deploifai.cli.context import pass_deploifai_context_obj, DeploifaiContextObj, is_authenticated, project_found, local_config
@@ -9,11 +12,16 @@ from deploifai.cli.context import pass_deploifai_context_obj, DeploifaiContextOb
 
 @click.command()
 @click.argument("name")
+@click.option(
+    "--env",
+    help="Environment variables for the container (e.g. --env path/to/env OR --env VAR1=VAL1 --env VAR2=VAL2)",
+    multiple=True,
+)
 @click.option("--port", "-p", help="Port of container")
 @pass_deploifai_context_obj
 @is_authenticated
 @project_found
-def create(context: DeploifaiContextObj, name: str, port: int):
+def create(context: DeploifaiContextObj, name: str, env: tuple, port: int):
     """
     Create or update a new deployment
     """
@@ -41,6 +49,38 @@ def create(context: DeploifaiContextObj, name: str, port: int):
         click.secho("Application name must contain only lowercase alphanumeric characters, and -, not contain spaces, "
                     "and must be between 4 and 30 characters long", fg="red")
         raise click.Abort()
+
+    # Check if port is valid
+    if port:
+        try:
+            port = int(port)
+        except ValueError:
+            click.secho("Port must be an integer", fg="red")
+            raise click.Abort()
+        if port < 0 or port > 65535:
+            click.secho("Port must be between 0 and 65535", fg="red")
+            raise click.Abort()
+
+    # Check if env is valid
+    if env:
+        # Check if env is a file
+        if len(env) == 1 and not re.match(r"^.+=.+$", env[0]):
+            if not os.path.exists(env[0]):
+                click.secho("Environment file does not exist", fg="red")
+                raise click.Abort()
+            with open(env[0], 'r') as f:
+                env = f.read().splitlines()
+        for env_var in env:
+            if not re.match(r"^.+=.+$", env_var):
+                click.secho(f"Invalid environment variable: {env_var}\n"
+                            f"Environment variables must be in the format of KEY=VALUE", fg="red")
+                raise click.Abort()
+    # Format env
+    formatted_env = []
+    for env_var in env:
+        key, val = env_var.split("=", maxsplit=1)
+        formatted_env.append({"name": key, "value": val})
+    click.echo(f"Using environment variables: {env}")
 
     # Check cloud profile
     existing_cloud_profiles = context.api.get_cloud_profiles(workspace=workspace)
@@ -131,7 +171,8 @@ def create(context: DeploifaiContextObj, name: str, port: int):
             # Create new image repository
             click.echo("Creating new image repository... ", nl=False)
             try:
-                repository = context.api.create_container_registry(project_id, name, cloud_profile.id)
+                with spinner():
+                    repository = context.api.create_container_registry(project_id, name, cloud_profile.id)
             except DeploifaiAPIError:
                 click.secho("Error while creating new image repository", fg="red")
                 raise click.Abort()
@@ -162,7 +203,8 @@ def create(context: DeploifaiContextObj, name: str, port: int):
         username, password = repository['info']['username'], repository['info']['password']
         click.echo("Authenticating to repository... ", nl=False)
         try:
-            docker_api.login(username=username, password=password, registry=repository['info']['loginServer'])
+            with spinner():
+                docker_api.login(username=username, password=password, registry=repository['info']['loginServer'])
         except docker.errors.APIError:
             click.secho("Error while authenticating to repository", fg="red")
             raise click.Abort()
@@ -171,7 +213,8 @@ def create(context: DeploifaiContextObj, name: str, port: int):
         # Push image
         click.echo(f"Pushing image {repository_uri}:{tag}... ", nl=False)
         try:
-            docker_api.push(repository_uri, tag=tag)
+            with spinner():
+                docker_api.push(repository_uri, tag=tag)
         except docker.errors.APIError:
             click.secho("Error while pushing image", fg="red")
             raise click.Abort()
@@ -241,37 +284,33 @@ def create(context: DeploifaiContextObj, name: str, port: int):
     )['config']
     config = {'plan': chosen_config['plan']}
 
-    # Get environment variables
-    environment_variables = []
-    count = 1
-    click.echo("Enter environment variables in key-value pairs separated by spaces (leave blank to finish)")
-    while True:
-        env_variable = prompt(
-            {
-                "type": "input",
-                "name": "env_variable",
-                "message": f"Environment variable {count}"
-            }
-        )['env_variable']
-        if env_variable == "":
-            break
-
-        env_variable = env_variable.split(" ")
-        if len(env_variable) != 2:
-            click.secho("Please provide a valid environment variable", fg="red")
-            continue
-        environment_variables.append({"name": env_variable[0], "value": env_variable[1]})
-        count += 1
-
     # Create application
-    click.echo(f"Creating application with image {image_uri}...",)
+    click.echo(f"Creating application with image {image_uri}... ", nl=False)
     try:
-        application = context.api.create_application(project_id, name, cloud_profile.id, config, image_uri, port, environment_variables)
+        with spinner():
+            application = context.api.create_application(project_id, name, cloud_profile.id, config, image_uri, port, formatted_env)
     except DeploifaiAPIError:
-        click.secho("Error while creating application", fg="red")
+        click.secho("\nError while creating application", fg="red")
         raise click.Abort()
-    print(application)
-    click.secho(f"Application {application['name']} created successfully", fg="green")
+    click.secho(f"\nApplication {application['name']} created successfully", fg="green")
+
+    # Poll for deployment status every 10 seconds
+    click.echo("Checking deployment status (this will take some time)... ", nl=False)
+    with spinner() as s:
+        while True:
+            app = context.api.get_application(application['id'])
+            status = app['status']
+            if status == "DEPLOY_SUCCESS":
+                s.stop()
+                click.secho(f"\nApplication successfully deployed and is up on {app['hostname']}", fg="green")
+                break
+            elif status == "DEPLOY_ERROR":
+                s.stop()
+                click.secho("\nDeployment failed. This could be due to invalid or inaccessible docker image."
+                            "Please contact us at contact@deploifai.ai to troubleshoot.", fg="red")
+                break
+            else:
+                sleep(10)
 
     # Save local config
     # TODO

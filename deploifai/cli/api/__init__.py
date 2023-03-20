@@ -821,7 +821,6 @@ class DeploifaiAPI:
             "whereApplication": where_application,
         }
 
-        app_details = []
         try:
             r = requests.post(
                 self.uri,
@@ -841,13 +840,45 @@ class DeploifaiAPI:
 
         return app_details
 
+    def get_application(self, application_id: str):
+        query = """
+        query ($where: ApplicationWhereUniqueInput!){
+            application(where: $where){
+                id
+                name
+                status
+                hostname
+            }
+        }
+        """
+
+        variables = {"where": {"id": application_id}}
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+            app_info = r.json()
+
+            if "errors" in app_info:
+                raise DeploifaiAPIError(app_info['errors'][0]['message'])
+
+            app_details = app_info["data"]["application"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not find Application. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not find Application. Please try again.")
+
+        return app_details
+
     def create_application(self, project_id: str, name: str, cloud_profile_id: str, config: dict, image_uri: str, port: int, environment_variables: list):
         mutation = """
         mutation($whereProject: ProjectWhereUniqueInput! $data: CreateApplicationInput!){
             createApplication(whereProject: $whereProject data: $data){
                 id
                 name
-                hostname
             }
         }
         """
