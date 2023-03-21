@@ -1,5 +1,6 @@
 import subprocess
 import os
+import json
 
 import click
 import boto3
@@ -45,18 +46,15 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
         raise click.Abort()
 
     if not provider:
-        try:
-            provider = prompt(
-                {
-                    "type": "list",
-                    "name": "provider",
-                    "message": "Choose a provider for the new cloud profile",
-                    "choices": [{"name": p.value, "value": p} for p in Provider]
-                }
-            )["provider"]
-        except KeyError:
-            click.secho('Mouse click detected', fg="red")
-            raise click.Abort()
+        provider = prompt(
+            {
+                "type": "list",
+                "name": "provider",
+                "message": "Choose a provider for the new cloud profile",
+                "choices": [{"name": p.value, "value": p} for p in Provider]
+            }
+        )["provider"]
+
     else:
         provider = Provider(provider)   # Cast to Provider enum
 
@@ -71,19 +69,15 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
                         'credentials for Deploifai on the dashboard.', fg="red")
             raise click.Abort()
         if len(profiles) > 1:
-            try:
-                profile = prompt(
-                    {
-                        "type": "list",
-                        "name": "profile",
-                        "message": "Choose an AWS profile to use",
-                        "choices": [{"name": p, "value": p} for p in profiles]
-                    }
-                )["profile"]
-                s = boto3.session.Session(profile_name=profile)
-            except KeyError:
-                click.secho('Mouse click detected', fg="red")
-                raise click.Abort()
+            profile = prompt(
+                {
+                    "type": "list",
+                    "name": "profile",
+                    "message": "Choose an AWS profile to use",
+                    "choices": [{"name": p, "value": p} for p in profiles]
+                }
+            )["profile"]
+            s = boto3.session.Session(profile_name=profile)
 
         local_creds = s.get_credentials()
         iam = boto3.client('iam', aws_access_key_id=local_creds.access_key, aws_secret_access_key=local_creds.secret_key)
@@ -159,6 +153,33 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
             }
         )["azureClientSecret"]
     else:
+        # Select projects
+        res = subprocess.run('gcloud projects list --format=json', shell=True, capture_output=True)
+        if res.returncode != 0:
+            raise click.Abort()
+        projects = json.loads(res.stdout.decode('utf-8'))
+
+        # Filter out inactive projects
+        projects = [p for p in projects if p['lifecycleState'] == 'ACTIVE']
+        if not projects:
+            click.secho('No active Google Cloud projects found. Please create one using gcloud cli or at https://console.cloud.google.com/home/dashboard', fg="red")
+            raise click.Abort()
+
+        project_id = prompt(
+            {
+                "type": "list",
+                "name": "project",
+                "message": "Choose a Google Cloud project to use for this cloud profile",
+                "choices": [{"name": p['projectId'], "value": p['projectId']} for p in projects]
+            }
+        )["project"]
+
+        # Set project
+        res = subprocess.run(f'gcloud config set project {project_id}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if res.returncode != 0:
+            raise click.Abort()
+        click.echo(f"Set project to {project_id}")
+
         # Enable services
         res = subprocess.run('gcloud services enable artifactregistry.googleapis.com compute.googleapis.com iam.googleapis.com iamcredentials.googleapis.com storage-api.googleapis.com', shell=True)
         if res.returncode != 0:
