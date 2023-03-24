@@ -13,15 +13,20 @@ from deploifai.cli.context import pass_deploifai_context_obj, DeploifaiContextOb
 @click.command()
 @click.argument("name")
 @click.option(
+    "--env-file",
+    help="File path for environment variables (e.g. --env-file path/to/env1 --env-file path/to/env2)",
+    multiple=True,
+)
+@click.option(
     "--env",
-    help="Environment variables for the container (e.g. --env path/to/env OR --env VAR1=VAL1 --env VAR2=VAL2)",
+    help="Environment variables for the container (e.g. --env VAR1=VAL1 --env VAR2=VAL2)",
     multiple=True,
 )
 @click.option("--port", "-p", help="Port of container")
 @pass_deploifai_context_obj
 @is_authenticated
 @project_found
-def create(context: DeploifaiContextObj, name: str, env: tuple, port: int):
+def create(context: DeploifaiContextObj, name: str, env_file: tuple, env: tuple, port: int):
     """
     Create or update a new deployment
     """
@@ -61,26 +66,32 @@ def create(context: DeploifaiContextObj, name: str, env: tuple, port: int):
             click.secho("Port must be between 0 and 65535", fg="red")
             raise click.Abort()
 
-    # Check if env is valid
-    if env:
-        # Check if env is a file
-        if len(env) == 1 and not re.match(r"^.+=.+$", env[0]):
-            if not os.path.exists(env[0]):
-                click.secho("Environment file does not exist", fg="red")
-                raise click.Abort()
-            with open(env[0], 'r') as f:
-                env = f.read().splitlines()
-        for env_var in env:
-            if not re.match(r"^.+=.+$", env_var):
-                click.secho(f"Invalid environment variable: {env_var}\n"
-                            f"Environment variables must be in the format of KEY=VALUE", fg="red")
-                raise click.Abort()
-    # Format env
+    # Check env files
     formatted_env = []
+    for file in env_file:
+        if not os.path.isfile(file):
+            click.secho(f"Environment file does not exist: {file}", fg="red")
+            raise click.Abort()
+        with open(file, "r") as f:
+            env_vars = f.read().splitlines()
+            for env_var in env_vars:
+                try:
+                    key, val = env_var.split("=", maxsplit=1)
+                except ValueError:
+                    click.secho(f"Invalid environment variable: {env_var} in file {file}\n"
+                                f"Environment variables must be in the format of KEY=VALUE", fg="red")
+                    raise click.Abort()
+                formatted_env.append({"name": key, "value": val})
+
+    # Check env variables
     for env_var in env:
-        key, val = env_var.split("=", maxsplit=1)
+        try:
+            key, val = env_var.split("=", maxsplit=1)
+        except ValueError:
+            click.secho(f"Invalid environment variable: {env_var}\n"
+                        f"Environment variables must be in the format of KEY=VALUE", fg="red")
+            raise click.Abort()
         formatted_env.append({"name": key, "value": val})
-    click.echo(f"Using environment variables: {env}")
 
     # Check cloud profile
     existing_cloud_profiles = context.api.get_cloud_profiles(workspace=workspace)
@@ -295,7 +306,7 @@ def create(context: DeploifaiContextObj, name: str, env: tuple, port: int):
     click.secho(f"\nApplication {application['name']} created successfully", fg="green")
 
     # Poll for deployment status every 10 seconds
-    click.echo("Checking deployment status (this will take some time)... ", nl=False)
+    click.echo("Deploying application (this will take a few minutes, and it's safe to CTRL+C) ... ", nl=False)
     with spinner() as s:
         while True:
             app = context.api.get_application(application['id'])
