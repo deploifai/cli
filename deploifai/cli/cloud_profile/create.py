@@ -1,3 +1,7 @@
+import subprocess
+import os
+import json
+
 import click
 import boto3
 from botocore.exceptions import ClientError
@@ -42,18 +46,15 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
         raise click.Abort()
 
     if not provider:
-        try:
-            provider = prompt(
-                {
-                    "type": "list",
-                    "name": "provider",
-                    "message": "Choose a provider for the new cloud profile",
-                    "choices": [{"name": p.value, "value": p} for p in Provider]
-                }
-            )["provider"]
-        except KeyError:
-            click.secho('Mouse click detected', fg="red")
-            raise click.Abort()
+        provider = prompt(
+            {
+                "type": "list",
+                "name": "provider",
+                "message": "Choose a provider for the new cloud profile",
+                "choices": [{"name": p.value, "value": p} for p in Provider]
+            }
+        )["provider"]
+
     else:
         provider = Provider(provider)   # Cast to Provider enum
 
@@ -68,19 +69,15 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
                         'credentials for Deploifai on the dashboard.', fg="red")
             raise click.Abort()
         if len(profiles) > 1:
-            try:
-                profile = prompt(
-                    {
-                        "type": "list",
-                        "name": "profile",
-                        "message": "Choose an AWS profile to use",
-                        "choices": [{"name": p, "value": p} for p in profiles]
-                    }
-                )["profile"]
-                s = boto3.session.Session(profile_name=profile)
-            except KeyError:
-                click.secho('Mouse click detected', fg="red")
-                raise click.Abort()
+            profile = prompt(
+                {
+                    "type": "list",
+                    "name": "profile",
+                    "message": "Choose an AWS profile to use",
+                    "choices": [{"name": p, "value": p} for p in profiles]
+                }
+            )["profile"]
+            s = boto3.session.Session(profile_name=profile)
 
         local_creds = s.get_credentials()
         iam = boto3.client('iam', aws_access_key_id=local_creds.access_key, aws_secret_access_key=local_creds.secret_key)
@@ -156,25 +153,71 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
             }
         )["azureClientSecret"]
     else:
-        cloud_credentials["gcpProjectId"] = prompt(
-            {
-                "type": "input",
-                "name": "gcpProjectId",
-                "message": "GCP Project ID (We'll keep these secured and encrypted)",
-            }
-        )["gcpProjectId"]
+        # Select projects
+        res = subprocess.run('gcloud projects list --format=json', shell=True, capture_output=True)
+        if res.returncode != 0:
+            raise click.Abort()
+        gcp_projects = json.loads(res.stdout.decode('utf-8'))
 
-        gcp_service_account_key_file = prompt(
-            {
-                "type": "input",
-                "name": "gcp_service_account_key_file",
-                "message": "File path for the GCP Service Account Key File (We'll keep these secured and encrypted)",
-            }
-        )["gcp_service_account_key_file"]
+        # Filter out inactive projects
+        gcp_projects = [p for p in gcp_projects if p['lifecycleState'] == 'ACTIVE']
+        if not gcp_projects:
+            click.secho('No active Google Cloud projects found. Please create one using gcloud cli or at https://console.cloud.google.com/home/dashboard', fg="red")
+            raise click.Abort()
 
+        gcp_project_id = prompt(
+            {
+                "type": "list",
+                "name": "project",
+                "message": "Choose a Google Cloud project to use for this cloud profile",
+                "choices": [{"name": f"{p['name']} ({p['projectId']})", "value": p['projectId']} for p in gcp_projects]
+            }
+        )["project"]
+
+        cloud_credentials["gcpProjectId"] = gcp_project_id
+
+        # Set project
+        res = subprocess.run(f'gcloud config set project {gcp_project_id}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if res.returncode != 0:
+            raise click.Abort()
+        click.echo(f"Set GCP project to {gcp_project_id}")
+
+        # Enable services
+        res = subprocess.run('gcloud services enable artifactregistry.googleapis.com compute.googleapis.com iam.googleapis.com iamcredentials.googleapis.com storage-api.googleapis.com', shell=True)
+        if res.returncode != 0:
+            raise click.Abort()
+
+        # Create service account
+        res = subprocess.run(f'gcloud iam service-accounts create {name} --display-name {name} --description "Service account for Deploifai"', shell=True)
+        if res.returncode != 0:
+            raise click.Abort()
+
+        # Get service account email
+        res = subprocess.run(f'gcloud iam service-accounts list --filter="displayName:{name}" --format="value(email)"', shell=True, capture_output=True)
+        if res.returncode != 0:
+            raise click.Abort()
+        service_account_email = res.stdout.decode('utf-8').strip()
+
+        # Attach policies
+        roles = ['roles/editor', 'roles/resourcemanager.projectIamAdmin', 'roles/storage.admin', 'roles/run.admin']
+        for role in roles:
+            res = subprocess.run(f"gcloud projects add-iam-policy-binding {gcp_project_id} --member=serviceAccount:{service_account_email} --role={role}", shell=True, capture_output=True)
+            if res.returncode != 0:
+                click.secho(res.stderr.decode('utf-8'), fg="red")
+                raise click.Abort()
+            click.echo(f"Attached role {role}")
+
+        # Generate key file '.key.json' in current directory
+        res = subprocess.run(f'gcloud iam service-accounts keys create .key.json --iam-account={service_account_email} --key-file-type=json', shell=True, capture_output=True)
+        if res.returncode != 0:
+            click.secho(res.stderr.decode('utf-8'), fg="red")
+            raise click.Abort()
+
+        # Extract key and delete key file
         try:
-            with open(gcp_service_account_key_file) as gcp_service_account_key_json:
+            with open(".key.json") as gcp_service_account_key_json:
                 cloud_credentials["gcpServiceAccountKey"] = gcp_service_account_key_json.read()
+            os.remove(".key.json")
         except FileNotFoundError:
             click.secho("File not found. Please input the correct file path.", fg="red")
             raise click.Abort()
@@ -197,4 +240,4 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
         click.secho(err, fg="red")
         raise click.Abort()
 
-    click.secho(f"Successfully created a new cloud profile named {name}.", fg="green")
+    click.secho(f"Successfully created a new cloud profile: {name}.", fg="green")
