@@ -157,30 +157,30 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
         res = subprocess.run('gcloud projects list --format=json', shell=True, capture_output=True)
         if res.returncode != 0:
             raise click.Abort()
-        projects = json.loads(res.stdout.decode('utf-8'))
+        gcp_projects = json.loads(res.stdout.decode('utf-8'))
 
         # Filter out inactive projects
-        projects = [p for p in projects if p['lifecycleState'] == 'ACTIVE']
-        if not projects:
+        gcp_projects = [p for p in gcp_projects if p['lifecycleState'] == 'ACTIVE']
+        if not gcp_projects:
             click.secho('No active Google Cloud projects found. Please create one using gcloud cli or at https://console.cloud.google.com/home/dashboard', fg="red")
             raise click.Abort()
 
-        project_id = prompt(
+        gcp_project_id = prompt(
             {
                 "type": "list",
                 "name": "project",
                 "message": "Choose a Google Cloud project to use for this cloud profile",
-                "choices": [{"name": f"{p['name']} ({p['projectId']})", "value": p['projectId']} for p in projects]
+                "choices": [{"name": f"{p['name']} ({p['projectId']})", "value": p['projectId']} for p in gcp_projects]
             }
         )["project"]
 
-        cloud_credentials["gcpProjectId"] = project_id
+        cloud_credentials["gcpProjectId"] = gcp_project_id
 
         # Set project
-        res = subprocess.run(f'gcloud config set project {project_id}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        res = subprocess.run(f'gcloud config set project {gcp_project_id}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         if res.returncode != 0:
             raise click.Abort()
-        click.echo(f"Set project to {project_id}")
+        click.echo(f"Set GCP project to {gcp_project_id}")
 
         # Enable services
         res = subprocess.run('gcloud services enable artifactregistry.googleapis.com compute.googleapis.com iam.googleapis.com iamcredentials.googleapis.com storage-api.googleapis.com', shell=True)
@@ -201,7 +201,7 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
         # Attach policies
         roles = ['roles/editor', 'roles/resourcemanager.projectIamAdmin', 'roles/storage.admin', 'roles/run.admin']
         for role in roles:
-            res = subprocess.run(f"gcloud projects add-iam-policy-binding {project_id} --member=serviceAccount:{service_account_email} --role={role}", shell=True, capture_output=True)
+            res = subprocess.run(f"gcloud projects add-iam-policy-binding {gcp_project_id} --member=serviceAccount:{service_account_email} --role={role}", shell=True, capture_output=True)
             if res.returncode != 0:
                 click.secho(res.stderr.decode('utf-8'), fg="red")
                 raise click.Abort()
@@ -240,4 +240,4 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
         click.secho(err, fg="red")
         raise click.Abort()
 
-    click.secho(f"Successfully created a new cloud profile named {name}.", fg="green")
+    click.secho(f"Successfully created a new cloud profile: {name}.", fg="green")
