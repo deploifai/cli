@@ -170,9 +170,11 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
                 "type": "list",
                 "name": "project",
                 "message": "Choose a Google Cloud project to use for this cloud profile",
-                "choices": [{"name": p['projectId'], "value": p['projectId']} for p in projects]
+                "choices": [{"name": f"{p['name']} ({p['projectId']})", "value": p['projectId']} for p in projects]
             }
         )["project"]
+
+        cloud_credentials["gcpProjectId"] = project_id
 
         # Set project
         res = subprocess.run(f'gcloud config set project {project_id}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -196,27 +198,26 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
             raise click.Abort()
         service_account_email = res.stdout.decode('utf-8').strip()
 
-        # Get project ID from service account email
-        project_id = service_account_email.split('@')[1].split('.')[0]
-        cloud_credentials["gcpProjectId"] = project_id
-
         # Attach policies
         roles = ['roles/editor', 'roles/resourcemanager.projectIamAdmin', 'roles/storage.admin', 'roles/run.admin']
         for role in roles:
-            res = subprocess.run(f"gcloud projects add-iam-policy-binding {project_id} --member=serviceAccount:{service_account_email} --role={role}", shell=True, stdout=subprocess.DEVNULL)
+            res = subprocess.run(f"gcloud projects add-iam-policy-binding {project_id} --member=serviceAccount:{service_account_email} --role={role}", shell=True, capture_output=True)
             if res.returncode != 0:
+                click.secho(res.stderr.decode('utf-8'), fg="red")
                 raise click.Abort()
             click.echo(f"Attached role {role}")
 
-        # Generate key file in current directory
-        res = subprocess.run(f'gcloud iam service-accounts keys create service-account-key.json --iam-account={service_account_email} --key-file-type=json', shell=True)
+        # Generate key file '.key.json' in current directory
+        res = subprocess.run(f'gcloud iam service-accounts keys create .key.json --iam-account={service_account_email} --key-file-type=json', shell=True, capture_output=True)
         if res.returncode != 0:
+            click.secho(res.stderr.decode('utf-8'), fg="red")
             raise click.Abort()
 
+        # Extract key and delete key file
         try:
-            with open("service-account-key.json") as gcp_service_account_key_json:
+            with open(".key.json") as gcp_service_account_key_json:
                 cloud_credentials["gcpServiceAccountKey"] = gcp_service_account_key_json.read()
-            os.remove("service-account-key.json")
+            os.remove(".key.json")
         except FileNotFoundError:
             click.secho("File not found. Please input the correct file path.", fg="red")
             raise click.Abort()
