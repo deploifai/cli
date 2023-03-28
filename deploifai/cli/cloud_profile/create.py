@@ -124,34 +124,24 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
             click.secho(err, fg="red")
             raise click.Abort()
     elif provider == Provider.AZURE:
-        cloud_credentials["azureSubscriptionId"] = prompt(
-            {
-                "type": "input",
-                "name": "azureSubscriptionId",
-                "message": "Azure Account Subscription ID (We'll keep these secured and encrypted)",
-            }
-        )["azureSubscriptionId"]
-        cloud_credentials["azureTenantId"] = prompt(
-            {
-                "type": "input",
-                "name": "azureTenantId",
-                "message": "Azure Active Directory Tenant ID (We'll keep these secured and encrypted)",
-            }
-        )["azureTenantId"]
-        cloud_credentials["azureClientId"] = prompt(
-            {
-                "type": "input",
-                "name": "azureClientId",
-                "message": "Azure Client ID (We'll keep these secured and encrypted)",
-            }
-        )["azureClientId"]
-        cloud_credentials["azureClientSecret"] = prompt(
-            {
-                "type": "input",
-                "name": "azureClientSecret",
-                "message": "Azure Client Secret / Password (We'll keep these secured and encrypted)",
-            }
-        )["azureClientSecret"]
+        # Get subscription ID
+        res = subprocess.run('az account show --query id -o tsv', shell=True, capture_output=True)
+        if res.returncode != 0:
+            click.secho(res.stderr.decode("utf-8").strip(), fg="red")
+            raise click.Abort()
+        subscription_id = res.stdout.decode('utf-8').strip()
+
+        # Create service principal
+        res = subprocess.run(f'az ad sp create-for-rbac -n {name} --role Contributor --scopes="/subscriptions/{subscription_id}" -o json', shell=True, capture_output=True)
+        if res.returncode != 0:
+            click.secho(res.stderr.decode("utf-8").strip(), fg="red")
+            raise click.Abort()
+        azure_credentials = json.loads(res.stdout.decode('utf-8').strip())
+
+        cloud_credentials["azureSubscriptionId"] = subscription_id
+        cloud_credentials["azureTenantId"] = azure_credentials['tenant']
+        cloud_credentials["azureClientId"] = azure_credentials['appId']
+        cloud_credentials["azureClientSecret"] = azure_credentials['password']
     else:
         # Select projects
         res = subprocess.run('gcloud projects list --format=json', shell=True, capture_output=True)
