@@ -279,14 +279,10 @@ def create(context: DeploifaiContextObj, name: str, env_file: tuple, env: tuple,
         {
             "type": "list",
             "name": "config",
-            "message": "Choose a size for the application",
+            "message": f"Choose a size for the application ({cloud_profile.provider})",
             "choices": [
                 {
-                    "name": "{plan} ({config_type}) - {provider}".format(
-                        plan=config["plan"],
-                        config_type=config["config"],
-                        provider=cloud_profile.provider,
-                    ),
+                    "name": f"{config['plan']} ({config['config']})",
                     "value": config,
                 }
                 for config in app_config
@@ -305,6 +301,9 @@ def create(context: DeploifaiContextObj, name: str, env_file: tuple, env: tuple,
         raise click.Abort()
     click.secho(f"\nApplication {application['name']} created successfully", fg="green")
 
+    # Save local config
+    # local_config.set_application_config(application['id'], is_local_image, image['Id'] if is_local_image else None, context.local_config)
+
     # Poll for deployment status every 10 seconds
     click.echo("Deploying application (this will take a few minutes, and it's safe to CTRL+C) ... ", nl=False)
     with spinner() as s:
@@ -318,10 +317,7 @@ def create(context: DeploifaiContextObj, name: str, env_file: tuple, env: tuple,
             elif status == "DEPLOY_ERROR":
                 s.stop()
                 click.secho("\nDeployment failed. This could be due to invalid or inaccessible docker image."
-                            "Please contact us at contact@deploifai.ai to troubleshoot.", fg="red")
+                            "Please contact us at contact@deploif.ai to troubleshoot.", fg="red")
                 break
             else:
                 sleep(10)
-
-    # Save local config
-    # TODO
