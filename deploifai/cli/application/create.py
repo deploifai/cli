@@ -301,9 +301,6 @@ def create(context: DeploifaiContextObj, name: str, env_file: tuple, env: tuple,
         raise click.Abort()
     click.secho(f"\nApplication {application['name']} created successfully", fg="green")
 
-    # Save local config
-    # local_config.set_application_config(application['id'], is_local_image, image['Id'] if is_local_image else None, context.local_config)
-
     # Poll for deployment status every 10 seconds
     click.echo("Deploying application (this will take a few minutes, and it's safe to CTRL+C) ... ", nl=False)
     with spinner() as s:
