@@ -660,3 +660,257 @@ class DeploifaiAPI:
             raise DeploifaiAPIError("Could not stop Training Server. Please try again.")
         except KeyError:
             raise DeploifaiAPIError("Could not stop Training Server. Please try again.")
+
+    def get_container_registries(self, username: str, cloud_profile_id: str):
+        query = """
+        query ($whereAccount: AccountWhereUniqueInput! $whereContainerRegistry: ContainerRegistryWhereInput){
+            containerRegistries(whereAccount: $whereAccount whereContainerRegistry: $whereContainerRegistry){
+                id
+                name
+            }
+        }
+        """
+
+        variables = {
+            "whereAccount": {"username": username},
+            "whereContainerRegistry": {"cloudProfileId": {"equals": cloud_profile_id}},
+        }
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+
+            container_registries = r.json()
+            return container_registries["data"]["containerRegistries"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not get Container Registries. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not get Container Registries. Please try again.")
+
+    def get_container_registry(self, registry_id: str):
+        query = """
+        query ($where: ContainerRegistryWhereUniqueInput!){
+            containerRegistry(where: $where){
+                id
+                name
+                info {
+                    loginServer
+                    username
+                    password
+                    imageUri
+                }
+            }
+        }
+        """
+
+        variables = {"where": {"id": registry_id}}
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+
+            container_registry = r.json()
+            return container_registry["data"]["containerRegistry"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not get Container Registry. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not get Container Registry. Please try again.")
+
+    def create_container_registry(self, project_id: str, name: str, cloud_profile_id: str):
+        mutation = """
+        mutation($whereProject: ProjectWhereUniqueInput! $data: CreateContainerRegistryInput!){
+            createContainerRegistry(whereProject: $whereProject data: $data){
+                id
+                name
+                sluggedName
+                info {
+                    loginServer
+                    username
+                    password
+                    imageUri
+                }
+            }
+        }
+        """
+
+        variables = {
+            "whereProject": {"id": project_id},
+            "data": {
+                "name": name,
+                "cloudProfileId": cloud_profile_id,
+                "cloudProviderContainerRegistryConfig": {},
+            }
+        }
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": mutation, "variables": variables},
+                headers=self.headers,
+            )
+
+            create_mutation_data = r.json()
+
+            return create_mutation_data["data"]["createContainerRegistry"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not create Container Registry. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not create Container Registry. Please try again.")
+
+    def get_application_infrastructure_plans(self, cloud_provider: str):
+        query = """
+        query ($provider: CloudProvider) {
+            applicationInfrastructurePlans(provider: $provider) {
+                plan
+                config {
+                    ... on AWSAppDefaultConfig{
+                    ec2InstanceType
+                    }
+                    ... on AzureAppDefaultConfig{
+                    cgCpu
+                    }
+                    ... on GCPAppDefaultConfig{
+                    containerCpu
+                    }
+                }
+            }
+        }
+        """
+
+        variables = {
+            "provider": cloud_provider,
+        }
+
+        app_configs = []
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+            app_info = r.json()
+
+            if "errors" in app_info:
+                raise DeploifaiAPIError(app_info['errors'][0]['message'])
+
+            app_configs = app_info["data"]["applicationInfrastructurePlans"]
+        except Exception:
+            pass
+        finally:
+            return app_configs
+
+    def get_applications(self, workspace: str, where_application: dict = None):
+        query = """
+        query ($whereAccount: AccountWhereUniqueInput! $whereApplication: ApplicationWhereInput){
+            applications(whereAccount: $whereAccount whereApplication: $whereApplication){
+                id
+                name
+                status
+            }
+        }
+        """
+
+        variables = {
+            "whereAccount": {"username": workspace},
+            "whereApplication": where_application,
+        }
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+            app_info = r.json()
+
+            if "errors" in app_info:
+                raise DeploifaiAPIError(app_info['errors'][0]['message'])
+
+            app_details = app_info["data"]["applications"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not find Applications. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not find Applications. Please try again.")
+
+        return app_details
+
+    def get_application(self, application_id: str):
+        query = """
+        query ($where: ApplicationWhereUniqueInput!){
+            application(where: $where){
+                id
+                name
+                status
+                hostname
+            }
+        }
+        """
+
+        variables = {"where": {"id": application_id}}
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": query, "variables": variables},
+                headers=self.headers,
+            )
+            app_info = r.json()
+
+            if "errors" in app_info:
+                raise DeploifaiAPIError(app_info['errors'][0]['message'])
+
+            app_details = app_info["data"]["application"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not find Application. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not find Application. Please try again.")
+
+        return app_details
+
+    def create_application(self, project_id: str, name: str, cloud_profile_id: str, config: dict, image_uri: str, port: int, environment_variables: list):
+        mutation = """
+        mutation($whereProject: ProjectWhereUniqueInput! $data: CreateApplicationInput!){
+            createApplication(whereProject: $whereProject data: $data){
+                id
+                name
+            }
+        }
+        """
+
+        variables = {
+            "whereProject": {"id": project_id},
+            "data": {
+                "name": name,
+                "cloudProfileId": cloud_profile_id,
+                "cloudProviderAppConfig": config,
+                "container": {
+                    "image": image_uri,
+                    "port": port,
+                },
+                "environmentVariables": environment_variables,
+            }
+        }
+
+        try:
+            r = requests.post(
+                self.uri,
+                json={"query": mutation, "variables": variables},
+                headers=self.headers,
+            )
+
+            create_mutation_data = r.json()
+
+            return create_mutation_data["data"]["createApplication"]
+        except TypeError:
+            raise DeploifaiAPIError("Could not create Application. Please try again.")
+        except KeyError:
+            raise DeploifaiAPIError("Could not create Application. Please try again.")
+
+    def update_application(self):
+        ...
