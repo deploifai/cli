@@ -15,6 +15,7 @@ google-auth
 google-cloud-storage
 semver
 cryptography
+docker
 ```
 
 ### CLI dependencies
