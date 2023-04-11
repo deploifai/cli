@@ -1,9 +1,13 @@
 import subprocess
 import os
 import json
-
 import click
 import boto3
+import logging
+from time import sleep
+from click_spinner import spinner
+from azure.identity import ClientSecretCredential
+from azure.core.exceptions import ClientAuthenticationError
 from botocore.exceptions import ClientError
 from InquirerPy import prompt
 from deploifai.cli.utilities.cloud_profile import Provider
@@ -124,24 +128,82 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
             click.secho(err, fg="red")
             raise click.Abort()
     elif provider == Provider.AZURE:
-        # Get subscription ID
-        res = subprocess.run('az account show --query id -o tsv', shell=True, capture_output=True)
+        # Prompt for account
+        res = subprocess.run("az account list -o json", shell=True, capture_output=True)
         if res.returncode != 0:
             click.secho(res.stderr.decode("utf-8").strip(), fg="red")
             raise click.Abort()
-        subscription_id = res.stdout.decode('utf-8').strip()
+        accounts = json.loads(res.stdout.decode('utf-8'))
+        if not accounts:
+            click.secho("No Azure accounts found. Please log in with 'az login'", fg="red")
+            raise click.Abort()
+        if len(accounts) == 1:
+            account = accounts[0]
+        else:
+            account = prompt(
+                {
+                    "type": "list",
+                    "name": "account",
+                    "message": "Choose an Azure account to use",
+                    "choices": [{"name": f"{a['name']} ({a['user']['name']})", "value": a} for a in accounts]
+                }
+            )["account"]
+
+        # Set azure cli context to the selected account
+        subscription_id = account["id"]
+        res = subprocess.run(f'az account set --subscription {subscription_id}', shell=True)
+        if res.returncode != 0:
+            raise click.Abort()
+        click.echo(f"Set account to {account['name']} ({account['user']['name']}) ({subscription_id})")
 
         # Create service principal
-        res = subprocess.run(f'az ad sp create-for-rbac -n {name} --role Contributor --scopes="/subscriptions/{subscription_id}" -o json', shell=True, capture_output=True)
+        click.echo("Creating new service principal... ", nl=False)
+        with spinner():
+            res = subprocess.run(f'az ad sp create-for-rbac -n {name} --role Contributor --scopes="/subscriptions/{subscription_id}" -o json', shell=True, capture_output=True)
         if res.returncode != 0:
             click.secho(res.stderr.decode("utf-8").strip(), fg="red")
             raise click.Abort()
         azure_credentials = json.loads(res.stdout.decode('utf-8').strip())
+        click.secho(f" \nCreated service principal {name} ({azure_credentials['appId']})", fg="green")  # Note: added space before newline to prevent spinner residue
+
+        tenant_id = azure_credentials['tenant']
+        client_id = azure_credentials['appId']
+        client_secret = azure_credentials['password']
 
         cloud_credentials["azureSubscriptionId"] = subscription_id
-        cloud_credentials["azureTenantId"] = azure_credentials['tenant']
-        cloud_credentials["azureClientId"] = azure_credentials['appId']
-        cloud_credentials["azureClientSecret"] = azure_credentials['password']
+        cloud_credentials["azureTenantId"] = tenant_id
+        cloud_credentials["azureClientId"] = client_id
+        cloud_credentials["azureClientSecret"] = client_secret
+
+        click.echo("Creating cloud profile... ", nl=False)
+
+        # Ping azure with newly created credentials until it is ready
+        logger = logging.getLogger("azure.identity._internal.get_token_mixin")
+        logger_level = logger.getEffectiveLevel()
+        logger.setLevel(logging.ERROR)  # temporarily disable noisy azure logs
+        with spinner():
+            # Exponential backoff (double sleep time on each error)
+            sleep_time = 2
+            while True:
+                # Escape from infinite loop
+                if sleep_time > 32:
+                    click.secho("Timeout while attempting to create cloud profile with the new service principal "
+                                "(this is likely an issue with Azure)", fg="red")
+                    raise click.Abort()
+                sleep(sleep_time)
+                try:
+                    # Attempt to create resource group if it does not exist
+                    ClientSecretCredential(tenant_id, client_id, client_secret).get_token("https://management.azure.com/.default")
+                    break
+                except ClientAuthenticationError as e:
+                    context.debug_msg(e)
+                    sleep_time *= 2
+                except Exception as e:
+                    context.debug_msg(e)
+                    click.secho("Something went wrong with the newly generated service principal credentials", fg="red")
+                    raise click.Abort()
+        click.echo(" ")  # print space to prevent spinner residue
+        logger.setLevel(logger_level)  # restore logger verbosity
     else:
         # Select projects
         res = subprocess.run('gcloud projects list --format=json', shell=True, capture_output=True)
@@ -213,21 +275,43 @@ def create(context: DeploifaiContextObj, name: str, provider: str):
             raise click.Abort()
 
     context.debug_msg(cloud_credentials)
-    try:
-        cloud_profile_fragment = """
-        fragment cloud_profile on CloudProfile {
-            id
-        }
-        """
-        _ = deploifai_api.create_cloud_profile(
-            provider,
-            name,
-            cloud_credentials,
-            command_workspace,
-            cloud_profile_fragment
-        )
-    except DeploifaiAPIError as err:
-        click.secho(err, fg="red")
-        raise click.Abort()
+
+    # Create cloud profile
+    cloud_profile_fragment = """
+    fragment cloud_profile on CloudProfile {
+        id
+    }
+    """
+    # If Azure, retry 5 times
+    if provider == Provider.AZURE:
+        for i in range(5):
+            try:
+                _ = deploifai_api.create_cloud_profile(
+                    provider,
+                    name,
+                    cloud_credentials,
+                    command_workspace,
+                    cloud_profile_fragment
+                )
+                break
+            except DeploifaiAPIError as err:
+                context.debug_msg(err)
+                if i == 4:
+                    click.secho(err, fg="red")
+                    raise click.Abort()
+                context.debug_msg("Retrying in 5 seconds...")
+                sleep(5)
+    else:
+        try:
+            _ = deploifai_api.create_cloud_profile(
+                provider,
+                name,
+                cloud_credentials,
+                command_workspace,
+                cloud_profile_fragment
+            )
+        except DeploifaiAPIError as err:
+            click.secho(err, fg="red")
+            raise click.Abort()
 
     click.secho(f"Successfully created a new cloud profile: {name}.", fg="green")
