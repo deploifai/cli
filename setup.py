@@ -25,6 +25,7 @@ setuptools.setup(
         "boto3",
         "google-auth",
         "google-cloud-storage",
+        "docker",
         "InquirerPy",
         "pyperclip",
         "semver",
