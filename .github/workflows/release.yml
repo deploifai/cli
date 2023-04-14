@@ -36,30 +36,10 @@ jobs:
     name: homebrew
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup python
-        uses: actions/setup-python@v4
+      - name: Dispatch release event to homebrew-deploifai repo
+        uses: peter-evans/repository-dispatch@v2
         with:
-          python-version: '3.9'
-
-      - name: Install requirements and deploifai-cli
-        run: |
-          pip install -U pip wheel setuptools
-          pip install --editable .
-          pip install homebrew-pypi-poet
-
-      - name: Generate homebrew formula
-        working-directory: release/homebrew
-        run: |
-          poet --formula deploifai > deploifai.rb
-          python homebrew.py
-
-      - name: Commit and push
-        uses: EndBug/add-and-commit@v9
-        with:
-          default_author: github_actions
-          message: "Update homebrew formula to ${{ github.event.release.tag_name }}"
-          add: "release/homebrew"
-          push: true
+          token: ${{ secrets.PAT_GITHUB_ACTIONS }}
+          repository: deploifai/homebrew-deploifai
+          event-type: release
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "tag": "${{ github.event.release.tag_name }}", "version": "${{ github.event.release.tag_name }}"}'
