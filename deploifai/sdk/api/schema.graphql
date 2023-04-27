@@ -1,0 +1,4416 @@
+"""Exposes a URL that specifies the behaviour of this scalar."""
+directive @specifiedBy(
+  """The URL that specifies the behaviour of this scalar."""
+  url: String!
+) on SCALAR
+
+"""
+Direct the client to resolve this field locally, either from the cache or local resolvers.
+"""
+directive @client(
+  """
+  When true, the client will never use the cache for this value. See
+  https://www.apollographql.com/docs/react/essentials/local-state/#forcing-resolvers-with-clientalways-true
+  """
+  always: Boolean
+) on FIELD | FRAGMENT_DEFINITION | INLINE_FRAGMENT
+
+"""
+Export this locally resolved field as a variable to be used in the remainder of this query. See
+https://www.apollographql.com/docs/react/essentials/local-state/#using-client-fields-as-variables
+"""
+directive @export(
+  """The variable name to export this field as."""
+  as: String!
+) on FIELD
+
+"""
+Specify a custom store key for this result. See
+https://www.apollographql.com/docs/react/advanced/caching/#the-connection-directive
+"""
+directive @connection(
+  """Specify the store key."""
+  key: String!
+
+  """
+  An array of query argument names to include in the generated custom store key.
+  """
+  filter: [String!]
+) on FIELD
+
+type Account {
+  id: String!
+  username: String!
+  usernameLocked: Boolean!
+  email: String!
+  githubAppInstallationId: Int
+  githubAppInstallationState: String
+  createdAt: DateTime!
+  _count: AccountCount
+  user: User
+  team: Team
+  billingAccount: BillingAccount
+  onboarding: Onboarding
+  projects(where: ProjectWhereInput, orderBy: [ProjectOrderByWithRelationInput!], cursor: ProjectWhereUniqueInput, take: Int, skip: Int, distinct: [ProjectScalarFieldEnum!]): [Project!]!
+  applications(where: ApplicationWhereInput, orderBy: [ApplicationOrderByWithRelationInput!], cursor: ApplicationWhereUniqueInput, take: Int, skip: Int, distinct: [ApplicationScalarFieldEnum!]): [Application!]!
+  trainings(where: TrainingWhereInput, orderBy: [TrainingOrderByWithRelationInput!], cursor: TrainingWhereUniqueInput, take: Int, skip: Int, distinct: [TrainingScalarFieldEnum!]): [Training!]!
+  dataStorages(where: DataStorageWhereInput, orderBy: [DataStorageOrderByWithRelationInput!], cursor: DataStorageWhereUniqueInput, take: Int, skip: Int, distinct: [DataStorageScalarFieldEnum!]): [DataStorage!]!
+  experiments(where: ExperimentWhereInput, orderBy: [ExperimentOrderByWithRelationInput!], cursor: ExperimentWhereUniqueInput, take: Int, skip: Int, distinct: [ExperimentScalarFieldEnum!]): [Experiment!]!
+  rayClusters(where: RayClusterWhereInput, orderBy: [RayClusterOrderByWithRelationInput!], cursor: RayClusterWhereUniqueInput, take: Int, skip: Int, distinct: [RayClusterScalarFieldEnum!]): [RayCluster!]!
+  containerRegistries(where: ContainerRegistryWhereInput, orderBy: [ContainerRegistryOrderByWithRelationInput!], cursor: ContainerRegistryWhereUniqueInput, take: Int, skip: Int, distinct: [ContainerRegistryScalarFieldEnum!]): [ContainerRegistry!]!
+  cloudProfiles(where: CloudProfileWhereInput, orderBy: [CloudProfileOrderByWithRelationInput!], cursor: CloudProfileWhereUniqueInput, take: Int, skip: Int, distinct: [CloudProfileScalarFieldEnum!]): [CloudProfile!]!
+  kubernetesProfiles(where: KubernetesProfileWhereInput, orderBy: [KubernetesProfileOrderByWithRelationInput!], cursor: KubernetesProfileWhereUniqueInput, take: Int, skip: Int, distinct: [KubernetesProfileScalarFieldEnum!]): [KubernetesProfile!]!
+  picture: String
+  isTeam: Boolean!
+  displayName: String!
+  applicationCount(where: ApplicationWhereInput): Int!
+  trainingCount(where: TrainingWhereInput): Int!
+  dataStorageCount(where: DataStorageWhereInput): Int!
+  githubAppInstallation: GithubAppInstallation
+}
+
+type AccountCount {
+  projects: Int!
+  applications: Int!
+  trainings: Int!
+  dataStorages: Int!
+  experiments: Int!
+  rayClusters: Int!
+  containerRegistries: Int!
+  cloudProfiles: Int!
+  kubernetesProfiles: Int!
+}
+
+input AccountOrderByWithRelationInput {
+  id: SortOrder
+  username: SortOrder
+  usernameLocked: SortOrder
+  email: SortOrder
+  user: UserOrderByWithRelationInput
+  team: TeamOrderByWithRelationInput
+  billingAccount: BillingAccountOrderByWithRelationInput
+  onboarding: OnboardingOrderByWithRelationInput
+  projects: ProjectOrderByRelationAggregateInput
+  applications: ApplicationOrderByRelationAggregateInput
+  trainings: TrainingOrderByRelationAggregateInput
+  dataStorages: DataStorageOrderByRelationAggregateInput
+  experiments: ExperimentOrderByRelationAggregateInput
+  rayClusters: RayClusterOrderByRelationAggregateInput
+  containerRegistries: ContainerRegistryOrderByRelationAggregateInput
+  cloudProfiles: CloudProfileOrderByRelationAggregateInput
+  kubernetesProfiles: KubernetesProfileOrderByRelationAggregateInput
+  githubAppInstallationId: SortOrder
+  githubAppInstallationState: SortOrder
+  createdAt: SortOrder
+}
+
+input AccountRelationFilter {
+  is: AccountWhereInput
+  isNot: AccountWhereInput
+}
+
+input AccountWhereInput {
+  AND: [AccountWhereInput!]
+  OR: [AccountWhereInput!]
+  NOT: [AccountWhereInput!]
+  id: StringFilter
+  username: StringFilter
+  usernameLocked: BoolFilter
+  email: StringFilter
+  user: UserRelationFilter
+  team: TeamRelationFilter
+  billingAccount: BillingAccountRelationFilter
+  onboarding: OnboardingRelationFilter
+  projects: ProjectListRelationFilter
+  applications: ApplicationListRelationFilter
+  trainings: TrainingListRelationFilter
+  dataStorages: DataStorageListRelationFilter
+  experiments: ExperimentListRelationFilter
+  rayClusters: RayClusterListRelationFilter
+  containerRegistries: ContainerRegistryListRelationFilter
+  cloudProfiles: CloudProfileListRelationFilter
+  kubernetesProfiles: KubernetesProfileListRelationFilter
+  githubAppInstallationId: IntNullableFilter
+  githubAppInstallationState: StringNullableFilter
+  createdAt: DateTimeFilter
+}
+
+input AccountWhereUniqueInput {
+  id: String
+  username: String
+}
+
+input AddBillingAccountDetailsInput {
+  stripeToken: String!
+  isBillingAddressSameAsCustomerAddress: Boolean!
+  customerAddress: CustomerAddressInput
+}
+
+type AggregateApplication {
+  _count: ApplicationCountAggregate
+  _min: ApplicationMinAggregate
+  _max: ApplicationMaxAggregate
+}
+
+type AggregateDataStorage {
+  _count: DataStorageCountAggregate
+  _min: DataStorageMinAggregate
+  _max: DataStorageMaxAggregate
+}
+
+type AggregateProject {
+  _count: ProjectCountAggregate
+  _avg: ProjectAvgAggregate
+  _sum: ProjectSumAggregate
+  _min: ProjectMinAggregate
+  _max: ProjectMaxAggregate
+}
+
+type AggregateTraining {
+  _count: TrainingCountAggregate
+  _min: TrainingMinAggregate
+  _max: TrainingMaxAggregate
+}
+
+type Application {
+  id: String!
+  name: String!
+  status: ApplicationStatus!
+  accountId: String!
+  cloudProfileId: String
+  cloudProviderAppConfigId: String
+  projectId: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  _count: ApplicationCount
+  account: Account!
+  cloudProfile: CloudProfile
+  cloudProviderAppConfig: CloudProviderAppConfig
+  project: Project
+  attachedContainer: ApplicationContainer
+  containers(where: ApplicationContainerWhereInput, orderBy: [ApplicationContainerOrderByWithRelationInput!], cursor: ApplicationContainerWhereUniqueInput, take: Int, skip: Int, distinct: [ApplicationContainerScalarFieldEnum!]): [ApplicationContainer!]!
+  environmentVariables(where: EnvironmentVariableWhereInput, orderBy: [EnvironmentVariableOrderByWithRelationInput!], cursor: EnvironmentVariableWhereUniqueInput, take: Int, skip: Int, distinct: [EnvironmentVariableScalarFieldEnum!]): [EnvironmentVariable!]!
+  taskActions(where: TaskActionWhereInput, orderBy: [TaskActionOrderByWithRelationInput!], cursor: TaskActionWhereUniqueInput, take: Int, skip: Int, distinct: [TaskActionScalarFieldEnum!]): [TaskAction!]!
+  hostname: String
+}
+
+type ApplicationContainer {
+  id: String!
+  attachedApplicationId: String
+  applicationId: String
+  status: ApplicationContainerStatus!
+  image: String!
+  port: Int
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  attachedApplication: Application
+  application: Application
+}
+
+input ApplicationContainerListRelationFilter {
+  every: ApplicationContainerWhereInput
+  some: ApplicationContainerWhereInput
+  none: ApplicationContainerWhereInput
+}
+
+input ApplicationContainerOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input ApplicationContainerOrderByWithRelationInput {
+  id: SortOrder
+  attachedApplication: ApplicationOrderByWithRelationInput
+  attachedApplicationId: SortOrder
+  application: ApplicationOrderByWithRelationInput
+  applicationId: SortOrder
+  status: SortOrder
+  image: SortOrder
+  port: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+}
+
+input ApplicationContainerRelationFilter {
+  is: ApplicationContainerWhereInput
+  isNot: ApplicationContainerWhereInput
+}
+
+enum ApplicationContainerScalarFieldEnum {
+  id
+  attachedApplicationId
+  applicationId
+  status
+  image
+  port
+  createdAt
+  updatedAt
+}
+
+enum ApplicationContainerStatus {
+  DEPLOY_SUCCESS
+  DEPLOY_ERROR
+  DEPLOYING
+  UNDEPLOYED
+}
+
+input ApplicationContainerWhereInput {
+  AND: [ApplicationContainerWhereInput!]
+  OR: [ApplicationContainerWhereInput!]
+  NOT: [ApplicationContainerWhereInput!]
+  id: StringFilter
+  attachedApplication: ApplicationRelationFilter
+  attachedApplicationId: StringNullableFilter
+  application: ApplicationRelationFilter
+  applicationId: StringNullableFilter
+  status: EnumApplicationContainerStatusFilter
+  image: StringFilter
+  port: IntNullableFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input ApplicationContainerWhereUniqueInput {
+  id: String
+  attachedApplicationId: String
+}
+
+type ApplicationCount {
+  containers: Int!
+  environmentVariables: Int!
+  taskActions: Int!
+}
+
+type ApplicationCountAggregate {
+  id: Int!
+  name: Int!
+  status: Int!
+  accountId: Int!
+  cloudProfileId: Int!
+  cloudProviderAppConfigId: Int!
+  projectId: Int!
+  createdAt: Int!
+  updatedAt: Int!
+  _all: Int!
+}
+
+type ApplicationInfrastructurePlan {
+  provider: CloudProvider!
+  plan: CloudProviderAppConfigPlan!
+  config: ApplicationInfrastructurePlanConfig!
+}
+
+union ApplicationInfrastructurePlanConfig = AWSAppDefaultConfig | AzureAppDefaultConfig | GCPAppDefaultConfig
+
+input ApplicationListRelationFilter {
+  every: ApplicationWhereInput
+  some: ApplicationWhereInput
+  none: ApplicationWhereInput
+}
+
+type ApplicationMaxAggregate {
+  id: String
+  name: String
+  status: ApplicationStatus
+  accountId: String
+  cloudProfileId: String
+  cloudProviderAppConfigId: String
+  projectId: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type ApplicationMinAggregate {
+  id: String
+  name: String
+  status: ApplicationStatus
+  accountId: String
+  cloudProfileId: String
+  cloudProviderAppConfigId: String
+  projectId: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input ApplicationOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input ApplicationOrderByWithRelationInput {
+  id: SortOrder
+  name: SortOrder
+  status: SortOrder
+  account: AccountOrderByWithRelationInput
+  accountId: SortOrder
+  cloudProfile: CloudProfileOrderByWithRelationInput
+  cloudProfileId: SortOrder
+  cloudProviderAppConfig: CloudProviderAppConfigOrderByWithRelationInput
+  cloudProviderAppConfigId: SortOrder
+  project: ProjectOrderByWithRelationInput
+  projectId: SortOrder
+  attachedContainer: ApplicationContainerOrderByWithRelationInput
+  containers: ApplicationContainerOrderByRelationAggregateInput
+  environmentVariables: EnvironmentVariableOrderByRelationAggregateInput
+  taskActions: TaskActionOrderByRelationAggregateInput
+  createdAt: SortOrder
+  updatedAt: SortOrder
+}
+
+input ApplicationRelationFilter {
+  is: ApplicationWhereInput
+  isNot: ApplicationWhereInput
+}
+
+enum ApplicationScalarFieldEnum {
+  id
+  name
+  status
+  accountId
+  cloudProfileId
+  cloudProviderAppConfigId
+  projectId
+  createdAt
+  updatedAt
+}
+
+enum ApplicationStatus {
+  DEPLOY_SUCCESS
+  DEPLOY_ERROR
+  DEPLOYING
+  UNDEPLOYED
+  DESTROYING
+  DESTROY_ERROR
+  DESTROY_SUCCESS
+}
+
+input ApplicationWhereInput {
+  AND: [ApplicationWhereInput!]
+  OR: [ApplicationWhereInput!]
+  NOT: [ApplicationWhereInput!]
+  id: StringFilter
+  name: StringFilter
+  status: EnumApplicationStatusFilter
+  account: AccountRelationFilter
+  accountId: StringFilter
+  cloudProfile: CloudProfileRelationFilter
+  cloudProfileId: StringNullableFilter
+  cloudProviderAppConfig: CloudProviderAppConfigRelationFilter
+  cloudProviderAppConfigId: StringNullableFilter
+  project: ProjectRelationFilter
+  projectId: StringNullableFilter
+  attachedContainer: ApplicationContainerRelationFilter
+  containers: ApplicationContainerListRelationFilter
+  environmentVariables: EnvironmentVariableListRelationFilter
+  taskActions: TaskActionListRelationFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input ApplicationWhereUniqueInput {
+  id: String
+  cloudProviderAppConfigId: String
+}
+
+type AWSAppConfig {
+  id: String!
+  cloudProviderAppConfigId: String!
+  awsRegion: String!
+  ec2InstanceType: String
+  ec2VolumeSize: Int
+  ecsDesiredCount: Int
+  ecsCpu: Int
+  ecsMemory: Int
+  ecsGpuCount: Int
+  autoscalingMinSize: Int
+  autoscalingMaxSize: Int
+  autoscalingCpuTargetValue: Int
+}
+
+input AWSAppConfigOrderByWithRelationInput {
+  id: SortOrder
+  cloudProviderAppConfig: CloudProviderAppConfigOrderByWithRelationInput
+  cloudProviderAppConfigId: SortOrder
+  awsRegion: SortOrder
+  ec2InstanceType: SortOrder
+  ec2VolumeSize: SortOrder
+  ecsDesiredCount: SortOrder
+  ecsCpu: SortOrder
+  ecsMemory: SortOrder
+  ecsGpuCount: SortOrder
+  autoscalingMinSize: SortOrder
+  autoscalingMaxSize: SortOrder
+  autoscalingCpuTargetValue: SortOrder
+}
+
+input AWSAppConfigRelationFilter {
+  is: AWSAppConfigWhereInput
+  isNot: AWSAppConfigWhereInput
+}
+
+input AWSAppConfigWhereInput {
+  AND: [AWSAppConfigWhereInput!]
+  OR: [AWSAppConfigWhereInput!]
+  NOT: [AWSAppConfigWhereInput!]
+  id: StringFilter
+  cloudProviderAppConfig: CloudProviderAppConfigRelationFilter
+  cloudProviderAppConfigId: StringFilter
+  awsRegion: StringFilter
+  ec2InstanceType: StringNullableFilter
+  ec2VolumeSize: IntNullableFilter
+  ecsDesiredCount: IntNullableFilter
+  ecsCpu: IntNullableFilter
+  ecsMemory: IntNullableFilter
+  ecsGpuCount: IntNullableFilter
+  autoscalingMinSize: IntNullableFilter
+  autoscalingMaxSize: IntNullableFilter
+  autoscalingCpuTargetValue: IntNullableFilter
+}
+
+input AWSAppConfigWhereUniqueInput {
+  id: String
+  cloudProviderAppConfigId: String
+}
+
+type AWSAppDefaultConfig {
+  awsRegion: String!
+  ec2InstanceType: String
+  ec2VolumeSize: Int
+  ecsDesiredCount: Int
+  ecsCpu: Int
+  ecsMemory: Int
+  ecsGpuCount: Int
+  autoscalingMinSize: Int
+  autoscalingMaxSize: Int
+  autoscalingCpuTargetValue: Int
+}
+
+type AWSContainerRegistryConfig {
+  id: String!
+  cloudProviderContainerRegistryConfigId: String!
+  awsRegion: String!
+}
+
+input AWSContainerRegistryConfigOrderByWithRelationInput {
+  id: SortOrder
+  cloudProviderContainerRegistryConfig: CloudProviderContainerRegistryConfigOrderByWithRelationInput
+  cloudProviderContainerRegistryConfigId: SortOrder
+  awsRegion: SortOrder
+}
+
+input AWSContainerRegistryConfigRelationFilter {
+  is: AWSContainerRegistryConfigWhereInput
+  isNot: AWSContainerRegistryConfigWhereInput
+}
+
+input AWSContainerRegistryConfigWhereInput {
+  AND: [AWSContainerRegistryConfigWhereInput!]
+  OR: [AWSContainerRegistryConfigWhereInput!]
+  NOT: [AWSContainerRegistryConfigWhereInput!]
+  id: StringFilter
+  cloudProviderContainerRegistryConfig: CloudProviderContainerRegistryConfigRelationFilter
+  cloudProviderContainerRegistryConfigId: StringFilter
+  awsRegion: StringFilter
+}
+
+input AWSContainerRegistryConfigWhereUniqueInput {
+  id: String
+  cloudProviderContainerRegistryConfigId: String
+}
+
+input AWSCredentials {
+  awsAccessKey: String!
+  awsSecretAccessKey: String!
+}
+
+type AWSFalconConfig {
+  id: String!
+  cloudProviderFalconConfigId: String!
+  awsRegion: String!
+  ec2InstanceType: String
+  ec2InstanceCount: Int
+  ec2VolumeSize: Int
+}
+
+input AWSFalconConfigOrderByWithRelationInput {
+  id: SortOrder
+  cloudProviderFalconConfig: CloudProviderFalconConfigOrderByWithRelationInput
+  cloudProviderFalconConfigId: SortOrder
+  awsRegion: SortOrder
+  ec2InstanceType: SortOrder
+  ec2InstanceCount: SortOrder
+  ec2VolumeSize: SortOrder
+}
+
+input AWSFalconConfigRelationFilter {
+  is: AWSFalconConfigWhereInput
+  isNot: AWSFalconConfigWhereInput
+}
+
+input AWSFalconConfigWhereInput {
+  AND: [AWSFalconConfigWhereInput!]
+  OR: [AWSFalconConfigWhereInput!]
+  NOT: [AWSFalconConfigWhereInput!]
+  id: StringFilter
+  cloudProviderFalconConfig: CloudProviderFalconConfigRelationFilter
+  cloudProviderFalconConfigId: StringFilter
+  awsRegion: StringFilter
+  ec2InstanceType: StringNullableFilter
+  ec2InstanceCount: IntNullableFilter
+  ec2VolumeSize: IntNullableFilter
+}
+
+input AWSFalconConfigWhereUniqueInput {
+  id: String
+  cloudProviderFalconConfigId: String
+}
+
+type AWSFalconDefaultConfig {
+  awsRegion: String!
+  ec2InstanceType: String
+  ec2InstanceCount: Int
+  ec2VolumeSize: Int
+  isAvailable: Boolean!
+}
+
+type AWSYodaConfig {
+  id: String!
+  cloudProviderYodaConfigId: String!
+  awsRegion: String!
+  awsAccessKey: String
+  awsSecretAccessKey: String
+}
+
+input AWSYodaConfigOrderByWithRelationInput {
+  id: SortOrder
+  cloudProviderYodaConfig: CloudProviderYodaConfigOrderByWithRelationInput
+  cloudProviderYodaConfigId: SortOrder
+  awsRegion: SortOrder
+}
+
+input AWSYodaConfigRelationFilter {
+  is: AWSYodaConfigWhereInput
+  isNot: AWSYodaConfigWhereInput
+}
+
+input AWSYodaConfigWhereInput {
+  AND: [AWSYodaConfigWhereInput!]
+  OR: [AWSYodaConfigWhereInput!]
+  NOT: [AWSYodaConfigWhereInput!]
+  id: StringFilter
+  cloudProviderYodaConfig: CloudProviderYodaConfigRelationFilter
+  cloudProviderYodaConfigId: StringFilter
+  awsRegion: StringFilter
+}
+
+input AWSYodaConfigWhereUniqueInput {
+  id: String
+  cloudProviderYodaConfigId: String
+}
+
+type AzureAppConfig {
+  id: String!
+  cloudProviderAppConfigId: String!
+  azureRegion: String!
+  containerRegistry: String
+  cgCpu: String
+  cgMemory: String
+  cgGpuCount: Int
+  cgGpuSku: String
+}
+
+input AzureAppConfigOrderByWithRelationInput {
+  id: SortOrder
+  cloudProviderAppConfig: CloudProviderAppConfigOrderByWithRelationInput
+  cloudProviderAppConfigId: SortOrder
+  azureRegion: SortOrder
+  containerRegistry: SortOrder
+  cgCpu: SortOrder
+  cgMemory: SortOrder
+  cgGpuCount: SortOrder
+  cgGpuSku: SortOrder
+}
+
+input AzureAppConfigRelationFilter {
+  is: AzureAppConfigWhereInput
+  isNot: AzureAppConfigWhereInput
+}
+
+input AzureAppConfigWhereInput {
+  AND: [AzureAppConfigWhereInput!]
+  OR: [AzureAppConfigWhereInput!]
+  NOT: [AzureAppConfigWhereInput!]
+  id: StringFilter
+  cloudProviderAppConfig: CloudProviderAppConfigRelationFilter
+  cloudProviderAppConfigId: StringFilter
+  azureRegion: StringFilter
+  containerRegistry: StringNullableFilter
+  cgCpu: StringNullableFilter
+  cgMemory: StringNullableFilter
+  cgGpuCount: IntNullableFilter
+  cgGpuSku: StringNullableFilter
+}
+
+input AzureAppConfigWhereUniqueInput {
+  id: String
+  cloudProviderAppConfigId: String
+}
+
+type AzureAppDefaultConfig {
+  azureRegion: String!
+  cgCpu: String
+  cgMemory: String
+  cgGpuCount: Int
+  cgGpuSku: String
+}
+
+type AzureContainerRegistryConfig {
+  id: String!
+  cloudProviderContainerRegistryConfigId: String!
+}
+
+input AzureContainerRegistryConfigOrderByWithRelationInput {
+  id: SortOrder
+  cloudProviderContainerRegistryConfig: CloudProviderContainerRegistryConfigOrderByWithRelationInput
+  cloudProviderContainerRegistryConfigId: SortOrder
+}
+
+input AzureContainerRegistryConfigRelationFilter {
+  is: AzureContainerRegistryConfigWhereInput
+  isNot: AzureContainerRegistryConfigWhereInput
+}
+
+input AzureContainerRegistryConfigWhereInput {
+  AND: [AzureContainerRegistryConfigWhereInput!]
+  OR: [AzureContainerRegistryConfigWhereInput!]
+  NOT: [AzureContainerRegistryConfigWhereInput!]
+  id: StringFilter
+  cloudProviderContainerRegistryConfig: CloudProviderContainerRegistryConfigRelationFilter
+  cloudProviderContainerRegistryConfigId: StringFilter
+}
+
+input AzureContainerRegistryConfigWhereUniqueInput {
+  id: String
+  cloudProviderContainerRegistryConfigId: String
+}
+
+input AzureCredentials {
+  azureSubscriptionId: String!
+  azureTenantId: String!
+  azureClientId: String!
+  azureClientSecret: String!
+}
+
+type AzureFalconConfig {
+  id: String!
+  cloudProviderFalconConfigId: String!
+  azureRegion: String!
+  vmSize: String
+  vmInstanceCount: Int
+  vmVolumeSize: Int
+}
+
+input AzureFalconConfigOrderByWithRelationInput {
+  id: SortOrder
+  cloudProviderFalconConfig: CloudProviderFalconConfigOrderByWithRelationInput
+  cloudProviderFalconConfigId: SortOrder
+  azureRegion: SortOrder
+  vmSize: SortOrder
+  vmInstanceCount: SortOrder
+  vmVolumeSize: SortOrder
+}
+
+input AzureFalconConfigRelationFilter {
+  is: AzureFalconConfigWhereInput
+  isNot: AzureFalconConfigWhereInput
+}
+
+input AzureFalconConfigWhereInput {
+  AND: [AzureFalconConfigWhereInput!]
+  OR: [AzureFalconConfigWhereInput!]
+  NOT: [AzureFalconConfigWhereInput!]
+  id: StringFilter
+  cloudProviderFalconConfig: CloudProviderFalconConfigRelationFilter
+  cloudProviderFalconConfigId: StringFilter
+  azureRegion: StringFilter
+  vmSize: StringNullableFilter
+  vmInstanceCount: IntNullableFilter
+  vmVolumeSize: IntNullableFilter
+}
+
+input AzureFalconConfigWhereUniqueInput {
+  id: String
+  cloudProviderFalconConfigId: String
+}
+
+type AzureFalconDefaultConfig {
+  azureRegion: String!
+  vmSize: String
+  vmInstanceCount: Int
+  vmVolumeSize: Int
+  isAvailable: Boolean!
+}
+
+type AzureYodaConfig {
+  id: String!
+  cloudProviderYodaConfigId: String!
+  azureRegion: String!
+  storageAccount: String
+  storageAccessKey: String
+}
+
+input AzureYodaConfigOrderByWithRelationInput {
+  id: SortOrder
+  cloudProviderYodaConfig: CloudProviderYodaConfigOrderByWithRelationInput
+  cloudProviderYodaConfigId: SortOrder
+  azureRegion: SortOrder
+}
+
+input AzureYodaConfigRelationFilter {
+  is: AzureYodaConfigWhereInput
+  isNot: AzureYodaConfigWhereInput
+}
+
+input AzureYodaConfigWhereInput {
+  AND: [AzureYodaConfigWhereInput!]
+  OR: [AzureYodaConfigWhereInput!]
+  NOT: [AzureYodaConfigWhereInput!]
+  id: StringFilter
+  cloudProviderYodaConfig: CloudProviderYodaConfigRelationFilter
+  cloudProviderYodaConfigId: StringFilter
+  azureRegion: StringFilter
+}
+
+input AzureYodaConfigWhereUniqueInput {
+  id: String
+  cloudProviderYodaConfigId: String
+}
+
+type BillingAccount {
+  id: String!
+  accountId: String!
+  provider: BillingPaymentProvider!
+  stripeCustomerId: String
+  _count: BillingAccountCount
+  currentSubscription: BillingSubscription
+  stripeCustomer: StripeCustomer
+  canCancelBillingSubscription: Boolean!
+}
+
+type BillingAccountCount {
+  subscriptions: Int!
+}
+
+input BillingAccountOrderByWithRelationInput {
+  id: SortOrder
+  account: AccountOrderByWithRelationInput
+  accountId: SortOrder
+  provider: SortOrder
+  stripeCustomerId: SortOrder
+  currentSubscription: BillingSubscriptionOrderByWithRelationInput
+  subscriptions: BillingSubscriptionOrderByRelationAggregateInput
+}
+
+input BillingAccountRelationFilter {
+  is: BillingAccountWhereInput
+  isNot: BillingAccountWhereInput
+}
+
+input BillingAccountWhereInput {
+  AND: [BillingAccountWhereInput!]
+  OR: [BillingAccountWhereInput!]
+  NOT: [BillingAccountWhereInput!]
+  id: StringFilter
+  account: AccountRelationFilter
+  accountId: StringFilter
+  provider: EnumBillingPaymentProviderFilter
+  stripeCustomerId: StringNullableFilter
+  currentSubscription: BillingSubscriptionRelationFilter
+  subscriptions: BillingSubscriptionListRelationFilter
+}
+
+enum BillingPaymentProvider {
+  STRIPE
+}
+
+type BillingSubscription {
+  id: String!
+  billingAccountId: String
+  pastBillingAccountId: String
+  currentActivePeriodEnd: DateTime!
+  status: BillingSubscriptionStatus!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  stripeSubscriptionId: String
+  billingAccount: BillingAccount
+  pastBillingAccount: BillingAccount
+}
+
+input BillingSubscriptionListRelationFilter {
+  every: BillingSubscriptionWhereInput
+  some: BillingSubscriptionWhereInput
+  none: BillingSubscriptionWhereInput
+}
+
+input BillingSubscriptionOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input BillingSubscriptionOrderByWithRelationInput {
+  id: SortOrder
+  billingAccount: BillingAccountOrderByWithRelationInput
+  billingAccountId: SortOrder
+  pastBillingAccount: BillingAccountOrderByWithRelationInput
+  pastBillingAccountId: SortOrder
+  currentActivePeriodEnd: SortOrder
+  status: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  stripeSubscriptionId: SortOrder
+}
+
+input BillingSubscriptionRelationFilter {
+  is: BillingSubscriptionWhereInput
+  isNot: BillingSubscriptionWhereInput
+}
+
+enum BillingSubscriptionStatus {
+  TRIALING
+  ACTIVE
+  CANCELLED
+  PAST_DUE
+  PAUSED
+  UNPAID
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+}
+
+input BillingSubscriptionWhereInput {
+  AND: [BillingSubscriptionWhereInput!]
+  OR: [BillingSubscriptionWhereInput!]
+  NOT: [BillingSubscriptionWhereInput!]
+  id: StringFilter
+  billingAccount: BillingAccountRelationFilter
+  billingAccountId: StringNullableFilter
+  pastBillingAccount: BillingAccountRelationFilter
+  pastBillingAccountId: StringNullableFilter
+  currentActivePeriodEnd: DateTimeFilter
+  status: EnumBillingSubscriptionStatusFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+  stripeSubscriptionId: StringNullableFilter
+}
+
+input BoolFilter {
+  equals: Boolean
+  not: NestedBoolFilter
+}
+
+input BoolNullableFilter {
+  equals: Boolean
+  not: NestedBoolNullableFilter
+}
+
+type CloudCredentials {
+  id: String!
+  awsAccessKey: String
+  awsSecretAccessKey: String
+  azureSubscriptionId: String
+  azureTenantId: String
+  azureClientId: String
+  azureClientSecret: String
+  azureResourceGroupName: String
+  gcpProjectId: String
+  gcpServiceAccountKey: String
+}
+
+input CloudCredentialsOrderByWithRelationInput {
+  id: SortOrder
+  cloudProfile: CloudProfileOrderByWithRelationInput
+  awsAccessKey: SortOrder
+  awsSecretAccessKey: SortOrder
+  azureSubscriptionId: SortOrder
+  azureTenantId: SortOrder
+  azureClientId: SortOrder
+  azureClientSecret: SortOrder
+  azureResourceGroupName: SortOrder
+  gcpProjectId: SortOrder
+  gcpServiceAccountKey: SortOrder
+}
+
+input CloudCredentialsRelationFilter {
+  is: CloudCredentialsWhereInput
+  isNot: CloudCredentialsWhereInput
+}
+
+input CloudCredentialsUpdateInput {
+  awsCredentials: AWSCredentials
+  azureCredentials: AzureCredentials
+  gcpCredentials: GCPCredentials
+}
+
+input CloudCredentialsWhereInput {
+  AND: [CloudCredentialsWhereInput!]
+  OR: [CloudCredentialsWhereInput!]
+  NOT: [CloudCredentialsWhereInput!]
+  id: StringFilter
+  cloudProfile: CloudProfileRelationFilter
+  awsAccessKey: StringNullableFilter
+  awsSecretAccessKey: StringNullableFilter
+  azureSubscriptionId: StringNullableFilter
+  azureTenantId: StringNullableFilter
+  azureClientId: StringNullableFilter
+  azureClientSecret: StringNullableFilter
+  azureResourceGroupName: StringNullableFilter
+  gcpProjectId: StringNullableFilter
+  gcpServiceAccountKey: StringNullableFilter
+}
+
+type CloudProfile {
+  id: String!
+  name: String!
+  provider: CloudProvider!
+  accountId: String!
+  credentialsId: String!
+  _count: CloudProfileCount
+  isEmpty: Boolean!
+  credentials: CloudCredentials!
+}
+
+input CloudProfileAccountIdNameProviderCompoundUniqueInput {
+  accountId: String!
+  name: String!
+  provider: CloudProvider!
+}
+
+type CloudProfileCount {
+  projects: Int!
+  applications: Int!
+  trainings: Int!
+  dataStorages: Int!
+  experiments: Int!
+  containerRegistries: Int!
+}
+
+input CloudProfileCreateInput {
+  provider: CloudProvider!
+  name: String!
+  awsCredentials: AWSCredentials
+  azureCredentials: AzureCredentials
+  gcpCredentials: GCPCredentials
+}
+
+input CloudProfileListRelationFilter {
+  every: CloudProfileWhereInput
+  some: CloudProfileWhereInput
+  none: CloudProfileWhereInput
+}
+
+input CloudProfileOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input CloudProfileOrderByWithRelationInput {
+  id: SortOrder
+  name: SortOrder
+  provider: SortOrder
+  account: AccountOrderByWithRelationInput
+  accountId: SortOrder
+  credentials: CloudCredentialsOrderByWithRelationInput
+  credentialsId: SortOrder
+  projects: ProjectOrderByRelationAggregateInput
+  applications: ApplicationOrderByRelationAggregateInput
+  trainings: TrainingOrderByRelationAggregateInput
+  dataStorages: DataStorageOrderByRelationAggregateInput
+  experiments: ExperimentOrderByRelationAggregateInput
+  containerRegistries: ContainerRegistryOrderByRelationAggregateInput
+}
+
+input CloudProfileRelationFilter {
+  is: CloudProfileWhereInput
+  isNot: CloudProfileWhereInput
+}
+
+enum CloudProfileScalarFieldEnum {
+  id
+  name
+  provider
+  accountId
+  credentialsId
+}
+
+input CloudProfileUpdateInput {
+  name: String
+}
+
+input CloudProfileWhereInput {
+  AND: [CloudProfileWhereInput!]
+  OR: [CloudProfileWhereInput!]
+  NOT: [CloudProfileWhereInput!]
+  id: StringFilter
+  name: StringFilter
+  provider: EnumCloudProviderFilter
+  account: AccountRelationFilter
+  accountId: StringFilter
+  credentials: CloudCredentialsRelationFilter
+  credentialsId: StringFilter
+  projects: ProjectListRelationFilter
+  applications: ApplicationListRelationFilter
+  trainings: TrainingListRelationFilter
+  dataStorages: DataStorageListRelationFilter
+  experiments: ExperimentListRelationFilter
+  containerRegistries: ContainerRegistryListRelationFilter
+}
+
+input CloudProfileWhereUniqueInput {
+  id: String
+  credentialsId: String
+  accountId_name_provider: CloudProfileAccountIdNameProviderCompoundUniqueInput
+}
+
+enum CloudProvider {
+  AWS
+  AZURE
+  GCP
+  DIGITAL_OCEAN
+}
+
+type CloudProviderAppConfig {
+  id: String!
+  provider: CloudProvider!
+  version: String!
+  plan: CloudProviderAppConfigPlan
+  application: Application
+  awsConfig: AWSAppConfig
+  azureConfig: AzureAppConfig
+  gcpConfig: GCPAppConfig
+}
+
+input CloudProviderAppConfigOrderByWithRelationInput {
+  id: SortOrder
+  application: ApplicationOrderByWithRelationInput
+  provider: SortOrder
+  version: SortOrder
+  plan: SortOrder
+  awsConfig: AWSAppConfigOrderByWithRelationInput
+  azureConfig: AzureAppConfigOrderByWithRelationInput
+  gcpConfig: GCPAppConfigOrderByWithRelationInput
+}
+
+enum CloudProviderAppConfigPlan {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+input CloudProviderAppConfigRelationFilter {
+  is: CloudProviderAppConfigWhereInput
+  isNot: CloudProviderAppConfigWhereInput
+}
+
+input CloudProviderAppConfigWhereInput {
+  AND: [CloudProviderAppConfigWhereInput!]
+  OR: [CloudProviderAppConfigWhereInput!]
+  NOT: [CloudProviderAppConfigWhereInput!]
+  id: StringFilter
+  application: ApplicationRelationFilter
+  provider: EnumCloudProviderFilter
+  version: StringFilter
+  plan: EnumCloudProviderAppConfigPlanNullableFilter
+  awsConfig: AWSAppConfigRelationFilter
+  azureConfig: AzureAppConfigRelationFilter
+  gcpConfig: GCPAppConfigRelationFilter
+}
+
+input CloudProviderAppConfigWhereUniqueInput {
+  id: String
+}
+
+type CloudProviderContainerRegistryConfig {
+  id: String!
+  containerRegistry: ContainerRegistry
+  awsConfig: AWSContainerRegistryConfig
+  azureConfig: AzureContainerRegistryConfig
+  gcpConfig: GCPContainerRegistryConfig
+}
+
+input CloudProviderContainerRegistryConfigOrderByWithRelationInput {
+  id: SortOrder
+  containerRegistry: ContainerRegistryOrderByWithRelationInput
+  awsConfig: AWSContainerRegistryConfigOrderByWithRelationInput
+  azureConfig: AzureContainerRegistryConfigOrderByWithRelationInput
+  gcpConfig: GCPContainerRegistryConfigOrderByWithRelationInput
+}
+
+input CloudProviderContainerRegistryConfigRelationFilter {
+  is: CloudProviderContainerRegistryConfigWhereInput
+  isNot: CloudProviderContainerRegistryConfigWhereInput
+}
+
+input CloudProviderContainerRegistryConfigWhereInput {
+  AND: [CloudProviderContainerRegistryConfigWhereInput!]
+  OR: [CloudProviderContainerRegistryConfigWhereInput!]
+  NOT: [CloudProviderContainerRegistryConfigWhereInput!]
+  id: StringFilter
+  containerRegistry: ContainerRegistryRelationFilter
+  awsConfig: AWSContainerRegistryConfigRelationFilter
+  azureConfig: AzureContainerRegistryConfigRelationFilter
+  gcpConfig: GCPContainerRegistryConfigRelationFilter
+}
+
+input CloudProviderContainerRegistryConfigWhereUniqueInput {
+  id: String
+}
+
+type CloudProviderFalconConfig {
+  id: String!
+  provider: CloudProvider!
+  version: String!
+  plan: CloudProviderFalconConfigPlan
+  usesGpu: Boolean!
+  training: Training
+  awsConfig: AWSFalconConfig
+  azureConfig: AzureFalconConfig
+  gcpConfig: GCPFalconConfig
+}
+
+input CloudProviderFalconConfigOrderByWithRelationInput {
+  id: SortOrder
+  training: TrainingOrderByWithRelationInput
+  provider: SortOrder
+  version: SortOrder
+  plan: SortOrder
+  usesGpu: SortOrder
+  awsConfig: AWSFalconConfigOrderByWithRelationInput
+  azureConfig: AzureFalconConfigOrderByWithRelationInput
+  gcpConfig: GCPFalconConfigOrderByWithRelationInput
+}
+
+enum CloudProviderFalconConfigPlan {
+  SMALL_CPU
+  MEDIUM_CPU
+  LARGE_CPU
+  SMALL_GPU
+  MEDIUM_GPU
+  LARGE_GPU
+}
+
+input CloudProviderFalconConfigRelationFilter {
+  is: CloudProviderFalconConfigWhereInput
+  isNot: CloudProviderFalconConfigWhereInput
+}
+
+input CloudProviderFalconConfigWhereInput {
+  AND: [CloudProviderFalconConfigWhereInput!]
+  OR: [CloudProviderFalconConfigWhereInput!]
+  NOT: [CloudProviderFalconConfigWhereInput!]
+  id: StringFilter
+  training: TrainingRelationFilter
+  provider: EnumCloudProviderFilter
+  version: StringFilter
+  plan: EnumCloudProviderFalconConfigPlanNullableFilter
+  usesGpu: BoolFilter
+  awsConfig: AWSFalconConfigRelationFilter
+  azureConfig: AzureFalconConfigRelationFilter
+  gcpConfig: GCPFalconConfigRelationFilter
+}
+
+input CloudProviderFalconConfigWhereUniqueInput {
+  id: String
+}
+
+type CloudProviderYodaConfig {
+  id: String!
+  provider: CloudProvider!
+  version: String!
+  dataStorage: DataStorage
+  awsConfig: AWSYodaConfig
+  azureConfig: AzureYodaConfig
+  gcpConfig: GCPYodaConfig
+}
+
+input CloudProviderYodaConfigOrderByWithRelationInput {
+  id: SortOrder
+  provider: SortOrder
+  version: SortOrder
+  dataStorage: DataStorageOrderByWithRelationInput
+  awsConfig: AWSYodaConfigOrderByWithRelationInput
+  azureConfig: AzureYodaConfigOrderByWithRelationInput
+  gcpConfig: GCPYodaConfigOrderByWithRelationInput
+}
+
+input CloudProviderYodaConfigRelationFilter {
+  is: CloudProviderYodaConfigWhereInput
+  isNot: CloudProviderYodaConfigWhereInput
+}
+
+input CloudProviderYodaConfigWhereInput {
+  AND: [CloudProviderYodaConfigWhereInput!]
+  OR: [CloudProviderYodaConfigWhereInput!]
+  NOT: [CloudProviderYodaConfigWhereInput!]
+  id: StringFilter
+  provider: EnumCloudProviderFilter
+  version: StringFilter
+  dataStorage: DataStorageRelationFilter
+  awsConfig: AWSYodaConfigRelationFilter
+  azureConfig: AzureYodaConfigRelationFilter
+  gcpConfig: GCPYodaConfigRelationFilter
+}
+
+input CloudProviderYodaConfigWhereUniqueInput {
+  id: String
+}
+
+type ContainerRegistry {
+  id: String!
+  name: String!
+  sluggedName: String!
+  accountId: String!
+  cloudProfileId: String
+  projectId: String
+  cloudProviderContainerRegistryConfigId: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  account: Account!
+  cloudProfile: CloudProfile
+  project: Project
+  cloudProviderContainerRegistryConfig: CloudProviderContainerRegistryConfig
+  info: ContainerRegistryInfo!
+}
+
+type ContainerRegistryInfo {
+  imageUri: String!
+  loginServer: String!
+  username: String!
+  password: String!
+}
+
+input ContainerRegistryListRelationFilter {
+  every: ContainerRegistryWhereInput
+  some: ContainerRegistryWhereInput
+  none: ContainerRegistryWhereInput
+}
+
+input ContainerRegistryOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input ContainerRegistryOrderByWithRelationInput {
+  id: SortOrder
+  name: SortOrder
+  sluggedName: SortOrder
+  account: AccountOrderByWithRelationInput
+  accountId: SortOrder
+  cloudProfile: CloudProfileOrderByWithRelationInput
+  cloudProfileId: SortOrder
+  project: ProjectOrderByWithRelationInput
+  projectId: SortOrder
+  cloudProviderContainerRegistryConfig: CloudProviderContainerRegistryConfigOrderByWithRelationInput
+  cloudProviderContainerRegistryConfigId: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+}
+
+input ContainerRegistryRelationFilter {
+  is: ContainerRegistryWhereInput
+  isNot: ContainerRegistryWhereInput
+}
+
+enum ContainerRegistryScalarFieldEnum {
+  id
+  name
+  sluggedName
+  accountId
+  cloudProfileId
+  projectId
+  cloudProviderContainerRegistryConfigId
+  createdAt
+  updatedAt
+}
+
+input ContainerRegistryWhereInput {
+  AND: [ContainerRegistryWhereInput!]
+  OR: [ContainerRegistryWhereInput!]
+  NOT: [ContainerRegistryWhereInput!]
+  id: StringFilter
+  name: StringFilter
+  sluggedName: StringFilter
+  account: AccountRelationFilter
+  accountId: StringFilter
+  cloudProfile: CloudProfileRelationFilter
+  cloudProfileId: StringNullableFilter
+  project: ProjectRelationFilter
+  projectId: StringNullableFilter
+  cloudProviderContainerRegistryConfig: CloudProviderContainerRegistryConfigRelationFilter
+  cloudProviderContainerRegistryConfigId: StringNullableFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input ContainerRegistryWhereUniqueInput {
+  id: String
+  cloudProviderContainerRegistryConfigId: String
+}
+
+input CreateApplicationContainerInput {
+  image: String!
+  port: Int
+}
+
+input CreateApplicationInput {
+  name: String!
+  cloudProfileId: String!
+  cloudProviderAppConfig: CreateCloudProviderAppConfig!
+  container: CreateApplicationContainerInput!
+  environmentVariables: [EnvironmentVariableInput!]
+}
+
+input CreateAWSAppConfig {
+  awsRegion: String!
+  ec2InstanceType: String
+  ec2VolumeSize: Int
+  ecsDesiredCount: Int
+  ecsCpu: Int
+  ecsMemory: Int
+  ecsGpuCount: Int
+  autoscalingMinSize: Int
+  autoscalingMaxSize: Int
+  autoscalingCpuTargetValue: Int
+}
+
+input CreateAWSContainerRegistryConfig {
+  awsRegion: String!
+}
+
+input CreateAWSFalconConfig {
+  awsRegion: String!
+  ec2InstanceType: String
+  ec2InstanceCount: Int
+  ec2VolumeSize: Int
+}
+
+input CreateAWSYodaConfig {
+  awsRegion: String!
+}
+
+input CreateAzureAppConfig {
+  azureRegion: String!
+  containerRegistry: String
+  cgCpu: String
+  cgMemory: String
+  cgGpuCount: Int
+  cgGpuSku: String
+}
+
+input CreateAzureFalconConfig {
+  azureRegion: String!
+  vmSize: String
+  vmInstanceCount: Int
+  vmVolumeSize: Int
+}
+
+input CreateAzureYodaConfig {
+  azureRegion: String!
+}
+
+input CreateCloudProviderAppConfig {
+  plan: CloudProviderAppConfigPlan!
+  awsConfig: CreateAWSAppConfig
+  azureConfig: CreateAzureAppConfig
+  gcpConfig: CreateGCPAppConfig
+}
+
+input CreateCloudProviderContainerRegistryConfig {
+  awsConfig: CreateAWSContainerRegistryConfig
+  gcpConfig: CreateGCPContainerRegistryConfig
+}
+
+input CreateCloudProviderFalconConfig {
+  plan: CloudProviderFalconConfigPlan!
+  usesGpu: Boolean
+  awsConfig: CreateAWSFalconConfig
+  azureConfig: CreateAzureFalconConfig
+  gcpConfig: CreateGCPFalconConfig
+}
+
+input CreateCloudProviderYodaConfig {
+  awsConfig: CreateAWSYodaConfig
+  azureConfig: CreateAzureYodaConfig
+  gcpConfig: CreateGCPYodaConfig
+}
+
+input CreateContainerRegistryInput {
+  name: String!
+  cloudProfileId: String!
+  cloudProviderContainerRegistryConfig: CreateCloudProviderContainerRegistryConfig!
+}
+
+input CreateDataStorageInput {
+  name: String!
+  cloudProfileId: String!
+  cloudProviderYodaConfig: CreateCloudProviderYodaConfig
+}
+
+input CreateExperimentInput {
+  name: String!
+  environment: ExperimentEnvironment!
+  cloudProfileId: String
+  trainingId: String
+  training: CreateTrainingInput
+  experimentRunConfig: CreateExperimentRunConfig
+}
+
+input CreateExperimentRunConfig {
+  entrypoint: String
+  requirementsPath: String
+  artifactsDirectory: String
+}
+
+input CreateGCPAppConfig {
+  gcpRegion: String!
+  gcpZone: String!
+  containerCpu: String
+  containerMemory: String
+  containerCpuIdle: Boolean
+  scalingMinCount: Int
+  scalingMaxCount: Int
+  maxInstanceRequestConcurrency: Int
+}
+
+input CreateGCPContainerRegistryConfig {
+  gcpRegion: String!
+  gcpZone: String!
+}
+
+input CreateGCPFalconConfig {
+  gcpRegion: String!
+  gcpZone: String!
+  computeMachineType: String
+  computeInstanceCount: Int
+  computeVolumeSize: Int
+  computeGpuCount: Int
+  computeGpuType: String
+}
+
+input CreateGCPYodaConfig {
+  gcpRegion: String!
+  gcpZone: String!
+}
+
+input CreateKubernetesProfileInput {
+  name: String!
+  kubeconfig: String!
+}
+
+type CreatePersonalAccessToken {
+  token: PersonalAccessToken!
+  tokenString: String!
+}
+
+input CreatePersonalAccessTokenInput {
+  name: String!
+}
+
+input CreateProjectInput {
+  name: String!
+  cloudProfileId: String!
+}
+
+input CreateRayClusterInput {
+  name: String!
+  kubernetesProfileId: String!
+}
+
+input CreateTeamInput {
+  username: String!
+  displayName: String!
+}
+
+input CreateTrainingInput {
+  name: String!
+  cloudProfileId: String!
+  cloudProviderFalconConfig: CreateCloudProviderFalconConfig!
+  falconMLConfigId: String
+  dataStorageIds: [String!]
+  dataStorage: CreateDataStorageInput
+}
+
+input CustomAccountWhereUniqueInput {
+  id: String
+  username: String
+  githubAppInstallationState: String
+}
+
+type CustomerAddress {
+  addressLine1: String!
+  addressLine2: String
+  city: String!
+  state: String
+  zipCode: String
+  country: String!
+}
+
+input CustomerAddressInput {
+  addressLine1: String!
+  addressLine2: String
+  city: String!
+  state: String
+  zipCode: String
+  country: String!
+}
+
+type DataStorage {
+  id: String!
+  name: String!
+  accountId: String!
+  cloudProfileId: String
+  cloudProviderYodaConfigId: String
+  projectForArtifactsStorageId: String
+  status: DataStorageStatus!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  _count: DataStorageCount
+  account: Account!
+  cloudProfile: CloudProfile
+  cloudProviderYodaConfig: CloudProviderYodaConfig
+  trainings(where: TrainingWhereInput, orderBy: [TrainingOrderByWithRelationInput!], cursor: TrainingWhereUniqueInput, take: Int, skip: Int, distinct: [TrainingScalarFieldEnum!]): [Training!]!
+  projects(where: ProjectWhereInput, orderBy: [ProjectOrderByWithRelationInput!], cursor: ProjectWhereUniqueInput, take: Int, skip: Int, distinct: [ProjectScalarFieldEnum!]): [Project!]!
+  projectForArtifactsStorage: Project
+  containers(where: DataStorageContainerWhereInput, orderBy: [DataStorageContainerOrderByWithRelationInput!], cursor: DataStorageContainerWhereUniqueInput, take: Int, skip: Int, distinct: [DataStorageContainerScalarFieldEnum!]): [DataStorageContainer!]!
+  taskActions(where: TaskActionWhereInput, orderBy: [TaskActionOrderByWithRelationInput!], cursor: TaskActionWhereUniqueInput, take: Int, skip: Int, distinct: [TaskActionScalarFieldEnum!]): [TaskAction!]!
+}
+
+type DataStorageContainer {
+  id: String!
+  dataStorageId: String!
+  directoryName: String!
+  dataStorage: DataStorage!
+  browser(cursor: String, take: Int = 100, prefix: String): DataStorageContainerBrowser!
+  cloudName: String
+}
+
+type DataStorageContainerBrowser {
+  files: [DataStorageContainerFile!]!
+  directories: [DataStorageContainerDirectory!]!
+  cursor: String
+}
+
+input DataStorageContainerDataStorageIdDirectoryNameCompoundUniqueInput {
+  dataStorageId: String!
+  directoryName: String!
+}
+
+type DataStorageContainerDirectory {
+  key: String!
+  name: String!
+  browser(cursor: String, take: Float = 100): DataStorageContainerBrowser
+}
+
+type DataStorageContainerFile {
+  key: String!
+  name: String!
+  presignedUrl: String
+}
+
+input DataStorageContainerListRelationFilter {
+  every: DataStorageContainerWhereInput
+  some: DataStorageContainerWhereInput
+  none: DataStorageContainerWhereInput
+}
+
+input DataStorageContainerOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input DataStorageContainerOrderByWithRelationInput {
+  id: SortOrder
+  dataStorage: DataStorageOrderByWithRelationInput
+  dataStorageId: SortOrder
+  directoryName: SortOrder
+}
+
+enum DataStorageContainerScalarFieldEnum {
+  id
+  dataStorageId
+  directoryName
+}
+
+input DataStorageContainerWhereInput {
+  AND: [DataStorageContainerWhereInput!]
+  OR: [DataStorageContainerWhereInput!]
+  NOT: [DataStorageContainerWhereInput!]
+  id: StringFilter
+  dataStorage: DataStorageRelationFilter
+  dataStorageId: StringFilter
+  directoryName: StringFilter
+}
+
+input DataStorageContainerWhereUniqueInput {
+  id: String
+  dataStorageId_directoryName: DataStorageContainerDataStorageIdDirectoryNameCompoundUniqueInput
+}
+
+type DataStorageCount {
+  trainings: Int!
+  projects: Int!
+  containers: Int!
+  taskActions: Int!
+}
+
+type DataStorageCountAggregate {
+  id: Int!
+  name: Int!
+  accountId: Int!
+  cloudProfileId: Int!
+  cloudProviderYodaConfigId: Int!
+  projectForArtifactsStorageId: Int!
+  status: Int!
+  createdAt: Int!
+  updatedAt: Int!
+  _all: Int!
+}
+
+input DataStorageListRelationFilter {
+  every: DataStorageWhereInput
+  some: DataStorageWhereInput
+  none: DataStorageWhereInput
+}
+
+type DataStorageMaxAggregate {
+  id: String
+  name: String
+  accountId: String
+  cloudProfileId: String
+  cloudProviderYodaConfigId: String
+  projectForArtifactsStorageId: String
+  status: DataStorageStatus
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type DataStorageMinAggregate {
+  id: String
+  name: String
+  accountId: String
+  cloudProfileId: String
+  cloudProviderYodaConfigId: String
+  projectForArtifactsStorageId: String
+  status: DataStorageStatus
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input DataStorageOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input DataStorageOrderByWithRelationInput {
+  id: SortOrder
+  name: SortOrder
+  account: AccountOrderByWithRelationInput
+  accountId: SortOrder
+  cloudProfile: CloudProfileOrderByWithRelationInput
+  cloudProfileId: SortOrder
+  cloudProviderYodaConfig: CloudProviderYodaConfigOrderByWithRelationInput
+  cloudProviderYodaConfigId: SortOrder
+  trainings: TrainingOrderByRelationAggregateInput
+  projects: ProjectOrderByRelationAggregateInput
+  projectForArtifactsStorage: ProjectOrderByWithRelationInput
+  projectForArtifactsStorageId: SortOrder
+  status: SortOrder
+  containers: DataStorageContainerOrderByRelationAggregateInput
+  taskActions: TaskActionOrderByRelationAggregateInput
+  createdAt: SortOrder
+  updatedAt: SortOrder
+}
+
+input DataStorageRelationFilter {
+  is: DataStorageWhereInput
+  isNot: DataStorageWhereInput
+}
+
+enum DataStorageScalarFieldEnum {
+  id
+  name
+  accountId
+  cloudProfileId
+  cloudProviderYodaConfigId
+  projectForArtifactsStorageId
+  status
+  createdAt
+  updatedAt
+}
+
+enum DataStorageStatus {
+  DEPLOY_SUCCESS
+  DEPLOY_ERROR
+  DEPLOYING
+  UNDEPLOYED
+  DESTROYING
+  DESTROY_ERROR
+  DESTROY_SUCCESS
+}
+
+input DataStorageWhereInput {
+  AND: [DataStorageWhereInput!]
+  OR: [DataStorageWhereInput!]
+  NOT: [DataStorageWhereInput!]
+  id: StringFilter
+  name: StringFilter
+  account: AccountRelationFilter
+  accountId: StringFilter
+  cloudProfile: CloudProfileRelationFilter
+  cloudProfileId: StringNullableFilter
+  cloudProviderYodaConfig: CloudProviderYodaConfigRelationFilter
+  cloudProviderYodaConfigId: StringNullableFilter
+  trainings: TrainingListRelationFilter
+  projects: ProjectListRelationFilter
+  projectForArtifactsStorage: ProjectRelationFilter
+  projectForArtifactsStorageId: StringNullableFilter
+  status: EnumDataStorageStatusFilter
+  containers: DataStorageContainerListRelationFilter
+  taskActions: TaskActionListRelationFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input DataStorageWhereUniqueInput {
+  id: String
+  cloudProviderYodaConfigId: String
+  projectForArtifactsStorageId: String
+}
+
+"""
+The javascript `Date` as string. Type represents date and time as the ISO Date string.
+"""
+scalar DateTime
+
+input DateTimeFilter {
+  equals: DateTime
+  in: [DateTime!]
+  notIn: [DateTime!]
+  lt: DateTime
+  lte: DateTime
+  gt: DateTime
+  gte: DateTime
+  not: NestedDateTimeFilter
+}
+
+input EnumApplicationContainerStatusFilter {
+  equals: ApplicationContainerStatus
+  in: [ApplicationContainerStatus!]
+  notIn: [ApplicationContainerStatus!]
+  not: NestedEnumApplicationContainerStatusFilter
+}
+
+input EnumApplicationStatusFilter {
+  equals: ApplicationStatus
+  in: [ApplicationStatus!]
+  notIn: [ApplicationStatus!]
+  not: NestedEnumApplicationStatusFilter
+}
+
+input EnumBillingPaymentProviderFilter {
+  equals: BillingPaymentProvider
+  in: [BillingPaymentProvider!]
+  notIn: [BillingPaymentProvider!]
+  not: NestedEnumBillingPaymentProviderFilter
+}
+
+input EnumBillingSubscriptionStatusFilter {
+  equals: BillingSubscriptionStatus
+  in: [BillingSubscriptionStatus!]
+  notIn: [BillingSubscriptionStatus!]
+  not: NestedEnumBillingSubscriptionStatusFilter
+}
+
+input EnumCloudProviderAppConfigPlanNullableFilter {
+  equals: CloudProviderAppConfigPlan
+  in: [CloudProviderAppConfigPlan!]
+  notIn: [CloudProviderAppConfigPlan!]
+  not: NestedEnumCloudProviderAppConfigPlanNullableFilter
+}
+
+input EnumCloudProviderFalconConfigPlanNullableFilter {
+  equals: CloudProviderFalconConfigPlan
+  in: [CloudProviderFalconConfigPlan!]
+  notIn: [CloudProviderFalconConfigPlan!]
+  not: NestedEnumCloudProviderFalconConfigPlanNullableFilter
+}
+
+input EnumCloudProviderFilter {
+  equals: CloudProvider
+  in: [CloudProvider!]
+  notIn: [CloudProvider!]
+  not: NestedEnumCloudProviderFilter
+}
+
+input EnumDataStorageStatusFilter {
+  equals: DataStorageStatus
+  in: [DataStorageStatus!]
+  notIn: [DataStorageStatus!]
+  not: NestedEnumDataStorageStatusFilter
+}
+
+input EnumExperimentEnvironmentFilter {
+  equals: ExperimentEnvironment
+  in: [ExperimentEnvironment!]
+  notIn: [ExperimentEnvironment!]
+  not: NestedEnumExperimentEnvironmentFilter
+}
+
+input EnumExperimentRunEnvironmentFilter {
+  equals: ExperimentRunEnvironment
+  in: [ExperimentRunEnvironment!]
+  notIn: [ExperimentRunEnvironment!]
+  not: NestedEnumExperimentRunEnvironmentFilter
+}
+
+input EnumExperimentRunStatusFilter {
+  equals: ExperimentRunStatus
+  in: [ExperimentRunStatus!]
+  notIn: [ExperimentRunStatus!]
+  not: NestedEnumExperimentRunStatusFilter
+}
+
+input EnumExperimentStatusFilter {
+  equals: ExperimentStatus
+  in: [ExperimentStatus!]
+  notIn: [ExperimentStatus!]
+  not: NestedEnumExperimentStatusFilter
+}
+
+input EnumExternalSSOProviderFilter {
+  equals: ExternalSSOProvider
+  in: [ExternalSSOProvider!]
+  notIn: [ExternalSSOProvider!]
+  not: NestedEnumExternalSSOProviderFilter
+}
+
+input EnumProjectStatusFilter {
+  equals: ProjectStatus
+  in: [ProjectStatus!]
+  notIn: [ProjectStatus!]
+  not: NestedEnumProjectStatusFilter
+}
+
+input EnumRayClusterStatusFilter {
+  equals: RayClusterStatus
+  in: [RayClusterStatus!]
+  notIn: [RayClusterStatus!]
+  not: NestedEnumRayClusterStatusFilter
+}
+
+input EnumRoleInTeamFilter {
+  equals: RoleInTeam
+  in: [RoleInTeam!]
+  notIn: [RoleInTeam!]
+  not: NestedEnumRoleInTeamFilter
+}
+
+input EnumTaskActionStateFilter {
+  equals: TaskActionState
+  in: [TaskActionState!]
+  notIn: [TaskActionState!]
+  not: NestedEnumTaskActionStateFilter
+}
+
+input EnumTaskActionTypeFilter {
+  equals: TaskActionType
+  in: [TaskActionType!]
+  notIn: [TaskActionType!]
+  not: NestedEnumTaskActionTypeFilter
+}
+
+input EnumTaskStepStateFilter {
+  equals: TaskStepState
+  in: [TaskStepState!]
+  notIn: [TaskStepState!]
+  not: NestedEnumTaskStepStateFilter
+}
+
+input EnumTeamMemberInvitationStatusFilter {
+  equals: TeamMemberInvitationStatus
+  in: [TeamMemberInvitationStatus!]
+  notIn: [TeamMemberInvitationStatus!]
+  not: NestedEnumTeamMemberInvitationStatusFilter
+}
+
+input EnumTrainingAnsibleTaskTypeFilter {
+  equals: TrainingAnsibleTaskType
+  in: [TrainingAnsibleTaskType!]
+  notIn: [TrainingAnsibleTaskType!]
+  not: NestedEnumTrainingAnsibleTaskTypeFilter
+}
+
+input EnumTrainingMountStatusFilter {
+  equals: TrainingMountStatus
+  in: [TrainingMountStatus!]
+  notIn: [TrainingMountStatus!]
+  not: NestedEnumTrainingMountStatusFilter
+}
+
+input EnumTrainingRunningStateFilter {
+  equals: TrainingRunningState
+  in: [TrainingRunningState!]
+  notIn: [TrainingRunningState!]
+  not: NestedEnumTrainingRunningStateFilter
+}
+
+input EnumTrainingStatusFilter {
+  equals: TrainingStatus
+  in: [TrainingStatus!]
+  notIn: [TrainingStatus!]
+  not: NestedEnumTrainingStatusFilter
+}
+
+type EnvironmentVariable {
+  id: Int!
+  applicationId: String
+  name: String!
+  value: String!
+}
+
+input EnvironmentVariableInput {
+  name: String!
+  value: String!
+}
+
+input EnvironmentVariableListRelationFilter {
+  every: EnvironmentVariableWhereInput
+  some: EnvironmentVariableWhereInput
+  none: EnvironmentVariableWhereInput
+}
+
+input EnvironmentVariableOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input EnvironmentVariableOrderByWithRelationInput {
+  id: SortOrder
+  application: ApplicationOrderByWithRelationInput
+  applicationId: SortOrder
+  name: SortOrder
+  value: SortOrder
+}
+
+enum EnvironmentVariableScalarFieldEnum {
+  id
+  applicationId
+  name
+  value
+}
+
+input EnvironmentVariableWhereInput {
+  AND: [EnvironmentVariableWhereInput!]
+  OR: [EnvironmentVariableWhereInput!]
+  NOT: [EnvironmentVariableWhereInput!]
+  id: IntFilter
+  application: ApplicationRelationFilter
+  applicationId: StringNullableFilter
+  name: StringFilter
+  value: StringFilter
+}
+
+input EnvironmentVariableWhereUniqueInput {
+  id: Int
+}
+
+type Experiment {
+  id: String!
+  name: String!
+  accountId: String!
+  cloudProfileId: String
+  projectId: String
+  trainingId: String
+  status: ExperimentStatus!
+  environment: ExperimentEnvironment!
+  mlflowExperimentId: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  _count: ExperimentCount
+  account: Account!
+  cloudProfile: CloudProfile
+  project: Project
+  training: Training
+  experimentRuns(where: ExperimentRunWhereInput, orderBy: [ExperimentRunOrderByWithRelationInput!], cursor: ExperimentRunWhereUniqueInput, take: Int, skip: Int, distinct: [ExperimentRunScalarFieldEnum!]): [ExperimentRun!]!
+  config: ExperimentRunConfig
+  resourceAccessToken: ResourceAccessToken
+  taskActions(where: TaskActionWhereInput, orderBy: [TaskActionOrderByWithRelationInput!], cursor: TaskActionWhereUniqueInput, take: Int, skip: Int, distinct: [TaskActionScalarFieldEnum!]): [TaskAction!]!
+  mlflowExperiment: MLFlowExperiment
+  resourceAccessTokenString: String! @deprecated(reason: "Use token field in resourceAccessToken relational field instead")
+}
+
+type ExperimentCount {
+  experimentRuns: Int!
+  taskActions: Int!
+}
+
+enum ExperimentEnvironment {
+  DEPLOIFAI
+  EXTERNAL
+}
+
+input ExperimentListRelationFilter {
+  every: ExperimentWhereInput
+  some: ExperimentWhereInput
+  none: ExperimentWhereInput
+}
+
+input ExperimentOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input ExperimentOrderByWithRelationInput {
+  id: SortOrder
+  name: SortOrder
+  account: AccountOrderByWithRelationInput
+  accountId: SortOrder
+  cloudProfile: CloudProfileOrderByWithRelationInput
+  cloudProfileId: SortOrder
+  project: ProjectOrderByWithRelationInput
+  projectId: SortOrder
+  training: TrainingOrderByWithRelationInput
+  trainingId: SortOrder
+  experimentRuns: ExperimentRunOrderByRelationAggregateInput
+  status: SortOrder
+  environment: SortOrder
+  mlflowExperimentId: SortOrder
+  config: ExperimentRunConfigOrderByWithRelationInput
+  resourceAccessToken: ResourceAccessTokenOrderByWithRelationInput
+  taskActions: TaskActionOrderByRelationAggregateInput
+  createdAt: SortOrder
+  updatedAt: SortOrder
+}
+
+input ExperimentRelationFilter {
+  is: ExperimentWhereInput
+  isNot: ExperimentWhereInput
+}
+
+type ExperimentRun {
+  id: String!
+  experimentId: String!
+  develImageTag: String
+  status: ExperimentRunStatus!
+  environment: ExperimentRunEnvironment!
+  mlflowRunId: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  _count: ExperimentRunCount
+  experiment: Experiment!
+  resourceAccessToken: ResourceAccessToken
+  config: ExperimentRunConfig
+  taskActions(where: TaskActionWhereInput, orderBy: [TaskActionOrderByWithRelationInput!], cursor: TaskActionWhereUniqueInput, take: Int, skip: Int, distinct: [TaskActionScalarFieldEnum!]): [TaskAction!]!
+  logsPresignedUrl: String
+  zippedArtifactsPresignedUrl: String
+  mlflowRun: MLFlowRun
+}
+
+type ExperimentRunConfig {
+  id: String!
+  experimentId: String
+  experimentRunId: String
+  entrypoint: String
+  requirementsPath: String
+  artifactsDirectory: String
+}
+
+input ExperimentRunConfigOrderByWithRelationInput {
+  id: SortOrder
+  experiment: ExperimentOrderByWithRelationInput
+  experimentId: SortOrder
+  experimentRun: ExperimentRunOrderByWithRelationInput
+  experimentRunId: SortOrder
+  entrypoint: SortOrder
+  requirementsPath: SortOrder
+  artifactsDirectory: SortOrder
+}
+
+input ExperimentRunConfigRelationFilter {
+  is: ExperimentRunConfigWhereInput
+  isNot: ExperimentRunConfigWhereInput
+}
+
+input ExperimentRunConfigWhereInput {
+  AND: [ExperimentRunConfigWhereInput!]
+  OR: [ExperimentRunConfigWhereInput!]
+  NOT: [ExperimentRunConfigWhereInput!]
+  id: StringFilter
+  experiment: ExperimentRelationFilter
+  experimentId: StringNullableFilter
+  experimentRun: ExperimentRunRelationFilter
+  experimentRunId: StringNullableFilter
+  entrypoint: StringNullableFilter
+  requirementsPath: StringNullableFilter
+  artifactsDirectory: StringNullableFilter
+}
+
+type ExperimentRunCount {
+  taskActions: Int!
+}
+
+enum ExperimentRunEnvironment {
+  DEPLOIFAI
+  EXTERNAL
+}
+
+input ExperimentRunListRelationFilter {
+  every: ExperimentRunWhereInput
+  some: ExperimentRunWhereInput
+  none: ExperimentRunWhereInput
+}
+
+input ExperimentRunOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input ExperimentRunOrderByWithRelationInput {
+  id: SortOrder
+  experiment: ExperimentOrderByWithRelationInput
+  experimentId: SortOrder
+  develImageTag: SortOrder
+  status: SortOrder
+  environment: SortOrder
+  resourceAccessToken: ResourceAccessTokenOrderByWithRelationInput
+  mlflowRunId: SortOrder
+  config: ExperimentRunConfigOrderByWithRelationInput
+  taskActions: TaskActionOrderByRelationAggregateInput
+  createdAt: SortOrder
+  updatedAt: SortOrder
+}
+
+input ExperimentRunRelationFilter {
+  is: ExperimentRunWhereInput
+  isNot: ExperimentRunWhereInput
+}
+
+enum ExperimentRunScalarFieldEnum {
+  id
+  experimentId
+  develImageTag
+  status
+  environment
+  mlflowRunId
+  createdAt
+  updatedAt
+}
+
+enum ExperimentRunStatus {
+  NOT_STARTED
+  STARTING
+  START_SUCCESS
+  START_ERROR
+  RUNNING
+  RUN_SUCCESS
+  RUN_ERROR
+  EXTERNAL
+}
+
+input ExperimentRunWhereInput {
+  AND: [ExperimentRunWhereInput!]
+  OR: [ExperimentRunWhereInput!]
+  NOT: [ExperimentRunWhereInput!]
+  id: StringFilter
+  experiment: ExperimentRelationFilter
+  experimentId: StringFilter
+  develImageTag: StringNullableFilter
+  status: EnumExperimentRunStatusFilter
+  environment: EnumExperimentRunEnvironmentFilter
+  resourceAccessToken: ResourceAccessTokenRelationFilter
+  mlflowRunId: StringNullableFilter
+  config: ExperimentRunConfigRelationFilter
+  taskActions: TaskActionListRelationFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input ExperimentRunWhereUniqueInput {
+  id: String
+}
+
+enum ExperimentScalarFieldEnum {
+  id
+  name
+  accountId
+  cloudProfileId
+  projectId
+  trainingId
+  status
+  environment
+  mlflowExperimentId
+  createdAt
+  updatedAt
+}
+
+enum ExperimentStatus {
+  SET_UP_SUCCESS
+  SET_UP_ERROR
+  SETTING_UP
+  NOT_SET_UP
+  REMOVING
+  REMOVE_SUCCESS
+  REMOVE_ERROR
+}
+
+input ExperimentWhereInput {
+  AND: [ExperimentWhereInput!]
+  OR: [ExperimentWhereInput!]
+  NOT: [ExperimentWhereInput!]
+  id: StringFilter
+  name: StringFilter
+  account: AccountRelationFilter
+  accountId: StringFilter
+  cloudProfile: CloudProfileRelationFilter
+  cloudProfileId: StringNullableFilter
+  project: ProjectRelationFilter
+  projectId: StringNullableFilter
+  training: TrainingRelationFilter
+  trainingId: StringNullableFilter
+  experimentRuns: ExperimentRunListRelationFilter
+  status: EnumExperimentStatusFilter
+  environment: EnumExperimentEnvironmentFilter
+  mlflowExperimentId: StringNullableFilter
+  config: ExperimentRunConfigRelationFilter
+  resourceAccessToken: ResourceAccessTokenRelationFilter
+  taskActions: TaskActionListRelationFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input ExperimentWhereUniqueInput {
+  id: String
+}
+
+type ExternalSSO {
+  id: String!
+  userId: String!
+  provider: ExternalSSOProvider!
+  githubUsername: String
+}
+
+input ExternalSSOOrderByWithRelationInput {
+  id: SortOrder
+  user: UserOrderByWithRelationInput
+  userId: SortOrder
+  provider: SortOrder
+  githubUsername: SortOrder
+}
+
+enum ExternalSSOProvider {
+  GITHUB
+}
+
+input ExternalSSORelationFilter {
+  is: ExternalSSOWhereInput
+  isNot: ExternalSSOWhereInput
+}
+
+input ExternalSSOWhereInput {
+  AND: [ExternalSSOWhereInput!]
+  OR: [ExternalSSOWhereInput!]
+  NOT: [ExternalSSOWhereInput!]
+  id: StringFilter
+  user: UserRelationFilter
+  userId: StringFilter
+  provider: EnumExternalSSOProviderFilter
+  githubUsername: StringNullableFilter
+}
+
+type FalconMLConfig {
+  id: String!
+  pythonVersion: String!
+  framework: String!
+  frameworkVersion: String!
+  cudaVersion: String
+  cudnnVersion: String
+  nvidiaCudaToolkitImageTag: String
+  _count: FalconMLConfigCount
+}
+
+type FalconMLConfigCount {
+  trainings: Int!
+}
+
+input FalconMLConfigOrderByWithRelationInput {
+  id: SortOrder
+  trainings: TrainingOrderByRelationAggregateInput
+  pythonVersion: SortOrder
+  framework: SortOrder
+  frameworkVersion: SortOrder
+  cudaVersion: SortOrder
+  cudnnVersion: SortOrder
+  nvidiaCudaToolkitImageTag: SortOrder
+}
+
+input FalconMLConfigRelationFilter {
+  is: FalconMLConfigWhereInput
+  isNot: FalconMLConfigWhereInput
+}
+
+enum FalconMLConfigScalarFieldEnum {
+  id
+  pythonVersion
+  framework
+  frameworkVersion
+  cudaVersion
+  cudnnVersion
+  nvidiaCudaToolkitImageTag
+}
+
+input FalconMLConfigWhereInput {
+  AND: [FalconMLConfigWhereInput!]
+  OR: [FalconMLConfigWhereInput!]
+  NOT: [FalconMLConfigWhereInput!]
+  id: StringFilter
+  trainings: TrainingListRelationFilter
+  pythonVersion: StringFilter
+  framework: StringFilter
+  frameworkVersion: StringFilter
+  cudaVersion: StringNullableFilter
+  cudnnVersion: StringNullableFilter
+  nvidiaCudaToolkitImageTag: StringNullableFilter
+}
+
+input FalconMLConfigWhereUniqueInput {
+  id: String
+}
+
+type GCPAppConfig {
+  id: String!
+  cloudProviderAppConfigId: String!
+  gcpRegion: String!
+  gcpZone: String!
+  containerCpu: String
+  containerMemory: String
+  containerCpuIdle: Boolean
+  scalingMinCount: Int
+  scalingMaxCount: Int
+  maxInstanceRequestConcurrency: Int
+}
+
+input GCPAppConfigOrderByWithRelationInput {
+  id: SortOrder
+  cloudProviderAppConfig: CloudProviderAppConfigOrderByWithRelationInput
+  cloudProviderAppConfigId: SortOrder
+  gcpRegion: SortOrder
+  gcpZone: SortOrder
+  containerCpu: SortOrder
+  containerMemory: SortOrder
+  containerCpuIdle: SortOrder
+  scalingMinCount: SortOrder
+  scalingMaxCount: SortOrder
+  maxInstanceRequestConcurrency: SortOrder
+}
+
+input GCPAppConfigRelationFilter {
+  is: GCPAppConfigWhereInput
+  isNot: GCPAppConfigWhereInput
+}
+
+input GCPAppConfigWhereInput {
+  AND: [GCPAppConfigWhereInput!]
+  OR: [GCPAppConfigWhereInput!]
+  NOT: [GCPAppConfigWhereInput!]
+  id: StringFilter
+  cloudProviderAppConfig: CloudProviderAppConfigRelationFilter
+  cloudProviderAppConfigId: StringFilter
+  gcpRegion: StringFilter
+  gcpZone: StringFilter
+  containerCpu: StringNullableFilter
+  containerMemory: StringNullableFilter
+  containerCpuIdle: BoolNullableFilter
+  scalingMinCount: IntNullableFilter
+  scalingMaxCount: IntNullableFilter
+  maxInstanceRequestConcurrency: IntNullableFilter
+}
+
+input GCPAppConfigWhereUniqueInput {
+  id: String
+  cloudProviderAppConfigId: String
+}
+
+type GCPAppDefaultConfig {
+  gcpRegion: String!
+  gcpZone: String!
+  containerCpu: String
+  containerMemory: String
+  containerCpuIdle: Boolean
+  scalingMinCount: Int
+  scalingMaxCount: Int
+  maxInstanceRequestConcurrency: Int
+}
+
+type GCPContainerRegistryConfig {
+  id: String!
+  cloudProviderContainerRegistryConfigId: String!
+  gcpRegion: String!
+  gcpZone: String!
+}
+
+input GCPContainerRegistryConfigOrderByWithRelationInput {
+  id: SortOrder
+  cloudProviderContainerRegistryConfig: CloudProviderContainerRegistryConfigOrderByWithRelationInput
+  cloudProviderContainerRegistryConfigId: SortOrder
+  gcpRegion: SortOrder
+  gcpZone: SortOrder
+}
+
+input GCPContainerRegistryConfigRelationFilter {
+  is: GCPContainerRegistryConfigWhereInput
+  isNot: GCPContainerRegistryConfigWhereInput
+}
+
+input GCPContainerRegistryConfigWhereInput {
+  AND: [GCPContainerRegistryConfigWhereInput!]
+  OR: [GCPContainerRegistryConfigWhereInput!]
+  NOT: [GCPContainerRegistryConfigWhereInput!]
+  id: StringFilter
+  cloudProviderContainerRegistryConfig: CloudProviderContainerRegistryConfigRelationFilter
+  cloudProviderContainerRegistryConfigId: StringFilter
+  gcpRegion: StringFilter
+  gcpZone: StringFilter
+}
+
+input GCPContainerRegistryConfigWhereUniqueInput {
+  id: String
+  cloudProviderContainerRegistryConfigId: String
+}
+
+input GCPCredentials {
+  gcpProjectId: String!
+  gcpServiceAccountKey: String!
+}
+
+type GCPFalconConfig {
+  id: String!
+  cloudProviderFalconConfigId: String!
+  gcpRegion: String!
+  gcpZone: String!
+  computeMachineType: String
+  computeInstanceCount: Int
+  computeVolumeSize: Int
+  computeGpuCount: Int
+  computeGpuType: String
+}
+
+input GCPFalconConfigOrderByWithRelationInput {
+  id: SortOrder
+  cloudProviderFalconConfig: CloudProviderFalconConfigOrderByWithRelationInput
+  cloudProviderFalconConfigId: SortOrder
+  gcpRegion: SortOrder
+  gcpZone: SortOrder
+  computeMachineType: SortOrder
+  computeInstanceCount: SortOrder
+  computeVolumeSize: SortOrder
+  computeGpuCount: SortOrder
+  computeGpuType: SortOrder
+}
+
+input GCPFalconConfigRelationFilter {
+  is: GCPFalconConfigWhereInput
+  isNot: GCPFalconConfigWhereInput
+}
+
+input GCPFalconConfigWhereInput {
+  AND: [GCPFalconConfigWhereInput!]
+  OR: [GCPFalconConfigWhereInput!]
+  NOT: [GCPFalconConfigWhereInput!]
+  id: StringFilter
+  cloudProviderFalconConfig: CloudProviderFalconConfigRelationFilter
+  cloudProviderFalconConfigId: StringFilter
+  gcpRegion: StringFilter
+  gcpZone: StringFilter
+  computeMachineType: StringNullableFilter
+  computeInstanceCount: IntNullableFilter
+  computeVolumeSize: IntNullableFilter
+  computeGpuCount: IntNullableFilter
+  computeGpuType: StringNullableFilter
+}
+
+input GCPFalconConfigWhereUniqueInput {
+  id: String
+  cloudProviderFalconConfigId: String
+}
+
+type GCPFalconDefaultConfig {
+  gcpRegion: String!
+  gcpZone: String!
+  computeMachineType: String
+  computeInstanceCount: Int
+  computeVolumeSize: Int
+  computeGpuCount: Int
+  computeGpuType: String
+  isAvailable: Boolean!
+}
+
+type GCPYodaConfig {
+  id: String!
+  cloudProviderYodaConfigId: String!
+  gcpRegion: String!
+  gcpZone: String!
+  gcpProjectId: String
+  gcpServiceAccountKey: String
+}
+
+input GCPYodaConfigOrderByWithRelationInput {
+  id: SortOrder
+  cloudProviderYodaConfig: CloudProviderYodaConfigOrderByWithRelationInput
+  cloudProviderYodaConfigId: SortOrder
+  gcpRegion: SortOrder
+  gcpZone: SortOrder
+}
+
+input GCPYodaConfigRelationFilter {
+  is: GCPYodaConfigWhereInput
+  isNot: GCPYodaConfigWhereInput
+}
+
+input GCPYodaConfigWhereInput {
+  AND: [GCPYodaConfigWhereInput!]
+  OR: [GCPYodaConfigWhereInput!]
+  NOT: [GCPYodaConfigWhereInput!]
+  id: StringFilter
+  cloudProviderYodaConfig: CloudProviderYodaConfigRelationFilter
+  cloudProviderYodaConfigId: StringFilter
+  gcpRegion: StringFilter
+  gcpZone: StringFilter
+}
+
+input GCPYodaConfigWhereUniqueInput {
+  id: String
+  cloudProviderYodaConfigId: String
+}
+
+type GithubAccount {
+  id: Int!
+  username: String!
+  avatarUrl: String!
+}
+
+type GithubAppInstallation {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  account: Account!
+  repositories: [GithubRepository!]!
+  githubAccount: GithubAccount!
+}
+
+type GithubRepository {
+  id: Int!
+  name: String!
+  fullName: String!
+  isPrivate: Boolean!
+  accessToken: String!
+}
+
+input IntFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: NestedIntFilter
+}
+
+input IntNullableFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: NestedIntNullableFilter
+}
+
+input InviteTeamMemberInput {
+  users: [UserToBeInvited!]!
+}
+
+type KubernetesProfile {
+  id: String!
+  name: String!
+  accountId: String!
+  kubeconfig: String!
+  _count: KubernetesProfileCount
+  isEmpty: Boolean!
+}
+
+input KubernetesProfileAccountIdNameCompoundUniqueInput {
+  accountId: String!
+  name: String!
+}
+
+type KubernetesProfileCount {
+  rayClusters: Int!
+}
+
+input KubernetesProfileListRelationFilter {
+  every: KubernetesProfileWhereInput
+  some: KubernetesProfileWhereInput
+  none: KubernetesProfileWhereInput
+}
+
+input KubernetesProfileOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input KubernetesProfileOrderByWithRelationInput {
+  id: SortOrder
+  name: SortOrder
+  account: AccountOrderByWithRelationInput
+  accountId: SortOrder
+  kubeconfig: SortOrder
+  rayClusters: RayClusterOrderByRelationAggregateInput
+}
+
+input KubernetesProfileRelationFilter {
+  is: KubernetesProfileWhereInput
+  isNot: KubernetesProfileWhereInput
+}
+
+enum KubernetesProfileScalarFieldEnum {
+  id
+  name
+  accountId
+  kubeconfig
+}
+
+input KubernetesProfileWhereInput {
+  AND: [KubernetesProfileWhereInput!]
+  OR: [KubernetesProfileWhereInput!]
+  NOT: [KubernetesProfileWhereInput!]
+  id: StringFilter
+  name: StringFilter
+  account: AccountRelationFilter
+  accountId: StringFilter
+  kubeconfig: StringFilter
+  rayClusters: RayClusterListRelationFilter
+}
+
+input KubernetesProfileWhereUniqueInput {
+  id: String
+  accountId_name: KubernetesProfileAccountIdNameCompoundUniqueInput
+}
+
+type MLFlowExperiment {
+  experimentId: String!
+  name: String!
+  artifactLocation: String!
+
+  """
+  Current life cycle stage of the experiment: One of ("active", "deleted")
+  """
+  lifecycleStage: String!
+  runs: [MLFlowRun!]!
+}
+
+input MLFlowExperimentWhereUniqueInput {
+  experimentId: String!
+}
+
+type MLFlowRun {
+  info: MLFlowRunInfo!
+  data: MLFlowRunData!
+  metricsHistory(
+    """Key identifying this metric"""
+    key: String!
+  ): [MLFlowRunMetric!]!
+}
+
+type MLFlowRunData {
+  metrics: [MLFlowRunMetric!]
+  params: [MLFlowRunParam!]
+  tags: [MLFlowRunTag!]!
+}
+
+type MLFlowRunInfo {
+  runId: String!
+  experimentId: String!
+  status: String!
+  startTime: DateTime!
+  endTime: DateTime!
+  artifactUri: String!
+
+  """
+  Current life cycle stage of the experiment: One of ("active", "deleted")
+  """
+  lifecycleStage: String!
+}
+
+type MLFlowRunMetric {
+  key: String!
+  value: Float!
+  timestamp: DateTime!
+  step: Int!
+}
+
+type MLFlowRunParam {
+  key: String!
+  value: String!
+}
+
+type MLFlowRunTag {
+  key: String!
+  value: String!
+}
+
+type Mutation {
+  deleteOnePersonalAccessToken(where: PersonalAccessTokenWhereUniqueInput!): PersonalAccessToken
+  updateAccount(data: UpdateAccountInput!, where: AccountWhereUniqueInput!): Account!
+  setGithubAppInstallationState(where: AccountWhereUniqueInput!): String!
+  updateOnboarding(data: UpdateOnboardingInput!, whereAccount: AccountWhereUniqueInput!): Onboarding!
+  addBillingAccountDetails(data: AddBillingAccountDetailsInput!, whereAccount: AccountWhereUniqueInput!): BillingAccount!
+  updateBillingAccount(data: UpdateBillingAccountInput!, whereAccount: AccountWhereUniqueInput!): BillingAccount!
+  createBillingSubscription(whereAccount: AccountWhereUniqueInput!): BillingSubscription!
+  cancelBillingSubscription(whereAccount: AccountWhereUniqueInput!): BillingSubscription!
+  createCloudProfile(data: CloudProfileCreateInput!, whereAccount: AccountWhereUniqueInput!): CloudProfile!
+  updateCloudProfile(data: CloudProfileUpdateInput!, where: CloudProfileWhereUniqueInput!): CloudProfile!
+  updateCloudCredentials(data: CloudCredentialsUpdateInput!, where: CloudProfileWhereUniqueInput!): CloudProfile!
+  deleteCloudProfile(where: CloudProfileWhereUniqueInput!): CloudProfile!
+  createKubernetesProfile(data: CreateKubernetesProfileInput!, whereAccount: AccountWhereUniqueInput!): KubernetesProfile!
+  deleteKubernetesProfile(where: KubernetesProfileWhereUniqueInput!): KubernetesProfile!
+  createTeam(data: CreateTeamInput!): Team!
+  inviteUsersToTeam(data: InviteTeamMemberInput!, teamId: String!): [TeamMemberInvitation!]!
+  acceptTeamMemberInvitation(where: TeamMemberInvitationWhereUniqueInput!): TeamMemberInvitation!
+  matchTeamMemberInvitations: [TeamMemberInvitation!]!
+  updateTeam(data: UpdateTeamInput!, teamId: String!): Team!
+  removeUserFromTeam(userId: String!, teamId: String!): Team!
+  updateUser(data: UpdateUserInput!): User!
+  createPersonalAccessToken(data: CreatePersonalAccessTokenInput!): CreatePersonalAccessToken!
+  createTraining(data: CreateTrainingInput!, whereProject: ProjectWhereUniqueInput!): Training!
+  deleteTraining(where: TrainingWhereUniqueInput!): Training!
+  startTraining(where: TrainingWhereUniqueInput!): Training!
+  stopTraining(where: TrainingWhereUniqueInput!): Training!
+  mountDataStorageOnTraining(whereDataStorage: DataStorageWhereUniqueInput!, where: TrainingWhereUniqueInput!): Training!
+  unmountDataStorageOnTraining(whereDataStorage: DataStorageWhereUniqueInput!, where: TrainingWhereUniqueInput!): Training!
+  createDataStorage(data: CreateDataStorageInput!, whereProject: ProjectWhereUniqueInput!): DataStorage!
+  deleteDataStorage(where: DataStorageWhereUniqueInput!): DataStorage!
+  createProject(data: CreateProjectInput!, whereAccount: AccountWhereUniqueInput!): Project!
+  updateProject(data: UpdateProjectInput!, where: ProjectWhereUniqueInput!): Project!
+  deleteProject(where: ProjectWhereUniqueInput!): Project!
+  connectCloudProfile(cloudProfileId: String!, where: ProjectWhereUniqueInput!): Project!
+  connectProjectRepository(data: ProjectRepositoryInput!, where: ProjectWhereUniqueInput!): Project!
+  disconnectProjectRepository(where: ProjectWhereUniqueInput!): Project!
+  deleteApplication(where: ApplicationWhereUniqueInput!): Application!
+  createApplication(data: CreateApplicationInput!, whereProject: ProjectWhereUniqueInput!): Application!
+  updateApplication(data: UpdateApplicationInput!, where: ApplicationWhereUniqueInput!): Application!
+  forceNewDeploymentOnApplication(where: ApplicationWhereUniqueInput!): Application!
+  createExperiment(data: CreateExperimentInput!, whereProject: ProjectWhereUniqueInput!): Experiment!
+  deleteExperiment(where: ExperimentWhereUniqueInput!): Experiment!
+  startExperimentRun(whereExperiment: ExperimentWhereUniqueInput!): ExperimentRun!
+  updateExperimentRun(data: UpdateExperimentRunInput!, where: ExperimentRunWhereUniqueInput!): ExperimentRun!
+  createRayCluster(data: CreateRayClusterInput!, whereProject: ProjectWhereUniqueInput!): RayCluster!
+  deleteRayCluster(where: RayClusterWhereUniqueInput!): RayCluster!
+  createContainerRegistry(data: CreateContainerRegistryInput!, whereProject: ProjectWhereUniqueInput!): ContainerRegistry!
+  deleteContainerRegistry(where: ContainerRegistryWhereUniqueInput!): ContainerRegistry!
+  addGithubAppInstallation(id: Int!, state: String!): GithubAppInstallation
+  removeGithubAppInstallation(whereAccount: AccountWhereUniqueInput!): Boolean!
+}
+
+input NestedBoolFilter {
+  equals: Boolean
+  not: NestedBoolFilter
+}
+
+input NestedBoolNullableFilter {
+  equals: Boolean
+  not: NestedBoolNullableFilter
+}
+
+input NestedDateTimeFilter {
+  equals: DateTime
+  in: [DateTime!]
+  notIn: [DateTime!]
+  lt: DateTime
+  lte: DateTime
+  gt: DateTime
+  gte: DateTime
+  not: NestedDateTimeFilter
+}
+
+input NestedEnumApplicationContainerStatusFilter {
+  equals: ApplicationContainerStatus
+  in: [ApplicationContainerStatus!]
+  notIn: [ApplicationContainerStatus!]
+  not: NestedEnumApplicationContainerStatusFilter
+}
+
+input NestedEnumApplicationStatusFilter {
+  equals: ApplicationStatus
+  in: [ApplicationStatus!]
+  notIn: [ApplicationStatus!]
+  not: NestedEnumApplicationStatusFilter
+}
+
+input NestedEnumBillingPaymentProviderFilter {
+  equals: BillingPaymentProvider
+  in: [BillingPaymentProvider!]
+  notIn: [BillingPaymentProvider!]
+  not: NestedEnumBillingPaymentProviderFilter
+}
+
+input NestedEnumBillingSubscriptionStatusFilter {
+  equals: BillingSubscriptionStatus
+  in: [BillingSubscriptionStatus!]
+  notIn: [BillingSubscriptionStatus!]
+  not: NestedEnumBillingSubscriptionStatusFilter
+}
+
+input NestedEnumCloudProviderAppConfigPlanNullableFilter {
+  equals: CloudProviderAppConfigPlan
+  in: [CloudProviderAppConfigPlan!]
+  notIn: [CloudProviderAppConfigPlan!]
+  not: NestedEnumCloudProviderAppConfigPlanNullableFilter
+}
+
+input NestedEnumCloudProviderFalconConfigPlanNullableFilter {
+  equals: CloudProviderFalconConfigPlan
+  in: [CloudProviderFalconConfigPlan!]
+  notIn: [CloudProviderFalconConfigPlan!]
+  not: NestedEnumCloudProviderFalconConfigPlanNullableFilter
+}
+
+input NestedEnumCloudProviderFilter {
+  equals: CloudProvider
+  in: [CloudProvider!]
+  notIn: [CloudProvider!]
+  not: NestedEnumCloudProviderFilter
+}
+
+input NestedEnumDataStorageStatusFilter {
+  equals: DataStorageStatus
+  in: [DataStorageStatus!]
+  notIn: [DataStorageStatus!]
+  not: NestedEnumDataStorageStatusFilter
+}
+
+input NestedEnumExperimentEnvironmentFilter {
+  equals: ExperimentEnvironment
+  in: [ExperimentEnvironment!]
+  notIn: [ExperimentEnvironment!]
+  not: NestedEnumExperimentEnvironmentFilter
+}
+
+input NestedEnumExperimentRunEnvironmentFilter {
+  equals: ExperimentRunEnvironment
+  in: [ExperimentRunEnvironment!]
+  notIn: [ExperimentRunEnvironment!]
+  not: NestedEnumExperimentRunEnvironmentFilter
+}
+
+input NestedEnumExperimentRunStatusFilter {
+  equals: ExperimentRunStatus
+  in: [ExperimentRunStatus!]
+  notIn: [ExperimentRunStatus!]
+  not: NestedEnumExperimentRunStatusFilter
+}
+
+input NestedEnumExperimentStatusFilter {
+  equals: ExperimentStatus
+  in: [ExperimentStatus!]
+  notIn: [ExperimentStatus!]
+  not: NestedEnumExperimentStatusFilter
+}
+
+input NestedEnumExternalSSOProviderFilter {
+  equals: ExternalSSOProvider
+  in: [ExternalSSOProvider!]
+  notIn: [ExternalSSOProvider!]
+  not: NestedEnumExternalSSOProviderFilter
+}
+
+input NestedEnumProjectStatusFilter {
+  equals: ProjectStatus
+  in: [ProjectStatus!]
+  notIn: [ProjectStatus!]
+  not: NestedEnumProjectStatusFilter
+}
+
+input NestedEnumRayClusterStatusFilter {
+  equals: RayClusterStatus
+  in: [RayClusterStatus!]
+  notIn: [RayClusterStatus!]
+  not: NestedEnumRayClusterStatusFilter
+}
+
+input NestedEnumRoleInTeamFilter {
+  equals: RoleInTeam
+  in: [RoleInTeam!]
+  notIn: [RoleInTeam!]
+  not: NestedEnumRoleInTeamFilter
+}
+
+input NestedEnumTaskActionStateFilter {
+  equals: TaskActionState
+  in: [TaskActionState!]
+  notIn: [TaskActionState!]
+  not: NestedEnumTaskActionStateFilter
+}
+
+input NestedEnumTaskActionTypeFilter {
+  equals: TaskActionType
+  in: [TaskActionType!]
+  notIn: [TaskActionType!]
+  not: NestedEnumTaskActionTypeFilter
+}
+
+input NestedEnumTaskStepStateFilter {
+  equals: TaskStepState
+  in: [TaskStepState!]
+  notIn: [TaskStepState!]
+  not: NestedEnumTaskStepStateFilter
+}
+
+input NestedEnumTeamMemberInvitationStatusFilter {
+  equals: TeamMemberInvitationStatus
+  in: [TeamMemberInvitationStatus!]
+  notIn: [TeamMemberInvitationStatus!]
+  not: NestedEnumTeamMemberInvitationStatusFilter
+}
+
+input NestedEnumTrainingAnsibleTaskTypeFilter {
+  equals: TrainingAnsibleTaskType
+  in: [TrainingAnsibleTaskType!]
+  notIn: [TrainingAnsibleTaskType!]
+  not: NestedEnumTrainingAnsibleTaskTypeFilter
+}
+
+input NestedEnumTrainingMountStatusFilter {
+  equals: TrainingMountStatus
+  in: [TrainingMountStatus!]
+  notIn: [TrainingMountStatus!]
+  not: NestedEnumTrainingMountStatusFilter
+}
+
+input NestedEnumTrainingRunningStateFilter {
+  equals: TrainingRunningState
+  in: [TrainingRunningState!]
+  notIn: [TrainingRunningState!]
+  not: NestedEnumTrainingRunningStateFilter
+}
+
+input NestedEnumTrainingStatusFilter {
+  equals: TrainingStatus
+  in: [TrainingStatus!]
+  notIn: [TrainingStatus!]
+  not: NestedEnumTrainingStatusFilter
+}
+
+input NestedIntFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: NestedIntFilter
+}
+
+input NestedIntNullableFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: NestedIntNullableFilter
+}
+
+input NestedStringFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  not: NestedStringFilter
+}
+
+input NestedStringNullableFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  not: NestedStringNullableFilter
+}
+
+type Onboarding {
+  id: String!
+  accountId: String!
+  isGithubConnected: Boolean!
+  isCloudProfileCreated: Boolean!
+  isCliInstalled: Boolean!
+  isProjectCreated: Boolean!
+}
+
+input OnboardingOrderByWithRelationInput {
+  id: SortOrder
+  account: AccountOrderByWithRelationInput
+  accountId: SortOrder
+  isGithubConnected: SortOrder
+  isCloudProfileCreated: SortOrder
+  isCliInstalled: SortOrder
+  isProjectCreated: SortOrder
+}
+
+input OnboardingRelationFilter {
+  is: OnboardingWhereInput
+  isNot: OnboardingWhereInput
+}
+
+input OnboardingWhereInput {
+  AND: [OnboardingWhereInput!]
+  OR: [OnboardingWhereInput!]
+  NOT: [OnboardingWhereInput!]
+  id: StringFilter
+  account: AccountRelationFilter
+  accountId: StringFilter
+  isGithubConnected: BoolFilter
+  isCloudProfileCreated: BoolFilter
+  isCliInstalled: BoolFilter
+  isProjectCreated: BoolFilter
+}
+
+type PersonalAccessToken {
+  id: String!
+  userId: String!
+  name: String!
+  isExpired: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input PersonalAccessTokenListRelationFilter {
+  every: PersonalAccessTokenWhereInput
+  some: PersonalAccessTokenWhereInput
+  none: PersonalAccessTokenWhereInput
+}
+
+input PersonalAccessTokenOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input PersonalAccessTokenOrderByWithRelationInput {
+  id: SortOrder
+  user: UserOrderByWithRelationInput
+  userId: SortOrder
+  name: SortOrder
+  isExpired: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+}
+
+enum PersonalAccessTokenScalarFieldEnum {
+  id
+  userId
+  name
+  isExpired
+  createdAt
+  updatedAt
+}
+
+input PersonalAccessTokenWhereInput {
+  AND: [PersonalAccessTokenWhereInput!]
+  OR: [PersonalAccessTokenWhereInput!]
+  NOT: [PersonalAccessTokenWhereInput!]
+  id: StringFilter
+  user: UserRelationFilter
+  userId: StringFilter
+  name: StringFilter
+  isExpired: BoolFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input PersonalAccessTokenWhereUniqueInput {
+  id: String
+}
+
+type Project {
+  id: String!
+  name: String!
+  status: ProjectStatus!
+  accountId: String!
+  cloudProfileId: String
+  githubRepositoryId: Int
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  _count: ProjectCount
+  account: Account!
+  cloudProfile: CloudProfile
+  dataStorages(distinct: [DataStorageScalarFieldEnum!], skip: Int, take: Int, cursor: DataStorageWhereUniqueInput, orderBy: [DataStorageOrderByWithRelationInput!], where: DataStorageWhereInput): [DataStorage!]!
+  trainings(distinct: [TrainingScalarFieldEnum!], skip: Int, take: Int, cursor: TrainingWhereUniqueInput, orderBy: [TrainingOrderByWithRelationInput!], where: TrainingWhereInput): [Training!]!
+  experiments(distinct: [ExperimentScalarFieldEnum!], skip: Int, take: Int, cursor: ExperimentWhereUniqueInput, orderBy: [ExperimentOrderByWithRelationInput!], where: ExperimentWhereInput): [Experiment!]!
+  applications(distinct: [ApplicationScalarFieldEnum!], skip: Int, take: Int, cursor: ApplicationWhereUniqueInput, orderBy: [ApplicationOrderByWithRelationInput!], where: ApplicationWhereInput): [Application!]!
+  rayClusters(distinct: [RayClusterScalarFieldEnum!], skip: Int, take: Int, cursor: RayClusterWhereUniqueInput, orderBy: [RayClusterOrderByWithRelationInput!], where: RayClusterWhereInput): [RayCluster!]!
+  containerRegistries(where: ContainerRegistryWhereInput, orderBy: [ContainerRegistryOrderByWithRelationInput!], cursor: ContainerRegistryWhereUniqueInput, take: Int, skip: Int, distinct: [ContainerRegistryScalarFieldEnum!]): [ContainerRegistry!]!
+  artifactsStorage: DataStorage
+  githubRepository: GithubRepository
+}
+
+type ProjectAvgAggregate {
+  githubRepositoryId: Float
+}
+
+type ProjectCount {
+  dataStorages: Int!
+  trainings: Int!
+  experiments: Int!
+  applications: Int!
+  rayClusters: Int!
+  containerRegistries: Int!
+}
+
+type ProjectCountAggregate {
+  id: Int!
+  name: Int!
+  status: Int!
+  accountId: Int!
+  cloudProfileId: Int!
+  githubRepositoryId: Int!
+  createdAt: Int!
+  updatedAt: Int!
+  _all: Int!
+}
+
+input ProjectListRelationFilter {
+  every: ProjectWhereInput
+  some: ProjectWhereInput
+  none: ProjectWhereInput
+}
+
+type ProjectMaxAggregate {
+  id: String
+  name: String
+  status: ProjectStatus
+  accountId: String
+  cloudProfileId: String
+  githubRepositoryId: Int
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type ProjectMinAggregate {
+  id: String
+  name: String
+  status: ProjectStatus
+  accountId: String
+  cloudProfileId: String
+  githubRepositoryId: Int
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input ProjectOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input ProjectOrderByWithRelationInput {
+  id: SortOrder
+  name: SortOrder
+  status: SortOrder
+  account: AccountOrderByWithRelationInput
+  accountId: SortOrder
+  cloudProfile: CloudProfileOrderByWithRelationInput
+  cloudProfileId: SortOrder
+  dataStorages: DataStorageOrderByRelationAggregateInput
+  trainings: TrainingOrderByRelationAggregateInput
+  experiments: ExperimentOrderByRelationAggregateInput
+  applications: ApplicationOrderByRelationAggregateInput
+  rayClusters: RayClusterOrderByRelationAggregateInput
+  containerRegistries: ContainerRegistryOrderByRelationAggregateInput
+  artifactsStorage: DataStorageOrderByWithRelationInput
+  githubRepositoryId: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+}
+
+input ProjectRelationFilter {
+  is: ProjectWhereInput
+  isNot: ProjectWhereInput
+}
+
+input ProjectRepositoryInput {
+  githubRepositoryId: Int
+}
+
+"""
+data storage / training / experiment / application / ray cluster / container registry
+"""
+enum ProjectResourceType {
+  DATA_STORAGE
+  TRAINING
+  EXPERIMENT
+  APPLICATION
+  RAY_CLUSTER
+  CONTAINER_REGISTRY
+}
+
+enum ProjectScalarFieldEnum {
+  id
+  name
+  status
+  accountId
+  cloudProfileId
+  githubRepositoryId
+  createdAt
+  updatedAt
+}
+
+enum ProjectStatus {
+  NOT_SET_UP
+  SETTING_UP
+  SETUP_SUCCESS
+  SETUP_ERROR
+  REMOVING
+  REMOVE_SUCCESS
+  REMOVE_ERROR
+}
+
+type ProjectSumAggregate {
+  githubRepositoryId: Int
+}
+
+input ProjectWhereInput {
+  AND: [ProjectWhereInput!]
+  OR: [ProjectWhereInput!]
+  NOT: [ProjectWhereInput!]
+  id: StringFilter
+  name: StringFilter
+  status: EnumProjectStatusFilter
+  account: AccountRelationFilter
+  accountId: StringFilter
+  cloudProfile: CloudProfileRelationFilter
+  cloudProfileId: StringNullableFilter
+  dataStorages: DataStorageListRelationFilter
+  trainings: TrainingListRelationFilter
+  experiments: ExperimentListRelationFilter
+  applications: ApplicationListRelationFilter
+  rayClusters: RayClusterListRelationFilter
+  containerRegistries: ContainerRegistryListRelationFilter
+  artifactsStorage: DataStorageRelationFilter
+  githubRepositoryId: IntNullableFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input ProjectWhereUniqueInput {
+  id: String
+}
+
+input ProjectWhereUniqueNameInput {
+  name: String!
+  account: AccountWhereUniqueInput!
+}
+
+type Query {
+  aWSAppConfig(where: AWSAppConfigWhereUniqueInput!): AWSAppConfig
+  aWSContainerRegistryConfig(where: AWSContainerRegistryConfigWhereUniqueInput!): AWSContainerRegistryConfig
+  aWSFalconConfig(where: AWSFalconConfigWhereUniqueInput!): AWSFalconConfig
+  aWSYodaConfig(where: AWSYodaConfigWhereUniqueInput!): AWSYodaConfig
+  aggregateApplication(where: ApplicationWhereInput, orderBy: [ApplicationOrderByWithRelationInput!], cursor: ApplicationWhereUniqueInput, take: Int, skip: Int): AggregateApplication!
+  application(where: ApplicationWhereUniqueInput!): Application
+  applicationContainer(where: ApplicationContainerWhereUniqueInput!): ApplicationContainer
+  azureAppConfig(where: AzureAppConfigWhereUniqueInput!): AzureAppConfig
+  azureContainerRegistryConfig(where: AzureContainerRegistryConfigWhereUniqueInput!): AzureContainerRegistryConfig
+  azureFalconConfig(where: AzureFalconConfigWhereUniqueInput!): AzureFalconConfig
+  azureYodaConfig(where: AzureYodaConfigWhereUniqueInput!): AzureYodaConfig
+  cloudProfile(where: CloudProfileWhereUniqueInput!): CloudProfile
+  cloudProviderAppConfig(where: CloudProviderAppConfigWhereUniqueInput!): CloudProviderAppConfig
+  cloudProviderContainerRegistryConfig(where: CloudProviderContainerRegistryConfigWhereUniqueInput!): CloudProviderContainerRegistryConfig
+  cloudProviderFalconConfig(where: CloudProviderFalconConfigWhereUniqueInput!): CloudProviderFalconConfig
+  cloudProviderYodaConfig(where: CloudProviderYodaConfigWhereUniqueInput!): CloudProviderYodaConfig
+  containerRegistry(where: ContainerRegistryWhereUniqueInput!): ContainerRegistry
+  aggregateDataStorage(where: DataStorageWhereInput, orderBy: [DataStorageOrderByWithRelationInput!], cursor: DataStorageWhereUniqueInput, take: Int, skip: Int): AggregateDataStorage!
+  dataStorage(where: DataStorageWhereUniqueInput!): DataStorage
+  dataStorageContainer(where: DataStorageContainerWhereUniqueInput!): DataStorageContainer
+  environmentVariable(where: EnvironmentVariableWhereUniqueInput!): EnvironmentVariable
+  experiment(where: ExperimentWhereUniqueInput!): Experiment
+  experimentRun(where: ExperimentRunWhereUniqueInput!): ExperimentRun
+  falconMLConfigs(where: FalconMLConfigWhereInput, orderBy: [FalconMLConfigOrderByWithRelationInput!], cursor: FalconMLConfigWhereUniqueInput, take: Int, skip: Int, distinct: [FalconMLConfigScalarFieldEnum!]): [FalconMLConfig!]!
+  falconMLConfig(where: FalconMLConfigWhereUniqueInput!): FalconMLConfig
+  gCPAppConfig(where: GCPAppConfigWhereUniqueInput!): GCPAppConfig
+  gCPContainerRegistryConfig(where: GCPContainerRegistryConfigWhereUniqueInput!): GCPContainerRegistryConfig
+  gCPFalconConfig(where: GCPFalconConfigWhereUniqueInput!): GCPFalconConfig
+  gCPYodaConfig(where: GCPYodaConfigWhereUniqueInput!): GCPYodaConfig
+  kubernetesProfile(where: KubernetesProfileWhereUniqueInput!): KubernetesProfile
+  personalAccessTokens(where: PersonalAccessTokenWhereInput, orderBy: [PersonalAccessTokenOrderByWithRelationInput!], cursor: PersonalAccessTokenWhereUniqueInput, take: Int, skip: Int, distinct: [PersonalAccessTokenScalarFieldEnum!]): [PersonalAccessToken!]!
+  personalAccessToken(where: PersonalAccessTokenWhereUniqueInput!): PersonalAccessToken
+  aggregateProject(where: ProjectWhereInput, orderBy: [ProjectOrderByWithRelationInput!], cursor: ProjectWhereUniqueInput, take: Int, skip: Int): AggregateProject!
+  project(where: ProjectWhereUniqueInput!): Project
+  rayCluster(where: RayClusterWhereUniqueInput!): RayCluster
+  rayClusterConfig(where: RayClusterConfigWhereUniqueInput!): RayClusterConfig
+  resourceAccessToken(where: ResourceAccessTokenWhereUniqueInput!): ResourceAccessToken
+  taskAction(where: TaskActionWhereUniqueInput!): TaskAction
+  taskStep(where: TaskStepWhereUniqueInput!): TaskStep
+  aggregateTraining(where: TrainingWhereInput, orderBy: [TrainingOrderByWithRelationInput!], cursor: TrainingWhereUniqueInput, take: Int, skip: Int): AggregateTraining!
+  training(where: TrainingWhereUniqueInput!): Training
+  trainingAnsibleTask(where: TrainingAnsibleTaskWhereUniqueInput!): TrainingAnsibleTask
+  account(where: CustomAccountWhereUniqueInput!): Account!
+  billingAccount(whereAccount: AccountWhereUniqueInput!): BillingAccount
+  cloudProfiles(whereCloudProfile: CloudProfileWhereInput, whereAccount: AccountWhereUniqueInput!): [CloudProfile!]!
+  kubernetesProfiles(distinct: [KubernetesProfileScalarFieldEnum!], skip: Int, take: Int, cursor: KubernetesProfileWhereUniqueInput, orderBy: [KubernetesProfileOrderByWithRelationInput!], whereKubernetesProfile: KubernetesProfileWhereInput, whereAccount: AccountWhereUniqueInput!): [KubernetesProfile!]!
+  team(teamUsername: String, teamId: String): Team!
+  teamMemberInvitation(where: TeamMemberInvitationWhereUniqueInput!): TeamMemberInvitation!
+  me: User!
+  users(search: String!): [User!]!
+  trainings(distinct: [TrainingScalarFieldEnum!], skip: Int, take: Int, cursor: TrainingWhereUniqueInput, orderBy: [TrainingOrderByWithRelationInput!], whereTraining: TrainingWhereInput, whereAccount: AccountWhereUniqueInput!): [Training!]!
+  canCreateTraining(whereAccount: AccountWhereUniqueInput!): Boolean!
+  canCreateDataStorage(whereAccount: AccountWhereUniqueInput!): Boolean!
+  dataStorages(distinct: [DataStorageScalarFieldEnum!], skip: Int, take: Int, cursor: DataStorageWhereUniqueInput, orderBy: [DataStorageOrderByWithRelationInput!], whereDataStorage: DataStorageWhereInput, whereAccount: AccountWhereUniqueInput!): [DataStorage!]!
+  projects(whereProject: ProjectWhereInput, whereAccount: AccountWhereUniqueInput!): [Project!]!
+  projectByName(where: ProjectWhereUniqueNameInput!): Project!
+  projectResourceTypes: [ProjectResourceType!]!
+  canCreateApplication(whereAccount: AccountWhereUniqueInput!): Boolean!
+  applications(distinct: [ApplicationScalarFieldEnum!], skip: Int, take: Int, cursor: ApplicationWhereUniqueInput, orderBy: [ApplicationOrderByWithRelationInput!], whereApplication: ApplicationWhereInput, whereAccount: AccountWhereUniqueInput!): [Application!]!
+  applicationInfrastructurePlans(plan: CloudProviderAppConfigPlan, provider: CloudProvider): [ApplicationInfrastructurePlan!]!
+  trainingInfrastructurePlans(usesGpu: Boolean, plan: CloudProviderFalconConfigPlan, provider: CloudProvider): [TrainingInfrastructurePlan!]!
+  dataStorageContainerBrowser(cursor: String, take: Int = 100, prefix: String, where: DataStorageContainerWhereUniqueInput!): DataStorageContainerBrowser
+  mlflowExperiment(where: MLFlowExperimentWhereUniqueInput!): MLFlowExperiment
+  canCreateExperiment(whereAccount: AccountWhereUniqueInput!): Boolean!
+  experiments(distinct: [ExperimentScalarFieldEnum!], skip: Int, take: Int, cursor: ExperimentWhereUniqueInput, orderBy: [ExperimentOrderByWithRelationInput!], whereExperiment: ExperimentWhereInput, whereAccount: AccountWhereUniqueInput!): [Experiment!]!
+  experimentRuns(distinct: [ExperimentRunScalarFieldEnum!], skip: Int, take: Int, cursor: ExperimentRunWhereUniqueInput, orderBy: [ExperimentRunOrderByWithRelationInput!], whereExperimentRun: ExperimentRunWhereInput, whereAccount: AccountWhereUniqueInput!): [ExperimentRun!]!
+  rayClusters(whereAccount: AccountWhereUniqueInput!): [RayCluster!]!
+  canCreateRayCluster(whereAccount: AccountWhereUniqueInput!): Boolean!
+  containerRegistries(distinct: [ContainerRegistryScalarFieldEnum!], skip: Int, take: Int, cursor: ContainerRegistryWhereUniqueInput, orderBy: [ContainerRegistryOrderByWithRelationInput!], whereContainerRegistry: ContainerRegistryWhereInput, whereAccount: AccountWhereUniqueInput!): [Application!]!
+}
+
+enum QueryMode {
+  default
+  insensitive
+}
+
+type RayCluster {
+  id: String!
+  name: String!
+  accountId: String!
+  kubernetesProfileId: String
+  configId: String
+  projectId: String
+  status: RayClusterStatus!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  _count: RayClusterCount
+  account: Account!
+  kubernetesProfile: KubernetesProfile
+  config: RayClusterConfig
+  project: Project
+  taskActions(where: TaskActionWhereInput, orderBy: [TaskActionOrderByWithRelationInput!], cursor: TaskActionWhereUniqueInput, take: Int, skip: Int, distinct: [TaskActionScalarFieldEnum!]): [TaskAction!]!
+}
+
+type RayClusterConfig {
+  id: String!
+  version: String!
+}
+
+input RayClusterConfigOrderByWithRelationInput {
+  id: SortOrder
+  rayCluster: RayClusterOrderByWithRelationInput
+  version: SortOrder
+}
+
+input RayClusterConfigRelationFilter {
+  is: RayClusterConfigWhereInput
+  isNot: RayClusterConfigWhereInput
+}
+
+input RayClusterConfigWhereInput {
+  AND: [RayClusterConfigWhereInput!]
+  OR: [RayClusterConfigWhereInput!]
+  NOT: [RayClusterConfigWhereInput!]
+  id: StringFilter
+  rayCluster: RayClusterRelationFilter
+  version: StringFilter
+}
+
+input RayClusterConfigWhereUniqueInput {
+  id: String
+}
+
+type RayClusterCount {
+  taskActions: Int!
+}
+
+input RayClusterListRelationFilter {
+  every: RayClusterWhereInput
+  some: RayClusterWhereInput
+  none: RayClusterWhereInput
+}
+
+input RayClusterOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input RayClusterOrderByWithRelationInput {
+  id: SortOrder
+  name: SortOrder
+  account: AccountOrderByWithRelationInput
+  accountId: SortOrder
+  kubernetesProfile: KubernetesProfileOrderByWithRelationInput
+  kubernetesProfileId: SortOrder
+  config: RayClusterConfigOrderByWithRelationInput
+  configId: SortOrder
+  project: ProjectOrderByWithRelationInput
+  projectId: SortOrder
+  status: SortOrder
+  taskActions: TaskActionOrderByRelationAggregateInput
+  createdAt: SortOrder
+  updatedAt: SortOrder
+}
+
+input RayClusterRelationFilter {
+  is: RayClusterWhereInput
+  isNot: RayClusterWhereInput
+}
+
+enum RayClusterScalarFieldEnum {
+  id
+  name
+  accountId
+  kubernetesProfileId
+  configId
+  projectId
+  status
+  createdAt
+  updatedAt
+}
+
+enum RayClusterStatus {
+  SET_UP_SUCCESS
+  SET_UP_ERROR
+  SETTING_UP
+  NOT_SET_UP
+  REMOVING
+  REMOVE_SUCCESS
+  REMOVE_ERROR
+}
+
+input RayClusterWhereInput {
+  AND: [RayClusterWhereInput!]
+  OR: [RayClusterWhereInput!]
+  NOT: [RayClusterWhereInput!]
+  id: StringFilter
+  name: StringFilter
+  account: AccountRelationFilter
+  accountId: StringFilter
+  kubernetesProfile: KubernetesProfileRelationFilter
+  kubernetesProfileId: StringNullableFilter
+  config: RayClusterConfigRelationFilter
+  configId: StringNullableFilter
+  project: ProjectRelationFilter
+  projectId: StringNullableFilter
+  status: EnumRayClusterStatusFilter
+  taskActions: TaskActionListRelationFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input RayClusterWhereUniqueInput {
+  id: String
+  configId: String
+}
+
+type ResourceAccessToken {
+  id: String!
+  experimentId: String
+  experimentRunId: String
+  createdAt: DateTime!
+  token(options: ResourceAccessTokenOptions): String!
+}
+
+input ResourceAccessTokenOptions {
+  """A string representing a timespan, e.g. 2 hours, 60 days, 1 year"""
+  expiresIn: String = "1y"
+}
+
+input ResourceAccessTokenOrderByWithRelationInput {
+  id: SortOrder
+  experiment: ExperimentOrderByWithRelationInput
+  experimentId: SortOrder
+  experimentRun: ExperimentRunOrderByWithRelationInput
+  experimentRunId: SortOrder
+  createdAt: SortOrder
+}
+
+input ResourceAccessTokenRelationFilter {
+  is: ResourceAccessTokenWhereInput
+  isNot: ResourceAccessTokenWhereInput
+}
+
+input ResourceAccessTokenWhereInput {
+  AND: [ResourceAccessTokenWhereInput!]
+  OR: [ResourceAccessTokenWhereInput!]
+  NOT: [ResourceAccessTokenWhereInput!]
+  id: StringFilter
+  experiment: ExperimentRelationFilter
+  experimentId: StringNullableFilter
+  experimentRun: ExperimentRunRelationFilter
+  experimentRunId: StringNullableFilter
+  createdAt: DateTimeFilter
+}
+
+input ResourceAccessTokenWhereUniqueInput {
+  id: String
+  experimentId: String
+  experimentRunId: String
+}
+
+enum RoleInTeam {
+  ADMIN
+  MEMBER
+}
+
+enum SortOrder {
+  asc
+  desc
+}
+
+input StringFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  mode: QueryMode
+  not: NestedStringFilter
+}
+
+input StringNullableFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  mode: QueryMode
+  not: NestedStringNullableFilter
+}
+
+type StripeCard {
+  brand: String!
+  last4: String!
+}
+
+type StripeCustomer {
+  email: String
+  customerAddress: CustomerAddress
+  billingAddress: CustomerAddress
+  card: StripeCard
+  metadata: StripeMetadata!
+}
+
+type StripeMetadata {
+  isFilledIn: Boolean!
+}
+
+type Subscription {
+  onExperimentChange(where: ExperimentWhereUniqueInput!): Experiment!
+  onExperimentRunChange(where: ExperimentRunWhereUniqueInput!): ExperimentRun!
+  onProjectChange(where: ProjectWhereUniqueInput!): Project!
+  onApplicationChange(where: ApplicationWhereUniqueInput!): Application!
+  onTrainingChange(where: TrainingWhereUniqueInput!): Training!
+  onDataStorageChange(where: DataStorageWhereUniqueInput!): DataStorage!
+  onRayClusterChange(where: RayClusterWhereUniqueInput!): RayCluster!
+}
+
+type TaskAction {
+  id: String!
+  applicationId: String
+  trainingId: String
+  trainingAnsibleTaskId: String
+  dataStorageId: String
+  experimentId: String
+  experimentRunId: String
+  rayClusterId: String
+  userId: String!
+  type: TaskActionType!
+  state: TaskActionState!
+  createdAt: DateTime!
+  _count: TaskActionCount
+  application: Application
+  training: Training
+  trainingAnsibleTask: TrainingAnsibleTask
+  dataStorage: DataStorage
+  experiment: Experiment
+  experimentRun: ExperimentRun
+  rayCluster: RayCluster
+  user: User!
+  steps(where: TaskStepWhereInput, orderBy: [TaskStepOrderByWithRelationInput!], cursor: TaskStepWhereUniqueInput, take: Int, skip: Int, distinct: [TaskStepScalarFieldEnum!]): [TaskStep!]!
+  predecessors(where: TaskActionWhereInput, orderBy: [TaskActionOrderByWithRelationInput!], cursor: TaskActionWhereUniqueInput, take: Int, skip: Int, distinct: [TaskActionScalarFieldEnum!]): [TaskAction!]!
+  successors(where: TaskActionWhereInput, orderBy: [TaskActionOrderByWithRelationInput!], cursor: TaskActionWhereUniqueInput, take: Int, skip: Int, distinct: [TaskActionScalarFieldEnum!]): [TaskAction!]!
+}
+
+type TaskActionCount {
+  steps: Int!
+  predecessors: Int!
+  successors: Int!
+}
+
+input TaskActionListRelationFilter {
+  every: TaskActionWhereInput
+  some: TaskActionWhereInput
+  none: TaskActionWhereInput
+}
+
+input TaskActionOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input TaskActionOrderByWithRelationInput {
+  id: SortOrder
+  application: ApplicationOrderByWithRelationInput
+  applicationId: SortOrder
+  training: TrainingOrderByWithRelationInput
+  trainingId: SortOrder
+  trainingAnsibleTask: TrainingAnsibleTaskOrderByWithRelationInput
+  trainingAnsibleTaskId: SortOrder
+  dataStorage: DataStorageOrderByWithRelationInput
+  dataStorageId: SortOrder
+  experiment: ExperimentOrderByWithRelationInput
+  experimentId: SortOrder
+  experimentRun: ExperimentRunOrderByWithRelationInput
+  experimentRunId: SortOrder
+  rayCluster: RayClusterOrderByWithRelationInput
+  rayClusterId: SortOrder
+  user: UserOrderByWithRelationInput
+  userId: SortOrder
+  type: SortOrder
+  state: SortOrder
+  steps: TaskStepOrderByRelationAggregateInput
+  predecessors: TaskActionOrderByRelationAggregateInput
+  successors: TaskActionOrderByRelationAggregateInput
+  createdAt: SortOrder
+}
+
+input TaskActionRelationFilter {
+  is: TaskActionWhereInput
+  isNot: TaskActionWhereInput
+}
+
+enum TaskActionScalarFieldEnum {
+  id
+  applicationId
+  trainingId
+  trainingAnsibleTaskId
+  dataStorageId
+  experimentId
+  experimentRunId
+  rayClusterId
+  userId
+  type
+  state
+  createdAt
+}
+
+enum TaskActionState {
+  NOT_STARTED
+  IN_PROGRESS
+  SUCCESS
+  ERROR
+  SKIPPED
+}
+
+enum TaskActionType {
+  CREATE
+  UPDATE
+  DELETE
+  START
+  STOP
+}
+
+input TaskActionWhereInput {
+  AND: [TaskActionWhereInput!]
+  OR: [TaskActionWhereInput!]
+  NOT: [TaskActionWhereInput!]
+  id: StringFilter
+  application: ApplicationRelationFilter
+  applicationId: StringNullableFilter
+  training: TrainingRelationFilter
+  trainingId: StringNullableFilter
+  trainingAnsibleTask: TrainingAnsibleTaskRelationFilter
+  trainingAnsibleTaskId: StringNullableFilter
+  dataStorage: DataStorageRelationFilter
+  dataStorageId: StringNullableFilter
+  experiment: ExperimentRelationFilter
+  experimentId: StringNullableFilter
+  experimentRun: ExperimentRunRelationFilter
+  experimentRunId: StringNullableFilter
+  rayCluster: RayClusterRelationFilter
+  rayClusterId: StringNullableFilter
+  user: UserRelationFilter
+  userId: StringFilter
+  type: EnumTaskActionTypeFilter
+  state: EnumTaskActionStateFilter
+  steps: TaskStepListRelationFilter
+  predecessors: TaskActionListRelationFilter
+  successors: TaskActionListRelationFilter
+  createdAt: DateTimeFilter
+}
+
+input TaskActionWhereUniqueInput {
+  id: String
+  trainingAnsibleTaskId: String
+}
+
+type TaskStep {
+  id: String!
+  taskActionId: String!
+  stepNumber: Int!
+  state: TaskStepState!
+  updatedAt: DateTime!
+  taskAction: TaskAction!
+}
+
+input TaskStepListRelationFilter {
+  every: TaskStepWhereInput
+  some: TaskStepWhereInput
+  none: TaskStepWhereInput
+}
+
+input TaskStepOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input TaskStepOrderByWithRelationInput {
+  id: SortOrder
+  taskAction: TaskActionOrderByWithRelationInput
+  taskActionId: SortOrder
+  stepNumber: SortOrder
+  state: SortOrder
+  updatedAt: SortOrder
+}
+
+enum TaskStepScalarFieldEnum {
+  id
+  taskActionId
+  stepNumber
+  state
+  updatedAt
+}
+
+enum TaskStepState {
+  NOT_STARTED
+  IN_PROGRESS
+  SUCCESS
+  ERROR
+  SKIPPED
+}
+
+input TaskStepWhereInput {
+  AND: [TaskStepWhereInput!]
+  OR: [TaskStepWhereInput!]
+  NOT: [TaskStepWhereInput!]
+  id: StringFilter
+  taskAction: TaskActionRelationFilter
+  taskActionId: StringFilter
+  stepNumber: IntFilter
+  state: EnumTaskStepStateFilter
+  updatedAt: DateTimeFilter
+}
+
+input TaskStepWhereUniqueInput {
+  id: String
+}
+
+type Team {
+  id: String!
+  accountId: String!
+  displayName: String!
+  _count: TeamCount
+  account: Account!
+  members: [TeamMember!]!
+  invitations(where: TeamMemberInvitationWhereInput, orderBy: [TeamMemberInvitationOrderByWithRelationInput!], cursor: TeamMemberInvitationWhereUniqueInput, take: Int, skip: Int, distinct: [TeamMemberInvitationScalarFieldEnum!]): [TeamMemberInvitation!]!
+}
+
+type TeamCount {
+  members: Int!
+  invitations: Int!
+}
+
+type TeamMember {
+  user: User!
+  role: RoleInTeam!
+}
+
+type TeamMemberInvitation {
+  id: String!
+  teamId: String!
+  userId: String
+  userEmail: String
+  role: RoleInTeam!
+  status: TeamMemberInvitationStatus!
+  expiresAt: DateTime!
+  createdAt: DateTime!
+  team: Team!
+  user: User
+}
+
+input TeamMemberInvitationListRelationFilter {
+  every: TeamMemberInvitationWhereInput
+  some: TeamMemberInvitationWhereInput
+  none: TeamMemberInvitationWhereInput
+}
+
+input TeamMemberInvitationOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input TeamMemberInvitationOrderByWithRelationInput {
+  id: SortOrder
+  team: TeamOrderByWithRelationInput
+  teamId: SortOrder
+  user: UserOrderByWithRelationInput
+  userId: SortOrder
+  userEmail: SortOrder
+  role: SortOrder
+  status: SortOrder
+  expiresAt: SortOrder
+  createdAt: SortOrder
+}
+
+enum TeamMemberInvitationScalarFieldEnum {
+  id
+  teamId
+  userId
+  userEmail
+  role
+  status
+  expiresAt
+  createdAt
+}
+
+enum TeamMemberInvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+}
+
+input TeamMemberInvitationWhereInput {
+  AND: [TeamMemberInvitationWhereInput!]
+  OR: [TeamMemberInvitationWhereInput!]
+  NOT: [TeamMemberInvitationWhereInput!]
+  id: StringFilter
+  team: TeamRelationFilter
+  teamId: StringFilter
+  user: UserRelationFilter
+  userId: StringNullableFilter
+  userEmail: StringNullableFilter
+  role: EnumRoleInTeamFilter
+  status: EnumTeamMemberInvitationStatusFilter
+  expiresAt: DateTimeFilter
+  createdAt: DateTimeFilter
+}
+
+input TeamMemberInvitationWhereUniqueInput {
+  id: String
+}
+
+input TeamOrderByWithRelationInput {
+  id: SortOrder
+  account: AccountOrderByWithRelationInput
+  accountId: SortOrder
+  displayName: SortOrder
+  members: TeamsOnUsersOrderByRelationAggregateInput
+  invitations: TeamMemberInvitationOrderByRelationAggregateInput
+}
+
+input TeamRelationFilter {
+  is: TeamWhereInput
+  isNot: TeamWhereInput
+}
+
+input TeamsOnUsersListRelationFilter {
+  every: TeamsOnUsersWhereInput
+  some: TeamsOnUsersWhereInput
+  none: TeamsOnUsersWhereInput
+}
+
+input TeamsOnUsersOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input TeamsOnUsersWhereInput {
+  AND: [TeamsOnUsersWhereInput!]
+  OR: [TeamsOnUsersWhereInput!]
+  NOT: [TeamsOnUsersWhereInput!]
+  user: UserRelationFilter
+  userId: StringFilter
+  team: TeamRelationFilter
+  teamId: StringFilter
+  role: EnumRoleInTeamFilter
+}
+
+input TeamWhereInput {
+  AND: [TeamWhereInput!]
+  OR: [TeamWhereInput!]
+  NOT: [TeamWhereInput!]
+  id: StringFilter
+  account: AccountRelationFilter
+  accountId: StringFilter
+  displayName: StringFilter
+  members: TeamsOnUsersListRelationFilter
+  invitations: TeamMemberInvitationListRelationFilter
+}
+
+type Training {
+  id: String!
+  name: String!
+  accountId: String!
+  cloudProfileId: String
+  cloudProviderFalconConfigId: String
+  falconMLConfigId: String
+  projectId: String
+  status: TrainingStatus!
+  state: TrainingRunningState!
+  mountStatus: TrainingMountStatus!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  _count: TrainingCount
+  account: Account!
+  cloudProfile: CloudProfile
+  cloudProviderFalconConfig: CloudProviderFalconConfig
+  falconMLConfig: FalconMLConfig
+  dataStorages(where: DataStorageWhereInput, orderBy: [DataStorageOrderByWithRelationInput!], cursor: DataStorageWhereUniqueInput, take: Int, skip: Int, distinct: [DataStorageScalarFieldEnum!]): [DataStorage!]!
+  experiments(where: ExperimentWhereInput, orderBy: [ExperimentOrderByWithRelationInput!], cursor: ExperimentWhereUniqueInput, take: Int, skip: Int, distinct: [ExperimentScalarFieldEnum!]): [Experiment!]!
+  ansibleTasks(where: TrainingAnsibleTaskWhereInput, orderBy: [TrainingAnsibleTaskOrderByWithRelationInput!], cursor: TrainingAnsibleTaskWhereUniqueInput, take: Int, skip: Int, distinct: [TrainingAnsibleTaskScalarFieldEnum!]): [TrainingAnsibleTask!]!
+  deploymentAnsibleTask: TrainingAnsibleTask
+  project: Project
+  taskActions(where: TaskActionWhereInput, orderBy: [TaskActionOrderByWithRelationInput!], cursor: TaskActionWhereUniqueInput, take: Int, skip: Int, distinct: [TaskActionScalarFieldEnum!]): [TaskAction!]!
+  tlsPresignedUrl: String
+  vmPublicIps: [String!]
+  vmSSHUsername: String
+  vmIds: [String!]
+}
+
+type TrainingAnsibleTask {
+  id: String!
+  type: TrainingAnsibleTaskType!
+  trainingId: String!
+  deploymentTrainingId: String
+  createdAt: DateTime!
+}
+
+input TrainingAnsibleTaskListRelationFilter {
+  every: TrainingAnsibleTaskWhereInput
+  some: TrainingAnsibleTaskWhereInput
+  none: TrainingAnsibleTaskWhereInput
+}
+
+input TrainingAnsibleTaskOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input TrainingAnsibleTaskOrderByWithRelationInput {
+  id: SortOrder
+  type: SortOrder
+  training: TrainingOrderByWithRelationInput
+  trainingId: SortOrder
+  deploymentTraining: TrainingOrderByWithRelationInput
+  deploymentTrainingId: SortOrder
+  taskAction: TaskActionOrderByWithRelationInput
+  createdAt: SortOrder
+}
+
+input TrainingAnsibleTaskRelationFilter {
+  is: TrainingAnsibleTaskWhereInput
+  isNot: TrainingAnsibleTaskWhereInput
+}
+
+enum TrainingAnsibleTaskScalarFieldEnum {
+  id
+  type
+  trainingId
+  deploymentTrainingId
+  createdAt
+}
+
+enum TrainingAnsibleTaskType {
+  ALL
+  BASIC
+  FAST_BOOT
+  LEGACY
+  MOUNT_DATA_STORAGE
+  REBOOT
+}
+
+input TrainingAnsibleTaskWhereInput {
+  AND: [TrainingAnsibleTaskWhereInput!]
+  OR: [TrainingAnsibleTaskWhereInput!]
+  NOT: [TrainingAnsibleTaskWhereInput!]
+  id: StringFilter
+  type: EnumTrainingAnsibleTaskTypeFilter
+  training: TrainingRelationFilter
+  trainingId: StringFilter
+  deploymentTraining: TrainingRelationFilter
+  deploymentTrainingId: StringNullableFilter
+  taskAction: TaskActionRelationFilter
+  createdAt: DateTimeFilter
+}
+
+input TrainingAnsibleTaskWhereUniqueInput {
+  id: String
+  deploymentTrainingId: String
+}
+
+type TrainingCount {
+  dataStorages: Int!
+  experiments: Int!
+  ansibleTasks: Int!
+  taskActions: Int!
+}
+
+type TrainingCountAggregate {
+  id: Int!
+  name: Int!
+  accountId: Int!
+  cloudProfileId: Int!
+  cloudProviderFalconConfigId: Int!
+  falconMLConfigId: Int!
+  projectId: Int!
+  status: Int!
+  state: Int!
+  mountStatus: Int!
+  createdAt: Int!
+  updatedAt: Int!
+  _all: Int!
+}
+
+type TrainingInfrastructurePlan {
+  provider: CloudProvider!
+  plan: CloudProviderFalconConfigPlan!
+  usesGpu: Boolean!
+  config(whereCloudProfile: CloudProfileWhereUniqueInput): TrainingInfrastructurePlanConfig!
+}
+
+union TrainingInfrastructurePlanConfig = AWSFalconDefaultConfig | AzureFalconDefaultConfig | GCPFalconDefaultConfig
+
+input TrainingListRelationFilter {
+  every: TrainingWhereInput
+  some: TrainingWhereInput
+  none: TrainingWhereInput
+}
+
+type TrainingMaxAggregate {
+  id: String
+  name: String
+  accountId: String
+  cloudProfileId: String
+  cloudProviderFalconConfigId: String
+  falconMLConfigId: String
+  projectId: String
+  status: TrainingStatus
+  state: TrainingRunningState
+  mountStatus: TrainingMountStatus
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type TrainingMinAggregate {
+  id: String
+  name: String
+  accountId: String
+  cloudProfileId: String
+  cloudProviderFalconConfigId: String
+  falconMLConfigId: String
+  projectId: String
+  status: TrainingStatus
+  state: TrainingRunningState
+  mountStatus: TrainingMountStatus
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+enum TrainingMountStatus {
+  MOUNTING
+  UNMOUNTING
+  SUCCESS
+  ERROR
+}
+
+input TrainingOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input TrainingOrderByWithRelationInput {
+  id: SortOrder
+  name: SortOrder
+  account: AccountOrderByWithRelationInput
+  accountId: SortOrder
+  cloudProfile: CloudProfileOrderByWithRelationInput
+  cloudProfileId: SortOrder
+  cloudProviderFalconConfig: CloudProviderFalconConfigOrderByWithRelationInput
+  cloudProviderFalconConfigId: SortOrder
+  falconMLConfig: FalconMLConfigOrderByWithRelationInput
+  falconMLConfigId: SortOrder
+  dataStorages: DataStorageOrderByRelationAggregateInput
+  experiments: ExperimentOrderByRelationAggregateInput
+  ansibleTasks: TrainingAnsibleTaskOrderByRelationAggregateInput
+  deploymentAnsibleTask: TrainingAnsibleTaskOrderByWithRelationInput
+  project: ProjectOrderByWithRelationInput
+  projectId: SortOrder
+  status: SortOrder
+  state: SortOrder
+  mountStatus: SortOrder
+  taskActions: TaskActionOrderByRelationAggregateInput
+  createdAt: SortOrder
+  updatedAt: SortOrder
+}
+
+input TrainingRelationFilter {
+  is: TrainingWhereInput
+  isNot: TrainingWhereInput
+}
+
+enum TrainingRunningState {
+  STARTING
+  RUNNING
+  STOPPING
+  SLEEPING
+}
+
+enum TrainingScalarFieldEnum {
+  id
+  name
+  accountId
+  cloudProfileId
+  cloudProviderFalconConfigId
+  falconMLConfigId
+  projectId
+  status
+  state
+  mountStatus
+  createdAt
+  updatedAt
+}
+
+enum TrainingStatus {
+  DEPLOY_SUCCESS
+  DEPLOY_ERROR
+  DEPLOYING
+  UNDEPLOYED
+  DESTROYING
+  DESTROY_ERROR
+  DESTROY_SUCCESS
+}
+
+input TrainingWhereInput {
+  AND: [TrainingWhereInput!]
+  OR: [TrainingWhereInput!]
+  NOT: [TrainingWhereInput!]
+  id: StringFilter
+  name: StringFilter
+  account: AccountRelationFilter
+  accountId: StringFilter
+  cloudProfile: CloudProfileRelationFilter
+  cloudProfileId: StringNullableFilter
+  cloudProviderFalconConfig: CloudProviderFalconConfigRelationFilter
+  cloudProviderFalconConfigId: StringNullableFilter
+  falconMLConfig: FalconMLConfigRelationFilter
+  falconMLConfigId: StringNullableFilter
+  dataStorages: DataStorageListRelationFilter
+  experiments: ExperimentListRelationFilter
+  ansibleTasks: TrainingAnsibleTaskListRelationFilter
+  deploymentAnsibleTask: TrainingAnsibleTaskRelationFilter
+  project: ProjectRelationFilter
+  projectId: StringNullableFilter
+  status: EnumTrainingStatusFilter
+  state: EnumTrainingRunningStateFilter
+  mountStatus: EnumTrainingMountStatusFilter
+  taskActions: TaskActionListRelationFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input TrainingWhereUniqueInput {
+  id: String
+  cloudProviderFalconConfigId: String
+}
+
+input UpdateAccountInput {
+  username: String
+}
+
+input UpdateApplicationContainerInput {
+  image: String
+  port: Int
+}
+
+input UpdateApplicationInput {
+  container: UpdateApplicationContainerInput
+
+  """
+  New list of environment variables. If undefined, the list is not updated. If
+  the list is defined but empty, all environment variables are removed.
+  """
+  environmentVariables: [EnvironmentVariableInput!]
+}
+
+input UpdateBillingAccountInput {
+  email: String
+}
+
+input UpdateExperimentRunInput {
+  status: ExperimentRunStatus
+  develImageTag: String
+}
+
+input UpdateOnboardingInput {
+  isGithubConnected: Boolean
+  isCloudProfileCreated: Boolean
+  isCliInstalled: Boolean
+  isProjectCreated: Boolean
+}
+
+input UpdateProjectInput {
+  name: String
+}
+
+input UpdateTeamInput {
+  displayName: String
+  email: String
+}
+
+input UpdateUserInput {
+  firstName: String
+  lastName: String
+  email: String
+  signupCompleted: Boolean
+}
+
+type User {
+  id: String!
+  accountId: String!
+  firstName: String!
+  lastName: String
+  signupCompleted: Boolean!
+  _count: UserCount
+  account: Account!
+  externalSSO: ExternalSSO
+  userSessions(where: UserSessionWhereInput, orderBy: [UserSessionOrderByWithRelationInput!], cursor: UserSessionWhereUniqueInput, take: Int, skip: Int, distinct: [UserSessionScalarFieldEnum!]): [UserSession!]!
+  personalAccessTokens(where: PersonalAccessTokenWhereInput, orderBy: [PersonalAccessTokenOrderByWithRelationInput!], cursor: PersonalAccessTokenWhereUniqueInput, take: Int, skip: Int, distinct: [PersonalAccessTokenScalarFieldEnum!]): [PersonalAccessToken!]!
+  teams: [Team!]!
+  invitations(where: TeamMemberInvitationWhereInput, orderBy: [TeamMemberInvitationOrderByWithRelationInput!], cursor: TeamMemberInvitationWhereUniqueInput, take: Int, skip: Int, distinct: [TeamMemberInvitationScalarFieldEnum!]): [TeamMemberInvitation!]!
+  taskActions(where: TaskActionWhereInput, orderBy: [TaskActionOrderByWithRelationInput!], cursor: TaskActionWhereUniqueInput, take: Int, skip: Int, distinct: [TaskActionScalarFieldEnum!]): [TaskAction!]!
+}
+
+type UserCount {
+  userSessions: Int!
+  personalAccessTokens: Int!
+  teams: Int!
+  invitations: Int!
+  taskActions: Int!
+}
+
+input UserOrderByWithRelationInput {
+  id: SortOrder
+  account: AccountOrderByWithRelationInput
+  accountId: SortOrder
+  firstName: SortOrder
+  lastName: SortOrder
+  signupCompleted: SortOrder
+  externalSSO: ExternalSSOOrderByWithRelationInput
+  userSessions: UserSessionOrderByRelationAggregateInput
+  personalAccessTokens: PersonalAccessTokenOrderByRelationAggregateInput
+  teams: TeamsOnUsersOrderByRelationAggregateInput
+  invitations: TeamMemberInvitationOrderByRelationAggregateInput
+  taskActions: TaskActionOrderByRelationAggregateInput
+}
+
+input UserRelationFilter {
+  is: UserWhereInput
+  isNot: UserWhereInput
+}
+
+type UserSession {
+  id: String!
+  userId: String!
+  createdAt: DateTime!
+}
+
+input UserSessionListRelationFilter {
+  every: UserSessionWhereInput
+  some: UserSessionWhereInput
+  none: UserSessionWhereInput
+}
+
+input UserSessionOrderByRelationAggregateInput {
+  _count: SortOrder
+}
+
+input UserSessionOrderByWithRelationInput {
+  id: SortOrder
+  user: UserOrderByWithRelationInput
+  userId: SortOrder
+  githubToken: SortOrder
+  createdAt: SortOrder
+}
+
+enum UserSessionScalarFieldEnum {
+  id
+  userId
+  githubToken
+  createdAt
+}
+
+input UserSessionWhereInput {
+  AND: [UserSessionWhereInput!]
+  OR: [UserSessionWhereInput!]
+  NOT: [UserSessionWhereInput!]
+  id: StringFilter
+  user: UserRelationFilter
+  userId: StringFilter
+  githubToken: StringFilter
+  createdAt: DateTimeFilter
+}
+
+input UserSessionWhereUniqueInput {
+  id: String
+}
+
+input UserToBeInvited {
+  id: String
+  email: String
+  role: RoleInTeam
+}
+
+input UserWhereInput {
+  AND: [UserWhereInput!]
+  OR: [UserWhereInput!]
+  NOT: [UserWhereInput!]
+  id: StringFilter
+  account: AccountRelationFilter
+  accountId: StringFilter
+  firstName: StringFilter
+  lastName: StringNullableFilter
+  signupCompleted: BoolFilter
+  externalSSO: ExternalSSORelationFilter
+  userSessions: UserSessionListRelationFilter
+  personalAccessTokens: PersonalAccessTokenListRelationFilter
+  teams: TeamsOnUsersListRelationFilter
+  invitations: TeamMemberInvitationListRelationFilter
+  taskActions: TaskActionListRelationFilter
+}

@@ -1,0 +1,18 @@
+query GetUser{
+    me {
+        id
+        account {
+            id
+            username
+            isTeam
+        }
+        teams {
+            id
+            account {
+                id
+                username
+                isTeam
+            }
+        }
+    }
+}
