@@ -3,10 +3,12 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"github.com/Khan/genqlient/graphql"
 	"net/http"
 	"os"
+
+	"github.com/Khan/genqlient/graphql"
 )
 
 type APIClient struct {
@@ -23,13 +25,13 @@ func CreateClient() APIClient {
 	return apiClient
 }
 
-func (apiClient *APIClient) GetUser() *GetUserResponse {
+func (apiClient *APIClient) GetUser() (*GetUserResponse, error) {
 	if apiClient.ClientCreated {
 		user, err := GetUser(context.Background(), apiClient.ClientObject)
 		if err != nil {
-			return nil
+			return nil, err
 		}
-		return user
+		return user, nil
 	}
-	return nil
+	return nil, errors.New("Client is not created")
 }
